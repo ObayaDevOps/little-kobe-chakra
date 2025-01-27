@@ -1,13 +1,10 @@
 {
-  "name": "nekosero-clean",
+  "name": "little-kobe-chakra",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node src/functions/preBuildScripts/preBuildDev.js",
     "dev": "next dev",
-    "prebuild:dev": "node src/functions/preBuildScripts/preBuildDev.js",
     "build:dev": "next build",
-    "prebuild": "node src/functions/preBuildScripts/preBuildProd.js",
     "build:prod": "next build",
     "build": "next build",
     "start": "next start",
@@ -33,6 +30,7 @@
     "react-dom": "^18",
     "react-icons": "^5.0.1",
     "sanity": "^3.9.0",
-    "styled-components": "^6.1.11"
+    "styled-components": "^6.1.11",
+    "zustand": "^5.0.3"
   }
 }
