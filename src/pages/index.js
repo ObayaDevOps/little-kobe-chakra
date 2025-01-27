@@ -21,14 +21,14 @@ export default function Home({ products }) {
           <SearchIcon color="gray.300" />
         </InputLeftElement>
         <Input
-          placeholder="商品を検索..."
+          placeholder="Search Products..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           bg="white"
         />
       </InputGroup>
       
-      <Heading size="lg" mb={6}>新着商品</Heading>
+      <Heading size="lg" mb={6}>Popular Items</Heading>
       <Grid
         templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
         gap={6}

@@ -25,12 +25,12 @@ export default function ProductCard({ product }) {
           <Heading size="md" cursor="pointer">{product.name}</Heading>
         </Link>
         <Text color="gray.600" noOfLines={2}>{product.description}</Text>
-        <Text fontWeight="bold">¥{product.price.toLocaleString()}</Text>
+        <Text fontWeight="bold">{product.price.toLocaleString()} UGX</Text>
         <Button
           colorScheme="red"
           onClick={() => addItem(product)}
         >
-          カートに追加
+          Add to Cart
         </Button>
       </Stack>
     </Box>

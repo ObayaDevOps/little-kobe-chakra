@@ -14,7 +14,7 @@ export default function Layout({ children }) {
         alignItems="center"
       >
         <Link href="/">
-          <Heading size="lg" color="red.600">日本ストア</Heading>
+          <Heading size="lg" color="red.600">Little Kobe</Heading>
         </Link>
         <Flex gap={6}>
           <Link href="/cart">

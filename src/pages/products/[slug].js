@@ -32,7 +32,7 @@ export default function ProductPage({ product }) {
         <Stack spacing={6}>
           <Heading size="xl">{product.name}</Heading>
           <Text fontSize="2xl" fontWeight="bold">
-            ¥{product.price.toLocaleString()}
+            {product.price.toLocaleString()} UGX
           </Text>
           
           <Stack direction="row" spacing={4}>
@@ -52,7 +52,7 @@ export default function ProductPage({ product }) {
             size="lg"
             onClick={() => addItem(product)}
           >
-            カートに追加
+            Add to Cart
           </Button>
         </Stack>
       </SimpleGrid>

@@ -1,17 +1,27 @@
 import { FiShoppingCart } from 'react-icons/fi'
 import { Badge, IconButton } from '@chakra-ui/react'
 import { useCartStore } from '../lib/cartStore'
+import { useEffect, useState } from 'react'
 
 export default function CartIcon() {
+  const [mounted, setMounted] = useState(false)
   const items = useCartStore(state => state.items)
   
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <IconButton
-      aria-label="カートを見る"
+      aria-label="View cart"
       icon={
         <>
           <FiShoppingCart size="24px" />
-          {items.length > 0 && (
+          {totalItems > 0 && (
             <Badge
               colorScheme="red"
               variant="solid"
@@ -20,7 +30,7 @@ export default function CartIcon() {
               top="-4px"
               right="-4px"
             >
-              {items.reduce((sum, item) => sum + item.quantity, 0)}
+              {totalItems}
             </Badge>
           )}
         </>

@@ -1,18 +1,27 @@
+import { useEffect, useState } from 'react'
 import { Box, Heading, Grid, Text, Button, Stack, Flex, Image } from '@chakra-ui/react'
 import Layout from '../components/Layout'
 import { useCartStore } from '../lib/cartStore'
 import Link from 'next/link'
+import { FiPlus, FiMinus } from 'react-icons/fi'
 
 export default function CartPage() {
-  const { items, removeItem, clearCart } = useCartStore()
+  const [isMounted, setIsMounted] = useState(false)
+  const { items, addItem, decreaseItem, removeItem, clearCart } = useCartStore()
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) return null
 
   return (
     <Layout>
-      <Heading size="xl" mb={8}>ショッピングカート</Heading>
+      <Heading size="xl" mb={8}>Shopping Cart</Heading>
       
       {items.length === 0 ? (
-        <Text>カートに商品がありません</Text>
+        <Text>There are no items in your cart</Text>
       ) : (
         <Grid templateColumns={['1fr', '1fr', '2fr 1fr']} gap={8}>
           <Stack spacing={6}>
@@ -35,8 +44,24 @@ export default function CartPage() {
                   />
                   <Stack>
                     <Heading size="md">{item.name}</Heading>
-                    <Text>数量: {item.quantity}</Text>
-                    <Text>¥{(item.price * item.quantity).toLocaleString()}</Text>
+                    <Flex align="center" gap={3}>
+                      <Button
+                        size="sm"
+                        onClick={() => decreaseItem(item._id)}
+                        aria-label="Decrease quantity"
+                      >
+                        <FiMinus />
+                      </Button>
+                      <Text>{item.quantity}</Text>
+                      <Button
+                        size="sm"
+                        onClick={() => addItem(item)}
+                        aria-label="Increase quantity"
+                      >
+                        <FiPlus />
+                      </Button>
+                    </Flex>
+                    <Text>{(item.price * item.quantity || 0).toLocaleString()} UGX</Text>
                   </Stack>
                 </Flex>
                 <Button
@@ -44,7 +69,7 @@ export default function CartPage() {
                   variant="outline"
                   onClick={() => removeItem(item._id)}
                 >
-                  削除
+                  Delete
                 </Button>
               </Flex>
             ))}
@@ -52,10 +77,10 @@ export default function CartPage() {
 
           <Box bg="white" p={6} borderRadius="lg" boxShadow="md" h="fit-content">
             <Stack spacing={6}>
-              <Heading size="lg">注文概要</Heading>
+              <Heading size="lg">Order Summary</Heading>
               <Flex justify="space-between">
-                <Text fontWeight="bold">合計:</Text>
-                <Text fontWeight="bold">¥{total.toLocaleString()}</Text>
+                <Text fontWeight="bold">Total:</Text>
+                <Text fontWeight="bold">{(total || 0).toLocaleString()} UGX</Text>
               </Flex>
               <Button
                 colorScheme="red"
@@ -63,13 +88,13 @@ export default function CartPage() {
                 as={Link}
                 href="/checkout"
               >
-                レジへ進む
+                Proceed to Checkout
               </Button>
               <Button
                 variant="outline"
                 onClick={clearCart}
               >
-                カートを空にする
+                Empty Cart
               </Button>
             </Stack>
           </Box>
