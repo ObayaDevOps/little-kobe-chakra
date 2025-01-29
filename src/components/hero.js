@@ -11,7 +11,7 @@ export default function Hero() {
     return (
         <Box 
         minH={router.pathname === '/' ? '100vh' : '0vh'} 
-        bg={'red'}
+        bg={'#fcd7d7'}
         bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738155691/Snapinst.app_472289692_1060812559393318_6006079384320386073_n_1080_j3zpuz.jpg'
         borderBottom={router.pathname === '/' ? '0px': '0px'}
         // position={'relative'}

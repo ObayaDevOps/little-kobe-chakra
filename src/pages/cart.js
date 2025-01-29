@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Box, Heading, Grid, Text, Button, Stack, Flex, Image } from '@chakra-ui/react'
-import Layout from '../components/Layout'
+import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
 import Link from 'next/link'
 import { FiPlus, FiMinus } from 'react-icons/fi'
@@ -17,7 +17,10 @@ export default function CartPage() {
   if (!isMounted) return null
 
   return (
-    <Layout>
+    <Box bg="#fcd7d7" minH='100vh'>
+      <NavBar />
+
+      <Box p={8}>
       <Heading size="xl" mb={8} fontFamily={'nbHeading'}>Shopping Cart</Heading>
       
       {items.length === 0 ? (
@@ -30,9 +33,10 @@ export default function CartPage() {
                 key={item._id}
                 bg="white"
                 p={4}
-                borderRadius="lg"
                 borderColor="black"
-                borderWidth={'1px'}
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                 // boxShadow="md"
                 align="center"
                 justify="space-between"
@@ -78,9 +82,11 @@ export default function CartPage() {
             ))}
           </Stack>
 
-          <Box bg="white" p={6} borderRadius="lg" boxShadow="md" h="fit-content"
-          borderColor="black"
-          borderWidth={'1px'}
+          <Box bg="white" p={6} h="fit-content"
+            borderColor="black"
+            borderWidth={'2px'}
+            borderRadius="lg"
+            boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
           >
             <Stack spacing={6}>
               <Heading size="lg" fontFamily={'nbHeading'}>Order Summary</Heading>
@@ -94,6 +100,10 @@ export default function CartPage() {
                 fontFamily={'nbText'}
                 as={Link}
                 href="/checkout"
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               >
                 Proceed to Checkout
               </Button>
@@ -101,6 +111,10 @@ export default function CartPage() {
                 variant="outline"
                 fontFamily={'nbText'}
                 onClick={clearCart}
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               >
                 Empty Cart
               </Button>
@@ -108,6 +122,7 @@ export default function CartPage() {
           </Box>
         </Grid>
       )}
-    </Layout>
+    </Box>
+    </Box>
   )
 }

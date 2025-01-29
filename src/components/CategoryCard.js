@@ -12,15 +12,23 @@ export default function CategoryCard({ category }) {
       overflow="hidden"
       _hover={{ transform: 'translateY(-4px)', transition: 'transform 0.2s' }}
     >
-      {category.imageUrl && (
-        <Image
-          src={category.imageUrl}
-          alt={category.title}
-          objectFit="cover"
-          height="200px"
-          width="100%"
-        />
-      )}
+      <Box 
+            borderColor="black"
+            borderBottomWidth={'2px'}
+      >
+
+        <Link href={`/categories/${category.slug}`}>
+            {category.imageUrl && (
+                <Image
+                src={category.imageUrl}
+                alt={category.title}
+                objectFit="cover"
+                height="200px"
+                width="100%"
+                />
+            )}
+        </Link>
+        </Box>
 
       <Stack p={4} spacing={3}>
         <Link href={`/categories/${category.slug}`}>

@@ -1,13 +1,12 @@
 import { Box, Flex, Heading, Link, IconButton } from '@chakra-ui/react'
 import { FiShoppingCart } from 'react-icons/fi'
 import CartIcon from './cartIcon'
-import Hero from './hero'
 
 
 
-export default function Layout({ children }) {
+export default function NavBar() {
   return (
-    <Box minH="100vh" bg="#fcd7d7">
+    <Box bg="#fcd7d7">
       <Flex
         as="nav"
         bg="white"
@@ -32,8 +31,8 @@ export default function Layout({ children }) {
           </Link>
         </Flex>
       </Flex>
-      <Hero />
-      <Box p={8}>{children}</Box>
+      {/* <Hero /> */}
+      {/* <Box p={8}>{children}</Box> */}
     </Box>
   )
 } 

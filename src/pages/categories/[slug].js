@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import client from '../../../sanity/lib/client'
 import { groq } from 'next-sanity'
 import { Box, Heading, Grid } from '@chakra-ui/react'
-import Layout from '../../components/Layout'
+import NavBar from '../../components/Navbar'
 import ProductCard from '../../components/ProductCard'
 
 export default function CategoryPage({ products }) {
@@ -13,7 +13,10 @@ export default function CategoryPage({ products }) {
   }
 
   return (
-    <Layout>
+    <Box bg="#fcd7d7" minH='100vh'>
+      <NavBar />
+
+      <Box p={8}>
       <Heading size="xl" mb={8}>{router.query.slug} の商品</Heading>
       <Grid
         templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
@@ -23,7 +26,8 @@ export default function CategoryPage({ products }) {
           <ProductCard key={product._id} product={product} />
         ))}
       </Grid>
-    </Layout>
+      </Box>
+    </Box>
   )
 }
 

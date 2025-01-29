@@ -7,7 +7,7 @@ export default function ProductCard({ product }) {
 
   return (
     <Box
-      bg="white"
+      bg="brand.red"
       borderColor="black"
       borderWidth={'2px'}
       borderRadius="lg"
@@ -23,7 +23,7 @@ export default function ProductCard({ product }) {
           <Image
             src={product.mainImage}
             alt={product.name}
-            h="200px"
+            h="350px"
             w="100%"
             objectFit="cover"
           />
@@ -34,11 +34,12 @@ export default function ProductCard({ product }) {
         <Link href={`/products/${product.slug}`}>
           <Heading size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
         </Link>
-        <Text color="gray.600" fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
+        <Text color="black" fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
         <Text fontWeight="bold" fontFamily={'nbHeading'}>{product.price.toLocaleString()} UGX</Text>
         <Button
         mt={4}
-          colorScheme="red"
+          colorScheme="green"
+          bgColor={'#fcd7d7'}
           fontFamily={'nbHeading'}
           onClick={() => addItem(product)}
           borderColor="black"

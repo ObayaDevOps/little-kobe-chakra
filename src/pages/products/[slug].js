@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import client from '../../../sanity/lib/client'
 import { groq } from 'next-sanity'
 import { Box, Image, Heading, Text, Button, Stack, SimpleGrid, Tag } from '@chakra-ui/react'
-import Layout from '../../components/Layout'
+import NavBar from '../../components/Navbar'
 import { useCartStore } from '../../lib/cartStore'
 import NextImage from 'next/image'
 
@@ -17,7 +17,10 @@ export default function ProductPage({ product }) {
   if (!product) return <div>Product not found</div>
 
   return (
-    <Layout>
+    <Box bg="#fcd7d7" minH='100vh'>
+      <NavBar />
+
+      <Box p={8}>
       <SimpleGrid columns={[1, 1, 2]} gap={8} maxW="6xl" mx="auto">
         <Box 
         bg="white" 
@@ -74,7 +77,8 @@ export default function ProductPage({ product }) {
           </Button>
         </Stack>
       </SimpleGrid>
-    </Layout>
+    </Box>
+  </Box>
   )
 }
 
