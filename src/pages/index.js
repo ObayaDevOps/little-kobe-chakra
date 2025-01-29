@@ -8,7 +8,7 @@ import { useState } from 'react'
 import client from '../../sanity/lib/client'
 import { groq } from 'next-sanity'
 
-export default function Home({ products }) {
+export default function Home({ products, categories }) {
   const [searchQuery, setSearchQuery] = useState('')
 
   const filteredProducts = products.filter(product =>
@@ -18,8 +18,6 @@ export default function Home({ products }) {
 
   return (
     <Layout>
-
-
       <Box my={{base:20, md:28, lg: 32}}>
         <Heading 
           size={{base: '3xl', lg: "2xl"}} 
@@ -28,14 +26,14 @@ export default function Home({ products }) {
           mb={{base: 6, md:8, lg: 12}}
           fontFamily={'nbHeading'}
         >
-              Popular Categories
-            </Heading>
+          Popular Categories
+        </Heading>
         <Grid
           templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
           gap={6}
         >
-          {filteredProducts.map(product => (
-            <CategoryCard key={product._id} product={product} />
+          {categories.map(category => (
+            <CategoryCard key={category._id} category={category} />
           ))}
         </Grid>
       </Box>
@@ -50,8 +48,6 @@ export default function Home({ products }) {
                 Our Products
         </Heading>
       </Box>
-
-
 
       <Box>
         <InputGroup mb={8} borderColor="black"
@@ -69,7 +65,6 @@ export default function Home({ products }) {
           />
         </InputGroup>
       </Box>
-
 
       <Box>
         <Heading 
@@ -92,21 +87,34 @@ export default function Home({ products }) {
 }
 
 export async function getStaticProps() {
-  const products = await client.fetch(groq`
-    *[_type == "product"]{
-      _id,
-      name,
-      description,
-      price,
-      "slug": slug.current,
-      "mainImage": images[0].asset->url,
-      categories[]->{title}
-    }
-  `)
+  const [products, categories] = await Promise.all([
+    client.fetch(groq`
+      *[_type == "product"]{
+        _id,
+        name,
+        description,
+        price,
+        "slug": slug.current,
+        "mainImage": images[0].asset->url,
+        categories[]->{title}
+      }
+    `),
+    client.fetch(groq`
+      *[_type == "category"]{
+        _id,
+        title,
+        description,
+        "slug": slug.current,
+        "imageUrl": image.asset->url,
+        parent->{title, slug}
+      }
+    `)
+  ])
 
   return {
     props: {
-      products
+      products,
+      categories
     },
     revalidate: 60
   }

@@ -1,15 +1,10 @@
-import { Box, Image, Stack, Heading, Text, Button } from '@chakra-ui/react'
+import { Box, Image, Stack, Heading, Text } from '@chakra-ui/react'
 import Link from 'next/link'
-import { useCartStore } from '../lib/cartStore'
 
-export default function CategoryCard({ product }) {
-  const addItem = useCartStore(state => state.addItem)
-
+export default function CategoryCard({ category }) {
   return (
     <Box
-    //   bg="red.500"
       bg="brand.red"
-
       borderColor="black"
       borderWidth={'2px'}
       borderRadius="lg"
@@ -17,12 +12,34 @@ export default function CategoryCard({ product }) {
       overflow="hidden"
       _hover={{ transform: 'translateY(-4px)', transition: 'transform 0.2s' }}
     >
+      {category.imageUrl && (
+        <Image
+          src={category.imageUrl}
+          alt={category.title}
+          objectFit="cover"
+          height="200px"
+          width="100%"
+        />
+      )}
 
       <Stack p={4} spacing={3}>
-        <Link href={`/products/${product.slug}`}>
-          <Heading textColor={'black'} size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
+        <Link href={`/categories/${category.slug}`}>
+          <Heading 
+            textColor={'black'} 
+            size="md" 
+            cursor="pointer" 
+            fontFamily={'nbHeading'}
+          >
+            {category.title}
+          </Heading>
         </Link>
-        <Text  textColor={'black'} fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
+        <Text 
+          textColor={'black'} 
+          fontFamily={'nbText'} 
+          noOfLines={2}
+        >
+          {category.description}
+        </Text>
       </Stack>
     </Box>
   )
