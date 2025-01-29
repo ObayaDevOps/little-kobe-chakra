@@ -1,4 +1,4 @@
-import { Box, Image, Stack, Heading, Text, Button } from '@chakra-ui/react'
+ import { Box, Image, Stack, Heading, Text, Button } from '@chakra-ui/react'
 import Link from 'next/link'
 import { useCartStore } from '../lib/cartStore'
 
@@ -19,14 +19,16 @@ export default function ProductCard({ product }) {
             borderColor="black"
             borderBottomWidth={'2px'}
       >
-      <Image
-        src={product.mainImage}
-        alt={product.name}
-        h="200px"
-        w="100%"
-        objectFit="cover"
+        <Link href={`/products/${product.slug}`}>
+          <Image
+            src={product.mainImage}
+            alt={product.name}
+            h="200px"
+            w="100%"
+            objectFit="cover"
+          />
+        </Link>
 
-      />
       </Box>
       <Stack p={4} spacing={3}>
         <Link href={`/products/${product.slug}`}>

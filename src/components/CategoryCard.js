@@ -7,7 +7,9 @@ export default function CategoryCard({ product }) {
 
   return (
     <Box
-      bg="red"
+    //   bg="red.500"
+      bg="brand.red"
+
       borderColor="black"
       borderWidth={'2px'}
       borderRadius="lg"
@@ -18,9 +20,9 @@ export default function CategoryCard({ product }) {
 
       <Stack p={4} spacing={3}>
         <Link href={`/products/${product.slug}`}>
-          <Heading textColor={'white'} size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
+          <Heading textColor={'black'} size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
         </Link>
-        <Text  textColor={'white'} fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
+        <Text  textColor={'black'} fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
       </Stack>
     </Box>
   )

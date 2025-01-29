@@ -18,6 +18,41 @@ export default function Home({ products }) {
 
   return (
     <Layout>
+
+
+      <Box my={{base:20, md:28, lg: 32}}>
+        <Heading 
+          size={{base: '3xl', lg: "2xl"}} 
+          textAlign={{base: 'left', md: 'left'}}
+          mt={{base: 6, md: 10, lg: 10}}
+          mb={{base: 6, md:8, lg: 12}}
+          fontFamily={'nbHeading'}
+        >
+              Popular Categories
+            </Heading>
+        <Grid
+          templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
+          gap={6}
+        >
+          {filteredProducts.map(product => (
+            <CategoryCard key={product._id} product={product} />
+          ))}
+        </Grid>
+      </Box>
+
+      <Box mt={{base: 32}}>
+        <Heading 
+            size={{base: '3xl', lg: "2xl"}} 
+            textAlign={{base: 'left', md: 'left'}}
+            mb={6}
+            fontFamily={'nbHeading'}
+              >
+                Our Products
+        </Heading>
+      </Box>
+
+
+
       <Box>
         <InputGroup mb={8} borderColor="black"
               borderWidth={'0.5px'}
@@ -35,36 +70,17 @@ export default function Home({ products }) {
         </InputGroup>
       </Box>
 
-      <Box mb={12}>
-        <Heading 
-          size="lg" 
-          mb={6}
-          fontFamily={'nbHeading'}
-            
-            >Product Categories
-            </Heading>
-        <Grid
-          templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
-          gap={6}
-        >
-          {filteredProducts.map(product => (
-            <CategoryCard key={product._id} product={product} />
-          ))}
-        </Grid>
-      </Box>
-
-
 
       <Box>
         <Heading 
-          size="lg" 
+          size={{base: 'xl', lg: "lg"}} 
           mb={6}
           fontFamily={'nbHeading'}
             
             >Popular Items</Heading>
         <Grid
           templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
-          gap={6}
+          gap={{base: 12, lg: 6}}
         >
           {filteredProducts.map(product => (
             <ProductCard key={product._id} product={product} />
