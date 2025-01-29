@@ -18,10 +18,10 @@ export default function CartPage() {
 
   return (
     <Layout>
-      <Heading size="xl" mb={8}>Shopping Cart</Heading>
+      <Heading size="xl" mb={8} fontFamily={'nbHeading'}>Shopping Cart</Heading>
       
       {items.length === 0 ? (
-        <Text>There are no items in your cart</Text>
+        <Text fontFamily={'nbHeading'}>There are no items in your cart</Text>
       ) : (
         <Grid templateColumns={['1fr', '1fr', '2fr 1fr']} gap={8}>
           <Stack spacing={6}>
@@ -31,7 +31,9 @@ export default function CartPage() {
                 bg="white"
                 p={4}
                 borderRadius="lg"
-                boxShadow="md"
+                borderColor="black"
+                borderWidth={'1px'}
+                // boxShadow="md"
                 align="center"
                 justify="space-between"
               >
@@ -43,7 +45,7 @@ export default function CartPage() {
                     objectFit="contain"
                   />
                   <Stack>
-                    <Heading size="md">{item.name}</Heading>
+                    <Heading size="md" fontFamily={'nbText'}>{item.name}</Heading>
                     <Flex align="center" gap={3}>
                       <Button
                         size="sm"
@@ -61,11 +63,12 @@ export default function CartPage() {
                         <FiPlus />
                       </Button>
                     </Flex>
-                    <Text>{(item.price * item.quantity || 0).toLocaleString()} UGX</Text>
+                    <Text fontFamily={'nbText'}>{(item.price * item.quantity || 0).toLocaleString()} UGX</Text>
                   </Stack>
                 </Flex>
                 <Button
                   colorScheme="red"
+                  fontFamily={'nbText'}
                   variant="outline"
                   onClick={() => removeItem(item._id)}
                 >
@@ -75,16 +78,20 @@ export default function CartPage() {
             ))}
           </Stack>
 
-          <Box bg="white" p={6} borderRadius="lg" boxShadow="md" h="fit-content">
+          <Box bg="white" p={6} borderRadius="lg" boxShadow="md" h="fit-content"
+          borderColor="black"
+          borderWidth={'1px'}
+          >
             <Stack spacing={6}>
-              <Heading size="lg">Order Summary</Heading>
+              <Heading size="lg" fontFamily={'nbHeading'}>Order Summary</Heading>
               <Flex justify="space-between">
-                <Text fontWeight="bold">Total:</Text>
-                <Text fontWeight="bold">{(total || 0).toLocaleString()} UGX</Text>
+                <Text fontWeight="bold" fontFamily={'nbText'}>Total:</Text>
+                <Text fontWeight="bold" fontFamily={'nbText'}>{(total || 0).toLocaleString()} UGX</Text>
               </Flex>
               <Button
                 colorScheme="red"
                 size="lg"
+                fontFamily={'nbText'}
                 as={Link}
                 href="/checkout"
               >
@@ -92,6 +99,7 @@ export default function CartPage() {
               </Button>
               <Button
                 variant="outline"
+                fontFamily={'nbText'}
                 onClick={clearCart}
               >
                 Empty Cart
