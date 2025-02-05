@@ -9,6 +9,8 @@ import client from '../../sanity/lib/client'
 import { groq } from 'next-sanity'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
+import Head from 'next/head'
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -68,13 +70,32 @@ export default function Home({ products, categories }) {
 
   return (
     <Box bg="#fcd7d7">
+        <Head>
+          <title>Little Kobe Japanese Market</title>
+          <meta name="description" content="Little Kobe Japanese Market"  />
+          {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+
+          <meta property="og:title" content='Little Kobe Japanese Market'/> 
+          <meta property="og:description" content="Little Kobe Japanese Market" />
+          <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+          <meta property="og:image:secure_url" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+                   
+          
+          {/* <meta property="og:image:type" content="image/png" />  */}
+          <meta property="og:image:width" content="120" />
+          <meta property="og:image:height" content="120" />
+          {/* <meta property="og:url" content="https://www.nekosero.ug/" /> */}
+          <meta property="og:type" content="website" />
+        </Head>
+
+
       <NavBar />
       <Hero />
       <Box  
       
       p={8}
       >
-      <Box my={{base:20, md:28, lg: 32}}>
+      <Box my={{base:20, md:28, lg: 20}}>
         <Heading 
           size={{base: '3xl', lg: "2xl"}} 
           textAlign={{base: 'left', md: 'left'}}

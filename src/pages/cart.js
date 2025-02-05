@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Box, Heading, Grid, Text, Button, Stack, Flex, Image } from '@chakra-ui/react'
+import { Box, Heading, Grid, Text, Button, Stack, Flex, Image, Show } from '@chakra-ui/react'
 import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
 import Link from 'next/link'
 import { FiPlus, FiMinus } from 'react-icons/fi'
+import Head from 'next/head'
+
 
 export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false)
@@ -18,6 +20,24 @@ export default function CartPage() {
 
   return (
     <Box bg="#fcd7d7" minH='100vh'>
+        <Head>
+          <title>Cart | Little Kobe Japanese Market</title>
+          <meta name="description" content="Little Kobe Japanese Market"  />
+          {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+
+          <meta property="og:title" content='Little Kobe Japanese Market'/> 
+          <meta property="og:description" content="Little Kobe Japanese Market" />
+          <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+          <meta property="og:image:secure_url" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+                   
+          
+          {/* <meta property="og:image:type" content="image/png" />  */}
+          <meta property="og:image:width" content="120" />
+          <meta property="og:image:height" content="120" />
+          {/* <meta property="og:url" content="https://www.nekosero.ug/" /> */}
+          <meta property="og:type" content="website" />
+        </Head>
+
       <NavBar />
 
       <Box p={8}>
@@ -55,6 +75,10 @@ export default function CartPage() {
                         size="sm"
                         onClick={() => decreaseItem(item._id)}
                         aria-label="Decrease quantity"
+                        borderColor="black"
+                        borderWidth={'2px'}
+                        borderRadius="lg"
+                        boxShadow="1px 1px 0px 0px rgba(0, 0, 0, 1)"
                       >
                         <FiMinus />
                       </Button>
@@ -63,21 +87,38 @@ export default function CartPage() {
                         size="sm"
                         onClick={() => addItem(item)}
                         aria-label="Increase quantity"
+                        borderColor="black"
+                        borderWidth={'2px'}
+                        borderRadius="lg"
+                        boxShadow="1px 1px 0px 0px rgba(0, 0, 0, 1)"
                       >
                         <FiPlus />
                       </Button>
                     </Flex>
                     <Text fontFamily={'nbText'}>{(item.price * item.quantity || 0).toLocaleString()} UGX</Text>
+                  <Show below='md'>
+                    <Button
+                      colorScheme="red"
+                      fontFamily={'nbText'}
+                      variant="outline"
+                      onClick={() => removeItem(item._id)}
+                      w='full'
+                    >
+                    Delete
+                  </Button>
+                </Show>
                   </Stack>
                 </Flex>
-                <Button
-                  colorScheme="red"
-                  fontFamily={'nbText'}
-                  variant="outline"
-                  onClick={() => removeItem(item._id)}
-                >
-                  Delete
-                </Button>
+                <Show above='md' >
+                    <Button
+                      colorScheme="red"
+                      fontFamily={'nbText'}
+                      variant="outline"
+                      onClick={() => removeItem(item._id)}
+                    >
+                    Delete
+                  </Button>
+                </Show>
               </Flex>
             ))}
           </Stack>

@@ -10,35 +10,48 @@ export default function Hero() {
 
     return (
         <Box 
-        minH={router.pathname === '/' ? '100vh' : '0vh'} 
+        minH={{base:'45vh' , lg: '50vh'}} 
+
         bg={'#fcd7d7'}
-        bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738155691/Snapinst.app_472289692_1060812559393318_6006079384320386073_n_1080_j3zpuz.jpg'
-        borderBottom={router.pathname === '/' ? '0px': '0px'}
-        // position={'relative'}
+        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738155691/Snapinst.app_472289692_1060812559393318_6006079384320386073_n_1080_j3zpuz.jpg'
+        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747377/showa-period-1200x801_u4enh1.jpg'
+        bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747948/pexels-apasaric-3423860_ddbmcf.jpg'
+        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747987/pexels-markus-winkler-1430818-3708747_jpg0ea.jpg'
+        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747952/pexels-ryutaro-5473228_sll1wz.jpg'
+
+        bgSize={'cover'}
+        bgPosition={'center'}
+        
         >
+            {/* <Box>
+                <Text textColor={'white'} fontFamily={'nbHeading'}>
+                    Buy Premium Groceries Imported from Japan
+                </Text>
+            </Box> */}
 
         <Box 
          borderColor="black"
          borderTopWidth={'4px'}
          borderBottomWidth={'4px'}
          position='relative'
-         top={'100vh'}
+         top={{base:'45vh' , lg: '50vh'}} 
          bottom={'0px'}
          bg='white'
          >
-        <Marquee autofill>
+        <Marquee autofill speed={75}>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            Premium Japanese Groceries
+                Special Offer
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            高級日本食材
+                特別オファー
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            Imported from Japan
+                Sake
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            日本から輸入
+                酒
             </Text>
+            
         </Marquee>
         </Box>
 

@@ -19,11 +19,11 @@ export default function NavBar() {
       >
         <Link href="/">
           <Heading 
-          size="lg"
-          pl={8}
+          size={{base: 'lg', md: "lg"}}
+          pl={{base: 2, lg :8}}
           color="red.600"
           fontFamily={'nbHeading'}
-          >Little Kobe</Heading>
+          >Little Kobe Japanese Market</Heading>
         </Link>
         <Flex gap={6}>
           <Link href="/cart">

@@ -1,9 +1,29 @@
- import { Box, Image, Stack, Heading, Text, Button } from '@chakra-ui/react'
+import { Box, Image, Stack, Heading, Text, Button, useToast } from '@chakra-ui/react'
 import Link from 'next/link'
 import { useCartStore } from '../lib/cartStore'
 
 export default function ProductCard({ product }) {
   const addItem = useCartStore(state => state.addItem)
+  const toast = useToast()
+
+  const handleAddToCart = () => {
+    addItem(product)
+    toast({
+      title: 'Added to cart',
+      description: `${product.name} has been added to your cart`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+      position: 'bottom-right',
+      variant: 'solid',
+      containerStyle: {
+        fontFamily: 'nbText',
+        border: '2px solid black',
+        borderRadius: 'lg',
+        boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)',
+      }
+    })
+  }
 
   return (
     <Box
@@ -41,7 +61,7 @@ export default function ProductCard({ product }) {
           colorScheme="green"
           bgColor={'#fcd7d7'}
           fontFamily={'nbHeading'}
-          onClick={() => addItem(product)}
+          onClick={handleAddToCart}
           borderColor="black"
           textColor={'black'}
           borderWidth={'1px'}

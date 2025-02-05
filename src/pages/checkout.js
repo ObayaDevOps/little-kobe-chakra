@@ -3,6 +3,7 @@ import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
 import { useState } from 'react'
 import NextLink from 'next/link'
+import Head from 'next/head'
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCartStore()
@@ -49,7 +50,25 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Box bg="#fcd7d7" minH='100vh'>
+    <Box bg="#fcd7d7" minH='100vh'>#
+        <Head>
+          <title>Checkout| Little Kobe Japanese Market</title>
+          <meta name="description" content="Little Kobe Japanese Market"  />
+          {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+
+          <meta property="og:title" content='Little Kobe Japanese Market'/> 
+          <meta property="og:description" content="Little Kobe Japanese Market" />
+          <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+          <meta property="og:image:secure_url" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+                   
+          
+          {/* <meta property="og:image:type" content="image/png" />  */}
+          <meta property="og:image:width" content="120" />
+          <meta property="og:image:height" content="120" />
+          {/* <meta property="og:url" content="https://www.nekosero.ug/" /> */}
+          <meta property="og:type" content="website" />
+        </Head>
+
     <NavBar />
 
     <Box p={8}>
@@ -154,7 +173,7 @@ export default function CheckoutPage() {
           </Stack>
         </Box>
 
-        <Box bg="white" p={6} boxShadow="md" h="fit-content"
+        <Box bg="white" p={6} h="fit-content"
               borderColor="black"
               borderWidth={'2px'}
               borderRadius="lg"
