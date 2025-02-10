@@ -53,12 +53,6 @@ export default {
         },
         validation: Rule => Rule.required()
       },
-      {
-        name: 'isPopular',
-        title: 'Popular Item?',
-        type: 'boolean',
-        description: 'Mark this product as a popular item',
-        initialValue: false
-      }
+
     ]
   }

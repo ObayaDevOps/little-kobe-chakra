@@ -98,11 +98,16 @@ export default function Home({ products, categories }) {
 
       
     <Box p={8}>
-      <Box my={{base:20, md:28, lg: 20}}>
+      <Box 
+      // my={{base:20, md:28, lg: 20}}
+      mt={{base:20, md:16, lg: 20}}
+
+      
+      >
         <Heading 
           size={{base: '3xl', lg: "2xl"}} 
           textAlign={{base: 'left', md: 'left'}}
-          mt={{base: 6, md: 10, lg: 10}}
+          mt={{base: 6, md: 10, lg:2}}
           mb={{base: 6, md:8, lg: 4}}
           fontFamily={'nbHeading'}
         >
@@ -192,7 +197,7 @@ export default function Home({ products, categories }) {
           mb={6}
           fontFamily={'nbHeading'}
             
-            >Popular Items</Heading>
+            >All Items</Heading>
         <Grid
           templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
           gap={{base: 12, lg: 6}}
