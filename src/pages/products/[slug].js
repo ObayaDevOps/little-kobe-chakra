@@ -171,6 +171,7 @@ export async function getStaticProps({ params }) {
       name,
       description,
       price,
+      isPopular,
       "slug": slug.current,
       "mainImage": images[0].asset->url,
       images[] {

@@ -68,6 +68,10 @@ export default function Home({ products, categories }) {
     product.description?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const filteredPopularProducts = products.filter(product => 
+    product.isPopular
+  )
+
   return (
     <Box bg="#fcd7d7">
         <Head>
@@ -91,8 +95,36 @@ export default function Home({ products, categories }) {
 
       <NavBar />
       <Hero />
-      <Box  
+
       
+    <Box p={8}>
+      <Box my={{base:20, md:28, lg: 20}}>
+        <Heading 
+          size={{base: '3xl', lg: "2xl"}} 
+          textAlign={{base: 'left', md: 'left'}}
+          mt={{base: 6, md: 10, lg: 10}}
+          mb={{base: 6, md:8, lg: 4}}
+          fontFamily={'nbHeading'}
+        >
+          Popular Items
+        </Heading>
+        <Grid
+          templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
+          gap={{base: 12, lg: 6}}
+        >
+          {filteredPopularProducts.map((product, index) => (
+            <AnimatedProductCard 
+              key={product._id} 
+              product={product} 
+              index={index} 
+            />
+          ))}
+        </Grid>
+      </Box>
+
+    </Box>
+      
+      <Box  
       p={8}
       >
       <Box my={{base:20, md:28, lg: 20}}>
@@ -187,6 +219,7 @@ export async function getStaticProps() {
         name,
         description,
         price,
+        isPopular,
         "slug": slug.current,
         "mainImage": images[0].asset->url,
         categories[]->{title}

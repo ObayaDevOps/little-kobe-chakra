@@ -22,12 +22,20 @@ export default {
         validation: Rule => Rule.required().min(0)
       },
       {
+        name: 'isPopular',
+        title: 'Popular Item? (Will Display at top of Landing Page)',
+        type: 'boolean',
+        description: 'Mark this product as a popular item',
+        initialValue: false
+      },
+      {
         name: 'images',
         title: 'Images',
         type: 'array',
         of: [{ type: 'image' }],
         validation: Rule => Rule.required()
       },
+      
       {
         name: 'categories',
         title: 'Categories',
@@ -44,6 +52,13 @@ export default {
           maxLength: 96
         },
         validation: Rule => Rule.required()
+      },
+      {
+        name: 'isPopular',
+        title: 'Popular Item?',
+        type: 'boolean',
+        description: 'Mark this product as a popular item',
+        initialValue: false
       }
     ]
   }
