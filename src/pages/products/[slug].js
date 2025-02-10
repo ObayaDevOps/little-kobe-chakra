@@ -7,12 +7,14 @@ import { useCartStore } from '../../lib/cartStore'
 import NextImage from 'next/image'
 import Head from 'next/head'
 import { useCartToast } from '../../utils/useCartToast'
+import { useState } from 'react'
 
 
 export default function ProductPage({ product }) {
   const router = useRouter()
   const addItem = useCartStore(state => state.addItem)
   const showCartToast = useCartToast()
+  const [quantity, setQuantity] = useState(1)
 
   if (router.isFallback) {
     return <div>Loading...</div>
@@ -20,12 +22,23 @@ export default function ProductPage({ product }) {
 
   if (!product) return <div>Product not found</div>
 
+  const handleDecrement = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1)
+    }
+  }
+
+  const handleIncrement = () => {
+    setQuantity(prev => prev + 1)
+  }
+
   const handleAddToCart = () => {
-    addItem(product)
+    addItem(product, quantity)
     showCartToast(
       'Added to cart',
-      `${product.name} has been added to your cart`
+      `${quantity} ${quantity === 1 ? 'item' : 'items'} of ${product.name} added to cart`
     )
+    setQuantity(1) // Reset quantity after adding to cart
   }
 
   return (
@@ -93,6 +106,31 @@ export default function ProductPage({ product }) {
             {product.description}
           </Text>
 
+          <Stack direction="row" spacing={4} align="center">
+            <Button
+              onClick={handleDecrement}
+              disabled={quantity === 1}
+              borderColor="black"
+              borderWidth="1px"
+              boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+              aria-label="Decrease quantity"
+            >
+              -
+            </Button>
+            <Text fontSize="xl" fontFamily="nbHeading" minW="40px" textAlign="center">
+              {quantity}
+            </Text>
+            <Button
+              onClick={handleIncrement}
+              borderColor="black"
+              borderWidth="1px"
+              boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+              aria-label="Increase quantity"
+            >
+              +
+            </Button>
+          </Stack>
+
           <Button
             colorScheme="red"
             fontFamily={'nbHeading'}
@@ -103,7 +141,7 @@ export default function ProductPage({ product }) {
             boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
             onClick={handleAddToCart}
           >
-            Add to Cart
+            Add {quantity > 1 ? `${quantity} Items` : 'to Cart'}
           </Button>
         </Stack>
       </SimpleGrid>
