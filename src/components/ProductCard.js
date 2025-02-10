@@ -1,28 +1,18 @@
 import { Box, Image, Stack, Heading, Text, Button, useToast } from '@chakra-ui/react'
 import Link from 'next/link'
 import { useCartStore } from '../lib/cartStore'
+import { useCartToast } from '../utils/useCartToast'
 
 export default function ProductCard({ product }) {
   const addItem = useCartStore(state => state.addItem)
-  const toast = useToast()
+  const showCartToast = useCartToast()
 
   const handleAddToCart = () => {
     addItem(product)
-    toast({
-      title: 'Added to cart',
-      description: `${product.name} has been added to your cart`,
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-      position: 'bottom-right',
-      variant: 'solid',
-      containerStyle: {
-        fontFamily: 'nbText',
-        border: '2px solid black',
-        borderRadius: 'lg',
-        boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)',
-      }
-    })
+    showCartToast(
+      'Added to cart',
+      `${product.name} has been added to your cart`
+    )
   }
 
   return (

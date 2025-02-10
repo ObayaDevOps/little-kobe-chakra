@@ -10,15 +10,10 @@ export default function Hero() {
 
     return (
         <Box 
-        minH={{base:'45vh' , lg: '50vh'}} 
+        minH={{base:'45vh' , lg: '70vh'}} 
 
         bg={'#fcd7d7'}
-        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738155691/Snapinst.app_472289692_1060812559393318_6006079384320386073_n_1080_j3zpuz.jpg'
-        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747377/showa-period-1200x801_u4enh1.jpg'
         bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747948/pexels-apasaric-3423860_ddbmcf.jpg'
-        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747987/pexels-markus-winkler-1430818-3708747_jpg0ea.jpg'
-        // bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747952/pexels-ryutaro-5473228_sll1wz.jpg'
-
         bgSize={'cover'}
         bgPosition={'center'}
         
@@ -34,7 +29,7 @@ export default function Hero() {
          borderTopWidth={'4px'}
          borderBottomWidth={'4px'}
          position='relative'
-         top={{base:'45vh' , lg: '50vh'}} 
+         top={{base:'45vh' , lg: '70vh'}} 
          bottom={'0px'}
          bg='white'
          >

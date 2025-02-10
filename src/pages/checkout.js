@@ -50,7 +50,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <Box bg="#fcd7d7" minH='100vh'>#
+    <Box bg="#fcd7d7" minH='100vh'>
         <Head>
           <title>Checkout| Little Kobe Japanese Market</title>
           <meta name="description" content="Little Kobe Japanese Market"  />
