@@ -6,17 +6,27 @@ import NavBar from '../../components/Navbar'
 import { useCartStore } from '../../lib/cartStore'
 import NextImage from 'next/image'
 import Head from 'next/head'
+import { useCartToast } from '../../utils/useCartToast'
 
 
 export default function ProductPage({ product }) {
   const router = useRouter()
   const addItem = useCartStore(state => state.addItem)
+  const showCartToast = useCartToast()
 
   if (router.isFallback) {
     return <div>Loading...</div>
   }
 
   if (!product) return <div>Product not found</div>
+
+  const handleAddToCart = () => {
+    addItem(product)
+    showCartToast(
+      'Added to cart',
+      `${product.name} has been added to your cart`
+    )
+  }
 
   return (
     <Box bg="#fcd7d7" minH='100vh'>
@@ -91,7 +101,7 @@ export default function ProductPage({ product }) {
             textColor={'black'}
             borderWidth={'1px'}
             boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-            onClick={() => addItem(product)}
+            onClick={handleAddToCart}
           >
             Add to Cart
           </Button>
