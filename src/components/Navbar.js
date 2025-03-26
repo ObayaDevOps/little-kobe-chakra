@@ -19,7 +19,7 @@ export default function NavBar() {
       >
         <Box>
         <Image
-            src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1739195996/WhatsApp_Image_2025-02-05_at_16.49.34_rrov0x.jpg'}
+            src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1742985497/file_dpdbum.svg'}
             alt={'Little Kobe Logo'}
             h="50px"
             w="50px"
