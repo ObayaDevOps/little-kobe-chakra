@@ -50,7 +50,8 @@ export default function Footer() {
                         <Stack spacing={2}>
                             <Link href="/contact" fontSize="sm">Contact</Link>
                             <Link href="/faq" fontSize="sm">FAQ</Link>
-                            <Link href="/careers" fontSize="sm">Careers</Link>
+                            <Link href="/refund-cancellation" fontSize="sm">Refunds and Cancellations</Link>
+
                         </Stack>
                     </GridItem>
                 </Grid>
