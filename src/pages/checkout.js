@@ -1,9 +1,10 @@
-import { Box, Heading, Grid, FormControl, FormLabel, Input, Button, Alert, AlertIcon, Stack, Text, Flex, Tag } from '@chakra-ui/react'
+import { useToast,  Select, Box, Heading, Grid, FormControl, FormLabel, Input, Button, Alert, AlertIcon, Stack, Text, Flex, Tag } from '@chakra-ui/react'
 import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
 import { useState } from 'react'
 import NextLink from 'next/link'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCartStore()
@@ -12,23 +13,54 @@ export default function CheckoutPage() {
     email: '',
     address: '',
     city: '',
-    cardNumber: ''
+    cardNumber: '',
+    phone: '',
+    paymentMethod: 'CARD'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
+  const router = useRouter()
+  const toast = useToast()
 
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
-    // Simulate payment processing
-    setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/paymentDPO', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: total,
+          currency: 'UGX',
+          customerEmail: formData.email,
+          customerFirstName: formData.name.split(' ')[0],
+          customerLastName: formData.name.split(' ')[1] || '',
+          customerPhone: formData.phone,
+          redirectUrl: `${window.location.origin}/payment/success`,
+          backUrl: `${window.location.origin}/payment/cancel`,
+          reference: `ORDER-${Date.now()}-${items.length}`,
+          paymentMethod: formData.paymentMethod
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        window.location.href = data.paymentUrl
+      } else {
+        throw new Error(data.message)
+      }
+    } catch (err) {
+      toast({
+        title: 'Payment Error',
+        description: err.message,
+        status: 'error',
+        duration: 5000
+      })
       setIsSubmitting(false)
-      setOrderSuccess(true)
-      clearCart()
-    }, 2000)
+    }
   }
 
   if (orderSuccess) {
@@ -141,19 +173,31 @@ export default function CheckoutPage() {
             </FormControl>
 
             <FormControl isRequired>
-              <FormLabel>Credit Card Number</FormLabel>
+              <FormLabel>Phone Number</FormLabel>
               <Input
-                type="text"
-                fontFamily={'nbText'}
-                pattern="[0-9]{16}"
-                value={formData.cardNumber}
-                onChange={(e) => setFormData({...formData, cardNumber: e.target.value})}
-                placeholder="4242424242424242"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                placeholder="+256 XXX XXX XXX"
                 borderColor="black"
                 borderWidth={'2px'}
                 borderRadius="lg"
                 boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               />
+            </FormControl>
+
+            <FormControl isRequired>
+              <FormLabel>Payment Method</FormLabel>
+              <Select
+                value={formData.paymentMethod}
+                onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+              >
+                <option value="CARD">Credit Card</option>
+                <option value="MPESA">Mobile Money (M-Pesa)</option>
+              </Select>
             </FormControl>
 
             <Button
@@ -168,7 +212,7 @@ export default function CheckoutPage() {
                 borderRadius="lg"
                 boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
             >
-              Confirm Order
+              Proceed to Payment
             </Button>
           </Stack>
         </Box>

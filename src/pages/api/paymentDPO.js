@@ -27,18 +27,24 @@ export default async function handler(req, res) {
     // Create payment request
     const createRequest = {
       CompanyToken: DPO_COMPANY_TOKEN,
-      Amount: amount,
-      Currency: currency,
+      Services: { 
+        Service: {
+          ServiceType: 5525, // Standard payment service
+          ServiceDescription: `Order ${reference}`,
+          ServiceDate: new Date().toISOString()
+        }
+      },
+      PaymentAmount: amount,
+      PaymentCurrency: currency,
+      CompanyRef: reference,
       RedirectURL: redirectUrl,
       BackURL: backUrl,
-      Reference: reference,
-      CompanyRefUnique: 1,
       CustomerEmail: customerEmail,
       CustomerFirstName: customerFirstName,
       CustomerLastName: customerLastName,
-      CustomerPhone: customerPhone,
-      PaymentMethod: paymentMethod,
-      DefaultPayment: 'CC', // Credit Card as default
+      CustomerPhone: customerPhone.replace(/\D/g, ''), // Remove non-digit characters
+      CompanyRefUnique: 0,
+      PTL: paymentMethod === 'MPESA' ? 'MTN' : 'CC' // Payment Type Line
     };
 
     // Create transaction
@@ -64,6 +70,10 @@ export default async function handler(req, res) {
       `${DPO_BASE_URL}Transaction/Verify`,
       verifyRequest
     );
+
+    if (verifyResponse.data.Result !== '000') {
+      throw new Error(verifyResponse.data.ResultExplanation);
+    }
 
     // Return the payment URL and transaction details
     return res.status(200).json({
