@@ -9,8 +9,9 @@ export default function Footer() {
             color="brand.beige"
             borderTop="4px"
             borderColor="brand.darkRed"
-            py={8}
-            px={{ base: 4, md: 8 }}
+            pt={{base: 16, md: 20}}
+            pb={8}
+            px={{ base: 8, md: 8 }}
         >
             <Flex
                 direction={{ base: 'column', md: 'row' }}
@@ -19,12 +20,23 @@ export default function Footer() {
                 mx="auto"
                 gap={8}
             >
+                <Box display={{base: 'none', lg: 'flex'}}>
+                    <Image
+                        src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745851600/image-black-2_m163vh.svg'}
+                        alt={'Little Kobe Logo'}
+                        h="100px"
+                        w="100px"
+                        objectFit="cover"
+                    />
+                </Box>
                 {/* Brand Info */}
                 <Box flexBasis={{ md: '30%' }}>
-                    <Heading size="lg" mb={4} fontFamily="heading">
+  
+
+                    <Heading size="lg" mb={4} fontFamily="logoFont">
                         Little Kobe Japanese Market
                     </Heading>
-                    <Text fontSize="sm" lineHeight="tall">
+                    <Text fontSize="sm" lineHeight="tall" fontFamily="nbText">
                         Sourcing exceptional Japanese Ingredients since 2010. 
                     </Text>
                 </Box>
@@ -36,21 +48,21 @@ export default function Footer() {
                     flexBasis={{ md: '40%' }}
                 >
                     <GridItem>
-                        <Heading size="sm" mb={3}>Explore</Heading>
+                        <Heading size="sm" mb={3} fontFamily="nbText">Explore</Heading>
                         <Stack spacing={2}>
-                            <Link href="/location" fontSize="sm">Popular Items</Link>
-                            <Link href="/location" fontSize="sm">Categories</Link>
-                            <Link href="/location" fontSize="sm">Special Offers</Link>
+                            <Link href="/location" fontSize="sm" fontFamily="nbText">Popular Items</Link>
+                            <Link href="/location" fontSize="sm" fontFamily="nbText">Categories</Link>
+                            <Link href="/location" fontSize="sm" fontFamily="nbText">Special Offers</Link>
 
 
                         </Stack>
                     </GridItem>
                     <GridItem>
-                        <Heading size="sm" mb={3}>Support</Heading>
+                        <Heading size="sm" mb={3} fontFamily="nbText">Support</Heading>
                         <Stack spacing={2}>
-                            <Link href="/contact" fontSize="sm">Contact</Link>
-                            <Link href="/faq" fontSize="sm">FAQ</Link>
-                            <Link href="/refund-cancellation" fontSize="sm">Refunds and Cancellations</Link>
+                            <Link href="/contact" fontSize="sm" fontFamily="nbText">Contact</Link>
+                            <Link href="/faq" fontSize="sm" fontFamily="nbText">FAQ</Link>
+                            <Link href="/refund-cancellation" fontSize="sm" fontFamily="nbText">Refunds and Cancellations</Link>
 
                         </Stack>
                     </GridItem>
@@ -58,14 +70,18 @@ export default function Footer() {
 
                 {/* Social & Newsletter */}
                 <Box flexBasis={{ md: '30%' }}>
-                    <Heading size="sm" mb={4}>Stay Connected</Heading>
+                    <Heading size="sm" mb={4} fontFamily="nbText">Stay Connected</Heading>
                     <Flex gap={3} mb={6}>
                         <IconButton
                             aria-label="Instagram"
                             icon={<FiInstagram />}
                             variant="outline"
-                            color="currentColor"
+                            color="black"
                             _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                         />
                         <IconButton
                             aria-label="Facebook"
@@ -73,6 +89,11 @@ export default function Footer() {
                             variant="outline"
                             color="currentColor"
                             _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                            
                         />
                         <IconButton
                             aria-label="Twitter"
@@ -80,26 +101,40 @@ export default function Footer() {
                             variant="outline"
                             color="currentColor"
                             _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                         />
                     </Flex>
 
-                    <Box>
-                        <Text mb={2} fontSize="sm">Newsletter Signup</Text>
+                    {/* <Box>
+                        <Text mb={2} fontSize="sm" fontFamily="nbText">Newsletter Signup</Text>
                         <Flex gap={2}>
                             <Input 
                                 placeholder="Enter your email" 
                                 size="sm" 
+                                textColor='black'
+                                fontFamily="nbText"
                                 _placeholder={{ color: 'brand.beige' }}
-                                borderColor="brand.darkRed"
+                                borderColor="black"
+                                borderWidth={'2px'}
+                                borderRadius="lg"
+                                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                             />
                             <IconButton
                                 aria-label="Subscribe"
                                 icon={<FiMail />}
                                 size="sm"
-                                colorScheme="darkRed"
+                                color="black"
+
+                                borderColor="black"
+                                borderWidth={'2px'}
+                                borderRadius="lg"
+                                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                             />
                         </Flex>
-                    </Box>
+                    </Box> */}
                 </Box>
             </Flex>
 
@@ -111,6 +146,7 @@ export default function Footer() {
                 pt={6}
                 borderTop="1px"
                 borderColor="brand.darkRed"
+                fontFamily="nbText"
             >
                 © {new Date().getFullYear()} Little Kobe. All rights reserved.
             </Text>

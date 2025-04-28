@@ -8,6 +8,7 @@ import NextImage from 'next/image'
 import Head from 'next/head'
 import { useCartToast } from '../../utils/useCartToast'
 import { useState } from 'react'
+import Footer from '../../components/Footer'
 
 
 export default function ProductPage({ product }) {
@@ -63,7 +64,7 @@ export default function ProductPage({ product }) {
 
       <NavBar />
 
-      <Box p={8}>
+      <Box p={{base: 8, md: 20}} minH='85vh'>
       <SimpleGrid columns={[1, 1, 2]} gap={8} maxW="6xl" mx="auto">
         <Box 
         bg="white" 
@@ -96,7 +97,13 @@ export default function ProductPage({ product }) {
                 colorScheme="red" 
                 fontFamily={'nbText'}
                 variant={'solid'} 
-                size="lg">
+                size="lg"
+                borderColor="black"
+                borderWidth="1px"
+                boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+                aria-label="category title"
+                
+                >
                 {category.title}
               </Tag>
             ))}
@@ -146,6 +153,9 @@ export default function ProductPage({ product }) {
         </Stack>
       </SimpleGrid>
     </Box>
+
+    <Footer />
+
   </Box>
   )
 }

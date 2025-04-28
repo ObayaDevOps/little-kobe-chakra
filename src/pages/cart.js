@@ -5,6 +5,7 @@ import { useCartStore } from '../lib/cartStore'
 import Link from 'next/link'
 import { FiPlus, FiMinus } from 'react-icons/fi'
 import Head from 'next/head'
+import Footer from '../components/Footer'
 
 
 export default function CartPage() {
@@ -164,6 +165,10 @@ export default function CartPage() {
         </Grid>
       )}
     </Box>
+
+    <Footer />
+
+
     </Box>
   )
 }

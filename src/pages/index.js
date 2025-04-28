@@ -1,5 +1,6 @@
-import { Grid, Heading, Input, InputGroup, InputLeftElement, Box, Flex } from '@chakra-ui/react'
+import { Grid, Heading, Input, InputGroup, InputLeftElement, InputRightElement, Box, Flex } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
+import { X } from 'lucide-react'
 import NavBar from '../components/Navbar'
 import ProductCard from '../components/ProductCard'
 import CategoryCard from '../components/CategoryCard'
@@ -10,7 +11,7 @@ import { groq } from 'next-sanity'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import Head from 'next/head'
-
+import Footer from '../components/Footer'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -63,6 +64,10 @@ AnimatedProductCard.displayName = 'AnimatedProductCard'
 export default function Home({ products, categories }) {
   const [searchQuery, setSearchQuery] = useState('')
 
+  const handleClearSearch = () => {
+    setSearchQuery('')
+  }
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,7 +78,7 @@ export default function Home({ products, categories }) {
   )
 
   return (
-    <Box bg="#fcd7d7">
+    <Box bg="#fcd7d7" >
         <Head>
           <title>Little Kobe Japanese Market</title>
           <meta name="description" content="Little Kobe Japanese Market"  />
@@ -97,15 +102,13 @@ export default function Home({ products, categories }) {
       <Hero />
 
       
-    <Box p={8}>
+    <Box p={8} >
       <Box 
       // my={{base:20, md:28, lg: 20}}
       mt={{base:20, md:16, lg: 20}}
-
-      
       >
         <Heading 
-          size={{base: '3xl', lg: "2xl"}} 
+          size={{base: '2xl', lg: "2xl"}} 
           textAlign={{base: 'left', md: 'left'}}
           mt={{base: 6, md: 10, lg:2}}
           mb={{base: 6, md:8, lg: 4}}
@@ -126,7 +129,6 @@ export default function Home({ products, categories }) {
           ))}
         </Grid>
       </Box>
-
     </Box>
       
       <Box  
@@ -134,7 +136,7 @@ export default function Home({ products, categories }) {
       >
       <Box my={{base:20, md:28, lg: 20}}>
         <Heading 
-          size={{base: '3xl', lg: "2xl"}} 
+          size={{base: '2xl', lg: "2xl"}} 
           textAlign={{base: 'left', md: 'left'}}
           mt={{base: 6, md: 10, lg: 10}}
           mb={{base: 6, md:8, lg: 16}}
@@ -158,7 +160,7 @@ export default function Home({ products, categories }) {
 
       <Box mt={{base: 32}}>
         <Heading 
-            size={{base: '4xl', lg: "2xl"}} 
+            size={{base: '3xl', lg: "2xl"}} 
             textAlign={{base: 'left', md: 'left'}}
             mb={6}
             fontFamily={'nbHeading'}
@@ -187,6 +189,11 @@ export default function Home({ products, categories }) {
               bg="white"
               fontFamily={'nbText'}
             />
+            {searchQuery && (
+              <InputRightElement cursor="pointer" onClick={handleClearSearch}>
+                <X size={18} color="black" />
+              </InputRightElement>
+            )}
           </InputGroup>
         </motion.div>
       </Box>
@@ -202,16 +209,28 @@ export default function Home({ products, categories }) {
           templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
           gap={{base: 12, lg: 6}}
         >
-          {filteredProducts.map((product, index) => (
-            <AnimatedProductCard 
-              key={product._id} 
-              product={product} 
-              index={index} 
-            />
-          ))}
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product, index) => (
+              <AnimatedProductCard 
+                key={product._id} 
+                product={product} 
+                index={index} 
+              />
+            ))
+          ) : (
+            <Box width="100%" textAlign="center" gridColumn="1 / -1" py={10}>
+              <Heading size="md" fontFamily="nbText">No items matching your search</Heading>
+            </Box>
+          )}
         </Grid>
       </Box>
       </Box>
+      
+      <Box pt={20}>
+        <Footer />
+      </Box>
+      
+
     </Box>
   )
 }

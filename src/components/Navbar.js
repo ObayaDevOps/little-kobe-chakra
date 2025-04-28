@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Link, IconButton, Image } from '@chakra-ui/react'
+import { Box, Flex, Heading, Link, IconButton, Image, Text } from '@chakra-ui/react'
 import { FiShoppingCart } from 'react-icons/fi'
 import CartIcon from './cartIcon'
 
@@ -18,21 +18,31 @@ export default function NavBar() {
         borderBottomWidth={'3px'}
       >
         <Box>
-        <Image
-            src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1742985497/file_dpdbum.svg'}
-            alt={'Little Kobe Logo'}
-            h="50px"
-            w="50px"
-            objectFit="cover"
-          />
+          <Image
+              src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745850853/image_jygvmy.svg'}
+              alt={'Little Kobe Logo'}
+              h="50px"
+              w="50px"
+              objectFit="fit"
+            />
         </Box>
         <Link href="/">
-          <Heading 
-          size={{base: 'lg', md: "lg"}}
+          {/* <Heading 
+          fontSize={{base: '0.05rem', md: "1rem"}}
           pl={{base: 2, lg :8}}
           color="red.600"
           fontFamily={'logoFont'}
-          >Little Kobe Japanese Market</Heading>
+          >Little Kobe Japanese Market</Heading> */}
+
+      <Text 
+          fontSize={{base: 'sm', lg: "1.5rem"}}
+          ml={{base: 2, lg :8}}
+          color="red.600"
+          fontWeight={'600'}
+          textAlign={'center'}
+          fontFamily={'logoFont'}
+          >Little Kobe Japanese Market
+          </Text>
         </Link>
         <Flex gap={6}>
           <Link href="/cart">
