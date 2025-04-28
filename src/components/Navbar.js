@@ -1,10 +1,11 @@
-import { Box, Flex, Heading, Link, IconButton, Image, Text } from '@chakra-ui/react'
+import { Box, Flex, Heading, Link, IconButton, Image, Text, useDisclosure } from '@chakra-ui/react'
 import { FiShoppingCart } from 'react-icons/fi'
 import CartIcon from './cartIcon'
-
-
+import CartDrawer from './CartDrawer'
 
 export default function NavBar() {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+
   return (
     <Box bg="#fcd7d7">
       <Flex
@@ -49,13 +50,11 @@ export default function NavBar() {
           </Text>
         </Link>
         <Flex gap={6}>
-          <Link href="/cart">
-            <CartIcon />
-          </Link>
+          <CartIcon onClick={onOpen} />
         </Flex>
       </Flex>
-      {/* <Hero /> */}
-      {/* <Box p={8}>{children}</Box> */}
+      
+      <CartDrawer isOpen={isOpen} onClose={onClose} />
     </Box>
   )
 } 
