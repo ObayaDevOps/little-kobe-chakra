@@ -246,7 +246,7 @@ export default function CheckoutPage() {
   return (
     <Box bg="#fcd7d7" minH='100vh'>
         <Head>
-          <title>Checkout| Little Kobe Japanese Market</title>
+          <title>Checkout  Little Kobe Japanese Market</title>
           <meta name="description" content="Little Kobe Japanese Market"  />
           {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
 
@@ -266,7 +266,7 @@ export default function CheckoutPage() {
     <NavBar />
 
     <Box p={{base: 2, md: 8}}>
-      <Heading size="2xl" mb={8} fontFamily={'nbHeading'}>Checkout</Heading>
+      <Heading size="2xl" mb={8} fontFamily={'nbHeading'} p={2} mt={4}>Checkout</Heading>
 
       {error && (
         <Alert status="error" variant="subtle" borderRadius="lg" mb={6}>
