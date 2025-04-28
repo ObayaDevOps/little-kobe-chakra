@@ -1,6 +1,7 @@
 import { Box, Heading, Text, Stack, Link } from '@chakra-ui/react';
 import NavBar from '@/components/Navbar';
 import Head from 'next/head'
+import Footer from '../../components/Footer'
 
 
 export default function RefundPage() {
@@ -33,7 +34,7 @@ export default function RefundPage() {
         py={12}
         color="black"
       >
-        <Heading as="h1" size="2xl" mb={8} fontFamily="heading">
+        <Heading as="h1" size="lg" mb={8} fontFamily="logoFont">
           Refunds & Cancellations
         </Heading>
         
@@ -76,6 +77,8 @@ export default function RefundPage() {
           </Box>
         </Stack>
       </Box>
+
+      <Footer />
     </Box>
   );
 }

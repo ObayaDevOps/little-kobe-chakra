@@ -2,11 +2,13 @@ import { Box, Heading, Accordion, AccordionItem, AccordionButton, AccordionPanel
 import { AddIcon, MinusIcon } from '@chakra-ui/icons';
 import NavBar from '@/components/Navbar';
 import Head from 'next/head'
+import Footer from '../../components/Footer'
+
 
 const faqItems = [
   {
     question: "What are your delivery options?",
-    answer: "We offer standard shipping (3-5 business days) and express shipping (1-2 business days) across Japan. International shipping available for select items."
+    answer: "We offer same day delivery (1-3 hours) across Kampala. International shipping available for select items."
   },
   {
     question: "How do I track my order?",
@@ -18,13 +20,13 @@ const faqItems = [
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards, PayPal, and convenience store payments in Japan."
+    answer: "We accept all major credit cards and Mobile Money (MTN and Airtel)."
   }
 ];
 
 export default function FAQPage() {
   return (
-    <Box  bg='#fcd7d7' minH={'90vh'}>
+    <Box  bg='#fcd7d7' minH={'100vh'}>
         <Head>
           <title>FAQs | Little Kobe Japanese Market</title>
           <meta name="description" content="Little Kobe Japanese Market"  />
@@ -51,8 +53,9 @@ export default function FAQPage() {
         px={{ base: 4, md: 8 }} 
         py={12}
         color="black"
+        minH={'90vh'}
       >
-        <Heading as="h1" size="2xl" mb={8} fontFamily="heading">
+        <Heading as="h1" size="lg" mb={8} fontFamily="logoFont">
           Frequently Asked Questions
         </Heading>
         
@@ -60,7 +63,7 @@ export default function FAQPage() {
           {faqItems.map((item, index) => (
             <AccordionItem 
               key={index} 
-              borderColor="brand.darkRed"
+              borderColor="black"
               mb={4}
               _hover={{ borderColor: 'brand.red' }}
             >
@@ -71,7 +74,7 @@ export default function FAQPage() {
                     py={4}
                   >
                     <Box flex="1" textAlign="left">
-                      <Text fontSize="lg" fontWeight="bold">{item.question}</Text>
+                      <Text fontSize="lg" fontWeight="bold" fontFamily="nbText">{item.question}</Text>
                     </Box>
                     {isExpanded ? (
                       <MinusIcon fontSize="12px" />
@@ -80,7 +83,7 @@ export default function FAQPage() {
                     )}
                   </AccordionButton>
                   <AccordionPanel pb={4}>
-                    <Text color="brand.darkRed">{item.answer}</Text>
+                    <Text color="brand.darkRed" fontFamily="nbText">{item.answer}</Text>
                   </AccordionPanel>
                 </>
               )}
@@ -88,6 +91,8 @@ export default function FAQPage() {
           ))}
         </Accordion>
       </Box>
+
+      <Footer />
     </Box>
   );
 }

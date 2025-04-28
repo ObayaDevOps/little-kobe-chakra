@@ -265,11 +265,8 @@ export default function CheckoutPage() {
 
     <NavBar />
 
-    <Box p={8}>
+    <Box p={{base: 2, md: 8}}>
       <Heading size="2xl" mb={8} fontFamily={'nbHeading'}>Checkout</Heading>
-{/* 
-      <Heading size="lg" mb={2} fontFamily={'nbHeading'}>Delivery Information</Heading>
-      <Heading size="md" mb={8} fontFamily={'nbHeading'}>Please provide your delivery information, payment information will be entered on the next page</Heading> */}
 
       {error && (
         <Alert status="error" variant="subtle" borderRadius="lg" mb={6}>
@@ -283,8 +280,10 @@ export default function CheckoutPage() {
               borderColor="black"
               borderWidth={'2px'}
               borderRadius="lg"
-              boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+             boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
               bg="white"
+              mb={{base: 16, lg :40}} 
+
         >
 
       <Box 
@@ -442,7 +441,8 @@ export default function CheckoutPage() {
           </Stack>
         </Box>
 
-        <Box bg="white" p={6} h="fit-content"
+        <Box bg="white" p={6}
+        h="fit-content"
               borderColor="black"
               borderWidth={'2px'}
               borderRadius="lg"

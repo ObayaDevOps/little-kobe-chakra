@@ -17,7 +17,8 @@ export default function ProductCard({ product }) {
 
   return (
     <Box
-      bg="brand.red"
+      // bg="brand.red"
+      bg="white"
       borderColor="black"
       borderWidth={'2px'}
       borderRadius="lg"
@@ -43,7 +44,10 @@ export default function ProductCard({ product }) {
         </Link>
       </Box>
 
-      <Stack p={4} spacing={3} bgColor={'#fcd7d7'}>
+      <Stack p={4} spacing={3} 
+      bg="brand.red"
+      // bgColor={'#fcd7d7'}
+      >
         <Link href={`/products/${product.slug}`}>
           <Heading size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
         </Link>
@@ -54,8 +58,8 @@ export default function ProductCard({ product }) {
         <Button
         mt={4}
           colorScheme="green"
-          // bgColor={'#fcd7d7'}
-          bg="brand.red"
+          bgColor={'#fcd7d7'}
+          // bg="brand.red"
           fontFamily={'nbHeading'}
           onClick={handleAddToCart}
           borderColor="black"

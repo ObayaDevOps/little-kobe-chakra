@@ -58,9 +58,9 @@ export default function Footer() {
                     <GridItem>
                         <Heading size="sm" mb={3} fontFamily="nbText">Explore</Heading>
                         <Stack spacing={2}>
-                            <Link href="/location" fontSize="sm" fontFamily="nbText">Popular Items</Link>
-                            <Link href="/location" fontSize="sm" fontFamily="nbText">Categories</Link>
-                            <Link href="/location" fontSize="sm" fontFamily="nbText">Special Offers</Link>
+                            {/* <Link href="/location" fontSize="sm" fontFamily="nbText">Popular Items</Link> */}
+                            <Link href="/categories" fontSize="sm" fontFamily="nbText">Categories</Link>
+                            <Link href="/" fontSize="sm" fontFamily="nbText">Special Offers</Link>
 
 
                         </Stack>

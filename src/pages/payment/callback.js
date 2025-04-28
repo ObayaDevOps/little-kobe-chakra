@@ -21,6 +21,9 @@ import {
     useToast
 } from '@chakra-ui/react';
 import NextLink from 'next/link'; // For client-side navigation links
+import { useCartStore } from '../../lib/cartStore'
+
+
 
 // Define possible states for the verification process
 const VerificationState = {
@@ -34,6 +37,9 @@ const VerificationState = {
 function PaymentCallbackPage() {
     const router = useRouter();
     const toast = useToast();
+
+    const { items, clearCart } = useCartStore()
+
 
     // State Management
     const [processStatus, setProcessStatus] = useState(VerificationState.IDLE);
@@ -83,6 +89,11 @@ function PaymentCallbackPage() {
                     isClosable: true,
                     position: 'top',
                  });
+
+                 //OD: Clear the cart here
+                 clearCart();
+                 console.log('CART CLEARED')
+
 
                 // Optional: Auto-redirect after a short delay
                 const redirectPath = response.data.status === 'COMPLETED'

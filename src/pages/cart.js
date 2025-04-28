@@ -41,7 +41,7 @@ export default function CartPage() {
 
       <NavBar />
 
-      <Box p={8}>
+      <Box p={8} minH='80vh'>
       <Heading size="xl" mb={8} fontFamily={'nbHeading'}>Shopping Cart</Heading>
       
       {items.length === 0 ? (

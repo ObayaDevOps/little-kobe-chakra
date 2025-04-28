@@ -34,7 +34,7 @@ export default function Hero() {
          bg='white'
          >
         <Marquee autofill speed={75}>
-            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
+            {/* <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
                 Special Offer
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
@@ -45,6 +45,19 @@ export default function Hero() {
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
                 酒
+            </Text> */}
+
+            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
+            Premium Japanese Groceries
+            </Text>
+            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
+            高級日本食材
+            </Text>
+            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
+            Imported from Japan
+            </Text>
+            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
+            日本から輸入
             </Text>
             
         </Marquee>
