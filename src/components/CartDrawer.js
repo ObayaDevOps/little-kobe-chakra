@@ -126,6 +126,10 @@ export default function CartDrawer({ isOpen, onClose }) {
                           variant="outline"
                           onClick={() => removeItem(item._id)}
                           size="sm"
+                          borderColor="black"
+                          borderWidth={'2px'}
+                          borderRadius="lg"
+                          boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                         >
                           Delete
                         </Button>
