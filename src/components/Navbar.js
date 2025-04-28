@@ -19,7 +19,9 @@ export default function NavBar() {
       >
         <Box>
           <Image
-              src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745850853/image_jygvmy.svg'}
+              // src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745850853/image_jygvmy.svg'}
+              src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745851600/image-black-2_m163vh.svg'}
+
               alt={'Little Kobe Logo'}
               h="50px"
               w="50px"
@@ -35,9 +37,11 @@ export default function NavBar() {
           >Little Kobe Japanese Market</Heading> */}
 
       <Text 
-          fontSize={{base: 'sm', lg: "1.5rem"}}
+          fontSize={{base: 'md', lg: "1.5rem"}}
           ml={{base: 2, lg :8}}
-          color="red.600"
+          // color="red.600"
+          color="black"
+
           fontWeight={'600'}
           textAlign={'center'}
           fontFamily={'logoFont'}

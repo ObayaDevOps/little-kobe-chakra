@@ -9,8 +9,8 @@ export default function Footer() {
             color="brand.beige"
             borderTop="4px"
             borderColor="brand.darkRed"
-            pt={{base: 16, md: 20}}
-            pb={8}
+            pt={{base: 16, md: 24}}
+            pb={{base: 16, md: 20}}
             px={{ base: 8, md: 8 }}
         >
             <Flex
@@ -38,6 +38,14 @@ export default function Footer() {
                     </Heading>
                     <Text fontSize="sm" lineHeight="tall" fontFamily="nbText">
                         Sourcing exceptional Japanese Ingredients since 2010. 
+                    </Text>
+                    <Text 
+                        fontSize="sm" 
+                        borderColor="brand.darkRed"
+                        fontFamily="nbText"
+                        lineHeight="tall"
+                    >
+                        © {new Date().getFullYear()} Little Kobe. All rights reserved.
                     </Text>
                 </Box>
 
@@ -108,48 +116,9 @@ export default function Footer() {
                         />
                     </Flex>
 
-                    {/* <Box>
-                        <Text mb={2} fontSize="sm" fontFamily="nbText">Newsletter Signup</Text>
-                        <Flex gap={2}>
-                            <Input 
-                                placeholder="Enter your email" 
-                                size="sm" 
-                                textColor='black'
-                                fontFamily="nbText"
-                                _placeholder={{ color: 'brand.beige' }}
-                                borderColor="black"
-                                borderWidth={'2px'}
-                                borderRadius="lg"
-                                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-                            />
-                            <IconButton
-                                aria-label="Subscribe"
-                                icon={<FiMail />}
-                                size="sm"
-                                color="black"
-
-                                borderColor="black"
-                                borderWidth={'2px'}
-                                borderRadius="lg"
-                                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-                            />
-                        </Flex>
-                    </Box> */}
                 </Box>
             </Flex>
 
-            {/* Copyright */}
-            <Text 
-                textAlign="center" 
-                fontSize="sm" 
-                mt={8}
-                pt={6}
-                borderTop="1px"
-                borderColor="brand.darkRed"
-                fontFamily="nbText"
-            >
-                © {new Date().getFullYear()} Little Kobe. All rights reserved.
-            </Text>
         </Box>
     )
 }

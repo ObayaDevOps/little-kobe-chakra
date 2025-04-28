@@ -83,6 +83,8 @@ export default function Home({ products, categories }) {
           <title>Little Kobe Japanese Market</title>
           <meta name="description" content="Little Kobe Japanese Market"  />
           {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+          <link rel="icon" href="/little-kobe-logo-black.svg" />
+
 
           <meta property="og:title" content='Little Kobe Japanese Market'/> 
           <meta property="og:description" content="Little Kobe Japanese Market" />
