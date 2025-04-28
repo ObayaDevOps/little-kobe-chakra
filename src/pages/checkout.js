@@ -193,7 +193,7 @@ export default function CheckoutPage() {
              });
             // Add a small delay so the user sees the toast
             setTimeout(() => {
-                window.location.href = response.data.redirectUrl;
+                window.location.href = `/payment/pesapal-iframe?redirectUrl=${encodeURIComponent(response.data.redirectUrl)}`;
             }, 1500);
         } else {
             console.error("Backend did not return a redirect URL:", response.data);
