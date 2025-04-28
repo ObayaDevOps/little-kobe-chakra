@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
-import { Box, Heading, Grid, Text, Button, Stack, Flex, Image, Show } from '@chakra-ui/react'
+import { useEffect, useState, useRef } from 'react'
+import { Box, Heading, Grid, Text, Button, Stack, Flex, Image, Show, 
+  AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader,
+  AlertDialogContent, AlertDialogOverlay } from '@chakra-ui/react'
 import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
 import Link from 'next/link'
@@ -12,10 +14,34 @@ export default function CartPage() {
   const [isMounted, setIsMounted] = useState(false)
   const { items, addItem, decreaseItem, removeItem, clearCart } = useCartStore()
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  const [isAlertOpen, setIsAlertOpen] = useState(false)
+  const [selectedItemId, setSelectedItemId] = useState(null)
+  const cancelRef = useRef()
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  const handleDecreaseItem = (itemId) => {
+    const item = items.find(item => item._id === itemId)
+    if (item && item.quantity === 1) {
+      setSelectedItemId(itemId)
+      setIsAlertOpen(true)
+    } else {
+      decreaseItem(itemId)
+    }
+  }
+
+  const handleRemoveConfirm = () => {
+    removeItem(selectedItemId)
+    setIsAlertOpen(false)
+    setSelectedItemId(null)
+  }
+
+  const handleRemoveCancel = () => {
+    setIsAlertOpen(false)
+    setSelectedItemId(null)
+  }
 
   if (!isMounted) return null
 
@@ -74,7 +100,7 @@ export default function CartPage() {
                     <Flex align="center" gap={3}>
                       <Button
                         size="sm"
-                        onClick={() => decreaseItem(item._id)}
+                        onClick={() => handleDecreaseItem(item._id)}
                         aria-label="Decrease quantity"
                         borderColor="black"
                         borderWidth={'2px'}
@@ -165,6 +191,53 @@ export default function CartPage() {
         </Grid>
       )}
     </Box>
+
+    <AlertDialog
+      isOpen={isAlertOpen}
+      leastDestructiveRef={cancelRef}
+      onClose={handleRemoveCancel}
+    >
+      <AlertDialogOverlay>
+        <AlertDialogContent
+          borderColor="black"
+          borderWidth="2px"
+          borderRadius="lg"
+          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+        >
+          <AlertDialogHeader fontSize="lg" fontFamily="nbHeading">
+            Remove Item
+          </AlertDialogHeader>
+
+          <AlertDialogBody fontFamily="nbText">
+            Are you sure you want to remove this item from cart?
+          </AlertDialogBody>
+
+          <AlertDialogFooter>
+            <Button 
+              ref={cancelRef} 
+              onClick={handleRemoveCancel}
+              borderColor="black"
+              borderWidth="1px"
+              boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+              fontFamily="nbText"
+            >
+              Cancel
+            </Button>
+            <Button 
+              colorScheme="red" 
+              onClick={handleRemoveConfirm} 
+              ml={3}
+              borderColor="black"
+              borderWidth="1px"
+              boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+              fontFamily="nbText"
+            >
+              Remove
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogOverlay>
+    </AlertDialog>
 
     <Footer />
 
