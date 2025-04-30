@@ -190,6 +190,12 @@ export default function CheckoutPage() {
                 status: 'info',
                 duration: 3000,
                 isClosable: true,
+                containerStyle: {
+                  fontFamily: 'nbText',
+                  border: '2px solid black',
+                  borderRadius: 'lg',
+                  boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)',
+                }
              });
             // Add a small delay so the user sees the toast
             setTimeout(() => {

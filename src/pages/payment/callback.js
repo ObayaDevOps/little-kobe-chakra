@@ -166,8 +166,8 @@ function PaymentCallbackPage() {
                             size="xl"
                             label="Verifying payment..." // Accessibility label
                         />
-                        <Text mt={4} fontSize="lg" fontWeight="medium">Verifying Payment...</Text>
-                        <Text mt={1} fontSize="sm" color="gray.500">Please wait, this may take a moment.</Text>
+                        <Text mt={4} fontSize="lg" fontWeight="medium" fontFamily='nbText'>Verifying Payment...</Text>
+                        <Text mt={1} fontSize="sm" color="gray.500" fontFamily='nbText'>Please wait, this may take a moment.</Text>
                     </Center>
                 );
 
@@ -190,18 +190,18 @@ function PaymentCallbackPage() {
                         borderRadius="md"
                     >
                         <AlertIcon boxSize="40px" mr={0} />
-                        <AlertTitle mt={4} mb={1} fontSize="xl">
+                        <AlertTitle mt={4} mb={1} fontSize="xl" fontFamily='nbText'>
                             {alertTitle}
                         </AlertTitle>
                         <AlertDescription maxWidth="sm">
-                            <Text mb={2}>{verifiedData.statusDescription || (isSuccess ? 'Your payment has been confirmed.' : 'There was an issue with the payment.')}</Text>
+                            <Text mb={2} fontFamily='nbText' >{verifiedData.statusDescription || (isSuccess ? 'Your payment has been confirmed.' : 'There was an issue with the payment.')}</Text>
                             {OrderMerchantReference && (
-                                <Text fontSize="sm" color="gray.600">Order Reference: {OrderMerchantReference}</Text>
+                                <Text fontSize="sm" color="gray.600" fontFamily='nbText'>Order Reference: {OrderMerchantReference}</Text>
                             )}
                              {verifiedData.confirmationCode && isSuccess && (
-                                <Text fontSize="sm" color="gray.600">Confirmation Code: {verifiedData.confirmationCode}</Text>
+                                <Text fontSize="sm" color="gray.600" fontFamily='nbText'>Confirmation Code: {verifiedData.confirmationCode}</Text>
                             )}
-                            <Text mt={4} fontSize="sm" fontWeight="medium">
+                            <Text mt={4} fontSize="sm" fontWeight="medium" fontFamily='nbText'>
                                 You will be redirected shortly...
                             </Text>
                         </AlertDescription>
@@ -213,10 +213,10 @@ function PaymentCallbackPage() {
                     <Alert status="error" borderRadius="md">
                         <AlertIcon />
                          <Box>
-                            <AlertTitle>Verification Error!</AlertTitle>
-                            <AlertDescription>
+                            <AlertTitle fontFamily='nbText' >Verification Error!</AlertTitle>
+                            <AlertDescription fontFamily='nbText' >
                                 {error || 'An unknown error occurred during payment verification.'}
-                                <Text mt={2}>Please contact support if you believe payment was successful or if this issue persists.</Text>
+                                <Text mt={2} fontFamily='nbText'>Please contact support if you believe payment was successful or if this issue persists.</Text>
                             </AlertDescription>
                          </Box>
                     </Alert>
@@ -227,8 +227,8 @@ function PaymentCallbackPage() {
                     <Alert status="error" borderRadius="md">
                         <AlertIcon />
                         <Box>
-                            <AlertTitle>Invalid Callback</AlertTitle>
-                            <AlertDescription>
+                            <AlertTitle fontFamily='nbText' >Invalid Callback</AlertTitle>
+                            <AlertDescription fontFamily='nbText' >
                                 {error || 'Could not verify payment because required tracking information was missing from the URL.'}
                             </AlertDescription>
                         </Box>
@@ -244,7 +244,7 @@ function PaymentCallbackPage() {
         <Container maxW="container.md" py={10} minHeight="60vh"> {/* Ensure some minimum height */}
             <Center h="100%">
                 <VStack spacing={6} align="stretch" w="100%">
-                    <Heading as="h1" size="lg" textAlign="center">
+                    <Heading as="h1" size="lg" textAlign="center" fontFamily='nbText'>
                         Payment Processing
                     </Heading>
                     <Box p={5} borderWidth={processStatus !== VerificationState.VERIFYING && processStatus !== VerificationState.IDLE ? "1px" : "0px"} borderRadius="lg" shadow="sm">
@@ -254,7 +254,7 @@ function PaymentCallbackPage() {
                      {(processStatus === VerificationState.ERROR || processStatus === VerificationState.MISSING_PARAMS) && (
                         <Center>
                             <NextLink href="/" passHref legacyBehavior>
-                                 <Button as="a" colorScheme="gray" mt={4}>
+                                 <Button as="a" colorScheme="gray" mt={4} fontFamily='nbText'>
                                      Go to Homepage
                                  </Button>
                             </NextLink>

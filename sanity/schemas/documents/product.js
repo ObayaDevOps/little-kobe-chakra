@@ -22,6 +22,14 @@ export default {
         validation: Rule => Rule.required().min(0)
       },
       {
+        name: 'quantity',
+        title: 'Quantity in Stock (Auto-updated daily)',
+        type: 'number',
+        description: 'Quantity available. This is the number managed by the shopkeeper. Real-time stock is handled separately but synced from this value.',
+        initialValue: 0,
+        validation: Rule => Rule.required().integer().min(0)
+      },
+      {
         name: 'isPopular',
         title: 'Popular Item? (Will Display at top of Landing Page)',
         type: 'boolean',
