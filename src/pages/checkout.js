@@ -225,24 +225,6 @@ export default function CheckoutPage() {
 };
 
 
-//  if (orderSuccess) {
-//     return (
-//       <Box bg="#fcd7d7" minH='100vh'>
-//         <NavBar />
-
-//         <Box p={8}>
-//           <Alert status="success" variant="subtle" borderRadius="lg" mb={8}>
-//             <AlertIcon />
-//             Your Order has been completed! Thank you.
-//           </Alert>
-//           <NextLink href="/" passHref>
-//             <Button colorScheme="red" fontFamily={'nbText'}>Continue Shopping</Button>
-//           </NextLink>
-//         </Box>
-//       </Box>
-//     )
-//   }
-
   return (
     <Box bg="#fcd7d7" minH='100vh'>
         <Head>
@@ -409,19 +391,6 @@ export default function CheckoutPage() {
               <FormErrorMessage>{errors.phone}</FormErrorMessage>
             </FormControl>
 
-            {/* <FormControl isRequired>
-              <FormLabel>Payment Method</FormLabel>
-              <Select
-                value={formData.paymentMethod}
-                onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
-                borderColor="black"
-                borderWidth={'2px'}
-                borderRadius="lg"
-              >
-                <option value="CARD">Credit Card</option>
-                <option value="MPESA">Mobile Money (M-Pesa)</option>
-              </Select>
-            </FormControl> */}
 
             <Button
               type="submit"
