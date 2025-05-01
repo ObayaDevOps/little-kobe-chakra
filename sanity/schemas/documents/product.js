@@ -23,9 +23,9 @@ export default {
       },
       {
         name: 'quantity',
-        title: 'Quantity in Stock (Auto-updated daily)',
+        title: 'Quantity in Stock',
         type: 'number',
-        description: 'Quantity available. This is the number managed by the shopkeeper. Real-time stock is handled separately but synced from this value.',
+        description: 'Quantity available. This is the number managed by the shopkeeper. Real-time stock is handled separately in database but synced from this value.',
         initialValue: 0,
         validation: Rule => Rule.required().integer().min(0)
       },

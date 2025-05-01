@@ -4,34 +4,57 @@ import { getServerSupabaseClient } from './supabaseClient';
 // --- Payment Creation ---
 export async function createPendingPayment(paymentData) {
     const supabase = getServerSupabaseClient();
+    const {
+        merchant_reference,
+        amount,
+        currency,
+        description,
+        customer_email,
+        customer_phone,
+        ipn_id_used,
+        callback_url_used,
+        cart_items,
+        deliveryDetails,
+        user_id,
+    } = paymentData;
+
+    console.log(`Attempting to insert pending payment for merchant ref: ${merchant_reference}`);
+
     const { data, error } = await supabase
         .from('payments')
         .insert([
             {
-                // user_id: paymentData.user_id, // Include if using auth
-                merchant_reference: paymentData.merchant_reference,
-                amount: paymentData.amount,
-                currency: paymentData.currency,
-                description: paymentData.description,
-                status: 'PENDING', // Explicitly set
-                customer_email: paymentData.customer_email,
-                customer_phone: paymentData.customer_phone,
-                ipn_id_used: paymentData.ipn_id_used,
-                callback_url_used: paymentData.callback_url_used,
-                // created_at and updated_at have defaults
+                merchant_reference,
+                amount,
+                currency,
+                description,
+                status: 'PENDING',
+                customer_email,
+                customer_phone,
+                ipn_id_used,
+                callback_url_used,
+                cart_items: cart_items,
+                delivery_address: deliveryDetails,
             },
         ])
-        .select() // Return the created record
-        .single(); // Expecting only one record back
+        .select()
+        .single();
 
     if (error) {
-        console.error('Supabase error creating payment:', error);
-        throw new Error(`Supabase error: ${error.message}`);
+        console.error(`Supabase error creating pending payment for ${merchant_reference}:`, error);
+        if (error.message.includes('delivery_address')) {
+            console.error("Potential issue with the 'delivery_address' column or data format.");
+        }
+        throw new Error(`Database error: ${error.message}`);
     }
+
     if (!data) {
-        throw new Error('Failed to create payment record in database.');
+        console.error(`Supabase returned no data after inserting payment for ${merchant_reference}`);
+        throw new Error('Database error: Failed to create payment record.');
     }
-    return data; // Return the full payment record including the generated id
+
+    console.log(`Successfully inserted payment record ID: ${data.id}`);
+    return data;
 }
 
 // --- Update with Pesapal Tracking ID ---

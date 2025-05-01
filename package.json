@@ -21,6 +21,7 @@
     "@vercel/og": "^0.6.4",
     "axios": "^1.7.2",
     "cloudinary-build-url": "^0.2.4",
+    "dotenv": "^16.5.0",
     "framer": "^2.4.1",
     "framer-motion": "^10.18.0",
     "lucide-react": "^0.469.0",

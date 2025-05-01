@@ -44,45 +44,90 @@ function PaymentCallbackPage() {
     // State Management
     const [processStatus, setProcessStatus] = useState(VerificationState.IDLE);
     const [error, setError] = useState(null); // Stores specific error message
-    const [verifiedData, setVerifiedData] = useState(null); // Stores data from backend verify endpoint { status: 'COMPLETED' | 'FAILED' | 'PENDING', statusDescription: '...', confirmationCode: '...' }
+    // Stores the *full* response from verify endpoint, including nested orderDetails
+    const [verifiedData, setVerifiedData] = useState(null);
 
     // Extract query parameters safely only when router is ready
     const { OrderTrackingId, OrderMerchantReference } = router.query;
+
+    // --- Function to send order confirmation email ---
+    const sendOrderConfirmationEmail = useCallback(async (orderDetails) => {
+        console.log('Email Order Details:', orderDetails);
+        
+        // Check if essential parts of orderDetails exist
+        if (!orderDetails || !orderDetails.items || !orderDetails.delivery_address || !orderDetails.totalAmount) {
+            console.error("Cannot send confirmation email: Missing or incomplete order details (expecting delivery_address).", orderDetails);
+            toast({
+                title: 'Email Notification Issue',
+                description: 'Could not assemble order confirmation email (details missing). Support notified.',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Potentially log this error more formally
+            return; // Don't proceed
+        }
+
+        try {
+            console.log("Sending order confirmation email with details:", orderDetails);
+            // Call the new API endpoint created in Step 7
+            await axios.post('/api/notify-order-confirmation', { orderDetails }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000, // Timeout for the email sending API
+            });
+            console.log("Order confirmation email request sent successfully.");
+            // Optional: Success toast (might be too much)
+            // toast({ title: 'Order Notification Sent', status: 'success', duration: 2000 });
+        } catch (emailError) {
+            console.error("Failed to send order confirmation email via API:", emailError.response?.data || emailError.message);
+            toast({
+                title: 'Email Notification Failed',
+                description: 'The order confirmation email could not be sent automatically. Please contact support if you need confirmation.',
+                status: 'warning', // Use warning, as payment itself was likely successful
+                duration: 6000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Log this error for investigation. Do NOT block the user flow.
+        }
+    }, [toast]); // Dependency
 
     // --- Verification Logic ---
     const verifyPayment = useCallback(async (trackingId) => {
         if (!trackingId) {
             console.error("verifyPayment called without trackingId");
             setProcessStatus(VerificationState.MISSING_PARAMS);
+            setError("Invalid callback: Tracking ID missing.");
             return;
         }
 
         setProcessStatus(VerificationState.VERIFYING);
-        setError(null); // Clear previous errors
+        setError(null);
         setVerifiedData(null);
 
         console.log(`Verifying payment for OrderTrackingId: ${trackingId}`);
 
         try {
+            // Call the updated verify API (Step 5)
             const response = await axios.post('/api/payments/verify', { orderTrackingId: trackingId }, {
                  headers: { 'Content-Type': 'application/json' },
-                 timeout: 25000, // Allow more time for status check
+                 timeout: 30000, // Increased timeout for verification + DB lookup
             });
 
             console.log("Verification API response:", response.data);
 
-            if (response.data && response.data.status) {
-                setVerifiedData({
-                    status: response.data.status, // e.g., 'COMPLETED', 'FAILED', 'PENDING'
-                    statusDescription: response.data.statusDescription || '',
-                    confirmationCode: response.data.confirmationCode || null,
-                });
+            // Check for the structure returned by the updated verify API
+            if (response.data && response.data.status && response.data.orderDetails) {
+                setVerifiedData(response.data); // Store the entire response
                 setProcessStatus(VerificationState.VERIFIED);
 
-                // Optional: Show toast notification based on status
-                 const toastStatus = response.data.status === 'COMPLETED' ? 'success' : (response.data.status === 'FAILED' ? 'error' : 'warning');
-                 toast({
-                    title: `Payment Status: ${response.data.status}`,
+                // Convert received status to uppercase for case-insensitive comparison
+                const isSuccess = response.data.status?.toUpperCase() === 'COMPLETED';
+
+                const toastStatus = isSuccess ? 'success' : (response.data.status === 'FAILED' ? 'error' : 'warning');
+                toast({
+                    title: `Payment Status: ${response.data.status}`, // Show actual status from API
                     description: response.data.statusDescription || 'Verification complete.',
                     status: toastStatus,
                     duration: 5000,
@@ -90,15 +135,38 @@ function PaymentCallbackPage() {
                     position: 'top',
                  });
 
-                 //OD: Clear the cart here
-                 clearCart();
-                 console.log('CART CLEARED')
+                // --- Order Confirmation Email & Cart Clearing ---
+                if (isSuccess) {
+                    console.log("Payment completed successfully. Processing post-payment actions.");
+
+                    // Extract orderDetails from the response
+                    const orderDetailsForEmail = response.data.orderDetails;
+
+                    // Add confirmation code if available (might already be in orderDetails depending on verify API)
+                    if (response.data.confirmationCode && !orderDetailsForEmail.confirmationCode) {
+                        orderDetailsForEmail.confirmationCode = response.data.confirmationCode;
+                    }
+                     // Ensure merchant ref is consistent (URL query param might be more reliable if different)
+                     orderDetailsForEmail.merchantReference = OrderMerchantReference || orderDetailsForEmail.merchantReference;
 
 
-                // Optional: Auto-redirect after a short delay
-                const redirectPath = response.data.status === 'COMPLETED'
-                    ? `/payment/success?ref=${OrderMerchantReference || ''}`
-                    : `/payment/failure?ref=${OrderMerchantReference || ''}&status=${response.data.status}`;
+                    // 1. Send Email (async, non-blocking for user flow)
+                    sendOrderConfirmationEmail(orderDetailsForEmail);
+
+                    // 2. Clear the Cart
+                    console.log('Clearing cart...');
+                    clearCart();
+                    console.log('CART CLEARED');
+                } else {
+                    console.log(`Payment status is ${response.data.status}. Not sending confirmation email or clearing cart.`);
+                }
+
+                // --- Redirect Logic ---
+                // Use OrderMerchantReference from URL query for consistency in redirect URL
+                const redirectRef = OrderMerchantReference || response.data.orderDetails.merchantReference || '';
+                const redirectPath = isSuccess
+                    ? `/payment/success?ref=${redirectRef}`
+                    : `/payment/failure?ref=${redirectRef}&status=${response.data.status}`;
 
                 setTimeout(() => {
                      console.log(`Redirecting to: ${redirectPath}`);
@@ -106,17 +174,18 @@ function PaymentCallbackPage() {
                  }, 3000); // 3 second delay
 
             } else {
-                // Backend responded but with unexpected data
-                console.error("Verification API returned unexpected data structure:", response.data);
-                setError('Verification response from server was invalid.');
+                // Backend responded but with unexpected data structure
+                console.error("Verification API returned unexpected data structure or missing orderDetails:", response.data);
+                setError('Verification response from server was incomplete or invalid.');
                 setProcessStatus(VerificationState.ERROR);
             }
 
         } catch (err) {
-            console.error("Error calling verification API:", err);
+            console.error("Error calling verification API:", err.response?.data || err.message);
             let errorMessage = 'An unexpected error occurred while verifying your payment.';
              if (axios.isAxiosError(err)) {
                 if (err.response) {
+                    // Use message from backend if available
                      errorMessage = err.response.data?.message || `Verification failed (${err.response.status}). Please contact support if the problem persists.`;
                  } else if (err.request) {
                      errorMessage = 'Could not connect to verification server. Please check your connection or try again later.';
@@ -129,24 +198,23 @@ function PaymentCallbackPage() {
             setError(errorMessage);
             setProcessStatus(VerificationState.ERROR);
         }
-    }, [router, OrderMerchantReference, toast]); // Include dependencies for useCallback
+    }, [router, OrderMerchantReference, toast, clearCart, sendOrderConfirmationEmail]); // Added dependencies
 
     // --- Effect Hook ---
     useEffect(() => {
-        // Only run when router is ready and we haven't started verifying yet
         if (router.isReady && processStatus === VerificationState.IDLE) {
             console.log("Router ready, processing callback...");
             console.log("Query Params:", router.query);
 
             if (OrderTrackingId) {
-                verifyPayment(OrderTrackingId); // Call the verification function
+                verifyPayment(OrderTrackingId);
             } else {
                  console.warn("Callback page loaded without OrderTrackingId.");
                  setError("Invalid payment callback URL. Tracking information is missing.");
                  setProcessStatus(VerificationState.MISSING_PARAMS);
             }
         }
-    }, [router.isReady, router.query, OrderTrackingId, processStatus, verifyPayment]); // Add dependencies
+    }, [router.isReady, router.query, OrderTrackingId, processStatus, verifyPayment]); // verifyPayment dependency is correct
 
 
     // --- Render Logic ---
@@ -155,7 +223,7 @@ function PaymentCallbackPage() {
     const renderContent = () => {
         switch (processStatus) {
             case VerificationState.VERIFYING:
-            case VerificationState.IDLE: // Show loading also while waiting for router
+            case VerificationState.IDLE:
                 return (
                     <Center flexDirection="column">
                         <Spinner
@@ -172,11 +240,13 @@ function PaymentCallbackPage() {
                 );
 
             case VerificationState.VERIFIED:
-                if (!verifiedData) return null; // Should not happen if state logic is correct
+                if (!verifiedData) return null;
 
                 const isSuccess = verifiedData.status === 'COMPLETED';
                 const alertStatus = isSuccess ? 'success' : (verifiedData.status === 'FAILED' ? 'error' : 'warning');
                 const alertTitle = isSuccess ? 'Payment Verified Successfully!' : `Payment Status: ${verifiedData.status}`;
+                // Use OrderMerchantReference from URL query param for display consistency
+                const displayRef = OrderMerchantReference || verifiedData.orderDetails?.merchantReference;
 
                 return (
                     <Alert
@@ -194,9 +264,9 @@ function PaymentCallbackPage() {
                             {alertTitle}
                         </AlertTitle>
                         <AlertDescription maxWidth="sm">
-                            <Text mb={2} fontFamily='nbText' >{verifiedData.statusDescription || (isSuccess ? 'Your payment has been confirmed.' : 'There was an issue with the payment.')}</Text>
-                            {OrderMerchantReference && (
-                                <Text fontSize="sm" color="gray.600" fontFamily='nbText'>Order Reference: {OrderMerchantReference}</Text>
+                            <Text mb={2} fontFamily='nbText' >{verifiedData.statusDescription || (isSuccess ? 'Your payment has been confirmed.' : 'There was an issue processing the payment status.')}</Text>
+                            {displayRef && (
+                                <Text fontSize="sm" color="gray.600" fontFamily='nbText'>Order Reference: {displayRef}</Text>
                             )}
                              {verifiedData.confirmationCode && isSuccess && (
                                 <Text fontSize="sm" color="gray.600" fontFamily='nbText'>Confirmation Code: {verifiedData.confirmationCode}</Text>
@@ -212,11 +282,11 @@ function PaymentCallbackPage() {
                  return (
                     <Alert status="error" borderRadius="md">
                         <AlertIcon />
-                         <Box>
-                            <AlertTitle fontFamily='nbText' >Verification Error!</AlertTitle>
-                            <AlertDescription fontFamily='nbText' >
+                         <Box flex="1">
+                            <AlertTitle fontFamily='nbText'>Verification Error!</AlertTitle>
+                            <AlertDescription display="block" fontFamily='nbText'>
                                 {error || 'An unknown error occurred during payment verification.'}
-                                <Text mt={2} fontFamily='nbText'>Please contact support if you believe payment was successful or if this issue persists.</Text>
+                                <Text mt={2}>Please contact support if you believe payment was successful or if this issue persists.</Text>
                             </AlertDescription>
                          </Box>
                     </Alert>
@@ -226,9 +296,9 @@ function PaymentCallbackPage() {
                  return (
                     <Alert status="error" borderRadius="md">
                         <AlertIcon />
-                        <Box>
-                            <AlertTitle fontFamily='nbText' >Invalid Callback</AlertTitle>
-                            <AlertDescription fontFamily='nbText' >
+                        <Box flex="1">
+                            <AlertTitle fontFamily='nbText'>Invalid Callback</AlertTitle>
+                            <AlertDescription display="block" fontFamily='nbText'>
                                 {error || 'Could not verify payment because required tracking information was missing from the URL.'}
                             </AlertDescription>
                         </Box>

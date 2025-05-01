@@ -123,8 +123,9 @@ export default function CheckoutPage() {
 
   const handlePaymentPesapal = async (event) => {
     event.preventDefault();
-    
-    // Validate form before proceeding
+    setError(null); // Clear previous errors
+
+    // 1. Validate Form
     if (!validateForm()) {
       toast({
         title: 'Form validation failed',
@@ -135,100 +136,144 @@ export default function CheckoutPage() {
       });
       return;
     }
-    
-    setLoading(true);
-    setError(null);
 
-    if (total <= 0) {
-        setError('Cannot process payment for an empty cart or zero total.');
-        setLoading(false);
-        return;
+    if (total <= 0 || items.length === 0) {
+      setError('Your cart is empty or the total is zero.');
+      return;
     }
 
-    const description = `Payment for ${items.length} item(s). Order Ref: ${Date.now()}`;
-    
-    //this needs to come from the form
-    const billing_address = {
+    setLoading(true); // Start loading indicator
+
+    // 2. Prepare Cart Items for Stock Check API
+    const stockCheckItems = items.map(item => ({
+        // Ensure your cart item has an ID field that maps to the product ID in Supabase
+        // Adjust 'item._id' if your ID field is named differently (e.g., item.id, item.productId)
+        productId: item._id,
+        requestedQuantity: item.quantity,
+    }));
+
+    try {
+      // 3. Call Stock Check API (/api/checkout)
+      console.log("Calling stock check API with items:", stockCheckItems);
+      await axios.post('/api/checkout', { items: stockCheckItems }, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 15000, // Example timeout
+      });
+
+      // 4. Stock Check Successful - Proceed to Payment Initiation
+      console.log("Stock check successful. Proceeding to payment initiation.");
+
+      // Extract item names, quantities, and prices, format the price
+      const itemDetails = items.map(item => `${item.name} x${item.quantity} (${currency} ${item.price.toLocaleString()})`).join(', '); 
+      const description = `Payment for: ${itemDetails}. Order Ref: ${Date.now()}`; // Updated description with item names, quantities, and prices
+      const billing_address = {
         email_address: formData.email,
         phone_number: formData.phone,
-        country_code: currency,
+        country_code: 'UG', // Assuming UGX implies Uganda
         first_name: formData.firstName,
         last_name: formData.lastName,
         line_1: formData.address,
         city: formData.city,
-    };
+      };
 
-    if (!billing_address.email_address && !billing_address.phone_number) {
-         setError('Customer email address or phone number is required to proceed.');
-         setLoading(false);
-         return;
-    }
-
-    const orderDetails = {
+      // Prepare the *full* order details payload for the initiate API
+      const orderDetailsPayload = {
         amount: total,
         currency: currency,
-        description: description,
+        description: description, // Use the concise description for Pesapal
         billing_address: billing_address,
-    };
+        items: items.map(item => ({ // Send necessary item details
+          _id: item._id, // Or productId, match your identifier
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          // Add other relevant fields like SKU if needed
+        })),
+      };
 
-    console.log("Sending order details to backend:", orderDetails);
+      // 5. Call Payment Initiation API (/api/payments/initiate)
+      console.log("Sending order details payload to payment initiation:", orderDetailsPayload);
+      const paymentResponse = await axios.post('/api/payments/initiate', orderDetailsPayload, { // Send the full payload
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 20000,
+      });
 
-    try {
-        const response = await axios.post('/api/payments/initiate', orderDetails, {
-             headers: { 'Content-Type': 'application/json' },
-             timeout: 20000,
+      console.log("Payment initiation response:", paymentResponse.data);
+
+      if (paymentResponse.data && paymentResponse.data.redirectUrl) {
+        toast({
+          title: 'Redirecting to Pesapal...',
+          description: "Stock confirmed. You'll be redirected to complete payment.",
+          status: 'info',
+          duration: 3000,
+          isClosable: true,
+           // ... rest of toast style ...
         });
+        setTimeout(() => {
+          window.location.href = `/payment/pesapal-iframe?redirectUrl=${encodeURIComponent(paymentResponse.data.redirectUrl)}`;
+        }, 1500);
+        // No setLoading(false) here as we are navigating away
+        return; // Stop execution after redirect setup
+      } else {
+        console.error("Payment initiation did not return a redirect URL:", paymentResponse.data);
+        setError(paymentResponse.data?.message || 'Failed to get payment URL after stock check. Please try again.');
+        // NOTE: Stock was decremented but payment initiation failed. This needs careful handling (e.g., backend rollback attempt or manual intervention).
+      }
 
-        console.log("Backend response:", response.data);
-
-        if (response.data && response.data.redirectUrl) {
-            console.log("Redirecting to Pesapal:", response.data.redirectUrl);
-             // Optional: Show a success toast before redirecting
-             toast({
-                title: 'Redirecting to Pesapal...',
-                description: "You will be redirected to complete your payment securely.",
-                status: 'info',
-                duration: 3000,
-                isClosable: true,
-                containerStyle: {
-                  fontFamily: 'nbText',
-                  border: '2px solid black',
-                  borderRadius: 'lg',
-                  boxShadow: '4px 4px 0px 0px rgba(0, 0, 0, 1)',
-                }
-             });
-            // Add a small delay so the user sees the toast
-            setTimeout(() => {
-                window.location.href = `/payment/pesapal-iframe?redirectUrl=${encodeURIComponent(response.data.redirectUrl)}`;
-            }, 1500);
-        } else {
-            console.error("Backend did not return a redirect URL:", response.data);
-            setError(response.data?.message || 'Failed to get payment URL from server. Please try again.');
-            setLoading(false);
-        }
     } catch (err) {
-        console.error("Error initiating payment:", err);
-        let errorMessage = 'An unexpected error occurred while initiating payment.';
-         if (axios.isAxiosError(err)) {
-            if (err.response) {
-                 console.error("Backend Error Response Data:", err.response.data);
-                 console.error("Backend Error Response Status:", err.response.status);
-                errorMessage = err.response.data?.message || `Server error (${err.response.status}). Please try again later.`;
-            } else if (err.request) {
-                console.error("No response received:", err.request);
-                errorMessage = 'Could not connect to the payment server. Please check your internet connection and try again.';
-            } else {
-                 console.error('Axios Error', err.message);
-                errorMessage = `Payment initiation failed: ${err.message}`;
-            }
-        } else {
-             console.error('Non-Axios Error', err);
-             errorMessage = err.message || errorMessage;
+      console.error("Error during checkout process:", err);
+      let errorMessage = 'An unexpected error occurred.';
+      let errorStatus = 500; // Default
+
+      if (axios.isAxiosError(err)) {
+        errorStatus = err.response?.status;
+         console.error("Axios Error Details:", {
+             status: err.response?.status,
+             data: err.response?.data,
+             request: err.request ? 'Request made but no response' : 'No request info',
+             message: err.message
+         });
+
+        // Check if the error came from the stock check API specifically
+        if (err.config?.url === '/api/checkout') {
+          if (errorStatus === 409) { // Insufficient Stock
+            errorMessage = err.response?.data?.message || `Insufficient stock for one or more items. Please review your cart.`;
+            // Optionally, use err.response?.data?.productId to highlight the item
+             toast({ title: 'Stock Issue', description: errorMessage, status: 'error', duration: 5000, isClosable: true });
+          } else if (errorStatus === 404) { // Product Not Found
+             errorMessage = err.response?.data?.message || `One or more products in your cart were not found. Please refresh or contact support.`;
+             toast({ title: 'Product Not Found', description: errorMessage, status: 'error', duration: 5000, isClosable: true });
+          } else if (errorStatus === 400) { // Bad Request (e.g., invalid cart format)
+             errorMessage = err.response?.data?.message || `There was an issue with your cart data.`;
+             toast({ title: 'Invalid Cart', description: errorMessage, status: 'error', duration: 5000, isClosable: true });
+          } else { // Other server errors during stock check
+             errorMessage = err.response?.data?.message || `Failed to verify stock (Error ${errorStatus}). Please try again later.`;
+              toast({ title: 'Stock Check Failed', description: errorMessage, status: 'error', duration: 5000, isClosable: true });
+          }
+          setError(errorMessage); // Set the main error state as well
+
+        } else { // Error likely from payment initiation or network issue
+          if (err.response) {
+            errorMessage = err.response.data?.message || `Payment server error (${errorStatus}). Please try again.`;
+          } else if (err.request) {
+            errorMessage = 'Could not connect to the server. Please check your connection.';
+          } else {
+            errorMessage = `Checkout failed: ${err.message}`;
+          }
+           setError(errorMessage);
         }
-        setError(errorMessage);
-        setLoading(false);
+      } else {
+        console.error('Non-Axios Error', err);
+        errorMessage = err.message || errorMessage;
+         setError(errorMessage);
+      }
+    } finally {
+       // Ensure loading is turned off unless already navigating away
+       if (!window.location.href.includes('/payment/pesapal-iframe')) {
+           setLoading(false);
+       }
     }
-};
+  };
 
 
   return (
@@ -410,8 +455,9 @@ export default function CheckoutPage() {
               borderRadius="lg"
               boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               mt={2}
+              isDisabled={loading || items.length === 0}
             >
-              Pay {currency} {total.toLocaleString()} with Pesapal
+              {loading ? 'Processing...' : `Pay ${currency} ${total.toLocaleString()} with Pesapal`}
            </Button>
           </Stack>
         </Box>

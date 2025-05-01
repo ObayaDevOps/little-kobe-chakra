@@ -25,89 +25,117 @@ export default async function handler(req, res) {
 
     const { orderTrackingId } = req.body;
 
-    if (!orderTrackingId || typeof orderTrackingId !== 'string') {
-        return res.status(400).json({ message: 'Missing or invalid orderTrackingId' });
+    if (!orderTrackingId) {
+        return res.status(400).json({ message: 'Order Tracking ID is required.' });
     }
 
-    console.log(`Verification request received for tracking ID: ${orderTrackingId}`);
-
     try {
-        // 1. Check current status in DB (Optional but recommended)
-        // Use the imported Supabase function
-        const existingPayment = await getPaymentByTrackingId(orderTrackingId);
+        console.log(`Verifying payment status for OrderTrackingId: ${orderTrackingId}`);
 
-        if (existingPayment?.status === 'COMPLETED') {
-            console.log(`Payment ${orderTrackingId} already marked COMPLETED in DB. Skipping Pesapal check.`);
-            return res.status(200).json({
-                 status: 'COMPLETED',
-                 statusDescription: existingPayment.pesapal_status_description || 'Already completed',
-                 confirmationCode: existingPayment.pesapal_confirmation_code
-            });
-        }
-        // Add checks for FAILED, REVERSED etc. if you don't want to re-verify them
-
-        // 2. Get Fresh Pesapal Token
+        // 1. Get Pesapal Token
         const token = await getPesapalToken();
 
-        // 3. Call Pesapal GetTransactionStatus
-        console.log(`Querying Pesapal status for ${orderTrackingId}`);
-        const statusResponse = await axios.get(
-            `${PESAPAL_BASE_URL}/Transactions/GetTransactionStatus`,
-            {
-                params: { orderTrackingId }, // Correctly passed as query param
+        // 2. Call Pesapal GetTransactionStatus API
+        const statusUrl = `${PESAPAL_BASE_URL}/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`;
+        console.log(`Querying Pesapal status URL: ${statusUrl}`);
+
+        const pesapalResponse = await axios.get(statusUrl, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json', // Still required by API docs
-                },
-            }
-        );
+            },
+            timeout: 20000, // Add a reasonable timeout
+        });
 
-        // 4. Handle Pesapal Response Error
-        if (statusResponse.data.error?.code) {
-            console.error(`Pesapal status check API error for ${orderTrackingId}: ${statusResponse.data.error.code} - ${statusResponse.data.error.message}`);
-            // Don't update DB status based on an API error, rely on IPN or retry later
-            throw new Error(`Pesapal status check failed: ${statusResponse.data.error.message || statusResponse.data.error.code}`);
+        console.log(`Pesapal status response for ${orderTrackingId}:`, pesapalResponse.data);
+
+        // 3. Process Pesapal Response
+        if (pesapalResponse.data.error && pesapalResponse.data.error.code) {
+            console.error(`Pesapal returned error for status check ${orderTrackingId}:`, pesapalResponse.data.error);
+            // Consider fetching DB record here to return *some* info? Or just fail.
+             return res.status(502).json({ // Bad Gateway - Pesapal error
+                 message: pesapalResponse.data.error.message || 'Failed to get transaction status from Pesapal.',
+                 pesapal_error_code: pesapalResponse.data.error.code
+             });
         }
 
-        // 5. Map status and prepare data for DB update
-        const pesapalStatusCode = statusResponse.data.status_code;
-        const internalStatus = mapPesapalStatus(pesapalStatusCode);
-        const confirmationCode = statusResponse.data.confirmation_code;
-        const statusDescription = statusResponse.data.payment_status_description;
-        const paymentMethod = statusResponse.data.payment_method; // Assuming you store this
+        // Extract relevant data from Pesapal response
+        const paymentStatus = pesapalResponse.data.payment_status_description; // e.g., COMPLETED, FAILED, PENDING, INVALID
+        const confirmationCode = pesapalResponse.data.payment_method; // Often used as confirmation, or a specific field if available
+        const statusDescription = pesapalResponse.data.description; // Pesapal's description of the status
+        const pesapalAmount = pesapalResponse.data.amount; // Amount confirmed by Pesapal
 
-        console.log(`Pesapal status for ${orderTrackingId}: Code=${pesapalStatusCode}, Internal=${internalStatus}, ConfCode=${confirmationCode}`);
-
-        // 6. Update Supabase DB record
-        // Use the imported Supabase function
-        // Important: Pass Pesapal's tracking ID to find the record
-        const updatedPayment = await updatePaymentStatus(
+        // 4. Update your Database record status
+        // Note: IPN might also update this, handle potential race conditions if necessary
+        // Use the DB function to update status based on Pesapal response
+        console.log(`Updating DB status for ${orderTrackingId} to ${paymentStatus}`);
+        await updatePaymentStatus(
             orderTrackingId,
-            internalStatus,
-            paymentMethod, // Adjust if your function expects this
+            paymentStatus, // Use the status from Pesapal
             confirmationCode,
             statusDescription
         );
 
-        if (!updatedPayment) {
-             console.warn(`Verification update failed: No record found in DB for tracking ID ${orderTrackingId}. IPN might handle it.`);
-             // Respond with Pesapal's status but indicate DB issue? Or just Pesapal status?
-             // Let's respond with Pesapal status for frontend consistency, but log the warning.
-        } else {
-            console.log(`DB status updated successfully for ${orderTrackingId} to ${internalStatus}`);
+
+        // 5. Fetch the *updated and complete* payment record from your DB
+        // This record now includes cart_items, billing_address etc.
+        const dbPaymentRecord = await getPaymentByTrackingId(orderTrackingId);
+
+        if (!dbPaymentRecord) {
+             // This shouldn't happen if updatePaymentStatus succeeded, but handle defensively
+             console.error(`Failed to retrieve payment record from DB after status update for ${orderTrackingId}`);
+             // Return status based on Pesapal response even if DB fetch failed?
+             return res.status(404).json({
+                message: 'Payment record not found in our system after verification.',
+                status: paymentStatus, // Provide Pesapal status at least
+                confirmationCode: confirmationCode,
+                statusDescription: statusDescription,
+            });
         }
 
-        // 7. Respond to your frontend callback page
-        res.status(200).json({
-            status: internalStatus,
-            statusDescription: statusDescription || 'Status updated',
-            confirmationCode: confirmationCode // Send back if needed by frontend
-         });
+         // Defensive check: Compare amount if possible
+         if (dbPaymentRecord.amount !== pesapalAmount) {
+             console.warn(`Amount mismatch for ${orderTrackingId}. DB: ${dbPaymentRecord.amount}, Pesapal: ${pesapalAmount}`);
+             // Decide how to handle this - log, flag for review, potentially fail?
+         }
+
+
+        // 6. Construct the response for the frontend (callback.js)
+        // *** Nest the detailed info under 'orderDetails' ***
+        const responsePayload = {
+            status: dbPaymentRecord.status, // Use status from your DB (which should match Pesapal now)
+            statusDescription: dbPaymentRecord.status_description || statusDescription, // Prefer DB description if available
+            confirmationCode: dbPaymentRecord.pesapal_confirmation_code || confirmationCode, // Prefer DB code
+            // --- orderDetails object ---
+            orderDetails: {
+                merchantReference: dbPaymentRecord.merchant_reference,
+                totalAmount: dbPaymentRecord.amount,
+                currency: dbPaymentRecord.currency,
+                items: dbPaymentRecord.cart_items, // The JSONB array from DB
+                delivery_address: dbPaymentRecord.delivery_address, //OD: The JSONB object from DB (or individual fields if stored separately)
+                customer_email: dbPaymentRecord.customer_email, // Include for convenience
+                customer_phone: dbPaymentRecord.customer_phone, // Include for convenience
+            }
+            // --- End orderDetails object ---
+        };
+
+        console.log(`Sending verification success response for ${orderTrackingId} to frontend.`);
+        res.status(200).json(responsePayload);
 
     } catch (error) {
-        console.error(`Error verifying payment status for ${orderTrackingId}:`, error.response?.data || error.message, error.stack);
-        // Avoid updating DB status on error here; let IPN be the source of truth if verification fails
-        res.status(500).json({ message: error.message || 'Failed to verify payment status.' });
+        console.error(`Error verifying payment for ${orderTrackingId}:`, error.response?.data || error.message, error.stack);
+
+         // Differentiate between Pesapal API errors and internal errors
+         if (axios.isAxiosError(error) && error.response?.config?.url?.includes(PESAPAL_BASE_URL)) {
+             // Error calling Pesapal status check
+             return res.status(502).json({ message: 'Failed to communicate with payment provider for status check.' });
+         } else if (error.message.startsWith('Database error')) {
+            // Error interacting with our DB
+            return res.status(500).json({ message: 'Internal server error during verification process.' });
+        } else {
+            // Other unexpected errors
+            return res.status(500).json({ message: error.message || 'An unexpected error occurred during payment verification.' });
+        }
     }
 }
