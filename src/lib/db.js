@@ -132,4 +132,24 @@ export async function getPaymentByTrackingId(pesapalTrackingId) {
     return data; // Returns the record or null
 }
 
+//Used in inventory
+// --- Get Payment Record (e.g., for checking before redundant updates) ---
+export async function getAllFromInventory() {
+    console.log('ENTERED GET ALL FROM INVENTORY')
+    const supabase = getServerSupabaseClient();
+   const { data, error } = await supabase
+       .from('inventory')
+       .select('*');
+    //    .maybeSingle(); // Use maybeSingle as it might not exist yet
+    console.log('SUAPBASE DATA:', data);
+    console.log('ERROR', error)
+
+   if (!data) {
+       console.error(`Supabase error getting all from inventory:`, error);
+       // Decide how to handle read errors
+   }
+   return  { data, error }; // Returns the record or null
+}
+
+
 // Add other functions as needed (e.g., getPaymentByMerchantReference)
