@@ -77,7 +77,7 @@ export async function updatePaymentTrackingId(paymentId, pesapalTrackingId) {
 
 // --- Update Payment Status (from Verification or IPN) ---
 export async function updatePaymentStatus(
-    pesapalTrackingId, // Use this to find the record
+    pesapalTrackingId,
     internalStatus,
     paymentMethod,
     confirmationCode,
@@ -88,32 +88,30 @@ export async function updatePaymentStatus(
         status: internalStatus,
         pesapal_confirmation_code: confirmationCode || null,
         pesapal_status_description: statusDescription || null,
-        last_checked_at: new Date().toISOString(), // Record when we last checked
-        // updated_at will auto-update via trigger
+        last_checked_at: new Date().toISOString(),
+        // payment_method_used: paymentMethod || null, // Uncomment if you add the column
     };
 
-    // Add paymentMethod if you have a column for it (recommended)
-    // if (paymentMethod) updateData.payment_method_used = paymentMethod;
-
-     console.log(`Updating payment status for tracking ID ${pesapalTrackingId} to ${internalStatus}`);
+    console.log(`Updating payment status for tracking ID ${pesapalTrackingId} to ${internalStatus}`);
 
     const { data, error } = await supabase
         .from('payments')
         .update(updateData)
-        .eq('pesapal_tracking_id', pesapalTrackingId) // Find by Pesapal's ID
-        .select() // Optionally return the updated record
-        .single();
+        .eq('pesapal_tracking_id', pesapalTrackingId)
+        .select() // Select the updated record
+        .single(); // Expect only one record
 
     if (error) {
         console.error(`Supabase error updating status for ${pesapalTrackingId}:`, error);
-        throw new Error(`Supabase update error: ${error.message}`); // Throw to indicate IPN processing failure
+        throw new Error(`Supabase update error: ${error.message}`);
     }
-     if (!data) {
-         console.warn(`No payment record found to update for tracking ID: ${pesapalTrackingId}`);
-         // Don't throw, maybe the IPN came before initiate finished saving? Log it.
-         // Or maybe it's a duplicate IPN for an already processed transaction.
-     }
-    return data; // Return updated record or null if not found
+    if (!data) {
+        console.warn(`No payment record found to update for tracking ID: ${pesapalTrackingId}`);
+        // Return null or handle as appropriate for the caller
+        return null;
+    }
+    console.log(`Successfully updated status for payment ID: ${data.id}`);
+    return data; // Return updated record
 }
 
 // --- Get Payment Record (e.g., for checking before redundant updates) ---
@@ -252,5 +250,137 @@ export async function getSalesDataForReport(options = {}) {
     }
 
     // Return the raw data and let the API route handle aggregation
+    return { data, error };
+}
+
+/**
+ * Fetches details (like price, name) for multiple products from inventory.
+ * @param {string[]} productIds - An array of product IDs (Sanity IDs).
+ * @returns {Promise<{data: object[]|null, error: object|null}>} - Product details or error.
+ */
+export async function getProductDetailsByIds(productIds) {
+    if (!productIds || productIds.length === 0) {
+        return { data: [], error: null }; // Return empty array if no IDs provided
+    }
+    console.log(`Fetching inventory details for product IDs: ${productIds.join(', ')}`);
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('inventory')
+        .select('product_id, price, name') // Select fields needed for order items
+        .in('product_id', productIds);
+
+    if (error) {
+        console.error('Supabase error fetching product details by IDs:', error);
+    } else if (!data || data.length !== productIds.length) {
+        // Handle cases where some products might not be found in inventory
+        console.warn(`Could not find inventory details for all requested product IDs. Found ${data?.length || 0} of ${productIds.length}`);
+        // Decide if this is an error or just needs filtering later.
+    }
+
+    return { data, error };
+}
+
+
+// --- Order Management Functions ---
+
+/**
+ * Checks if an order record already exists for a given payment ID.
+ * @param {string} paymentId - The UUID of the payment record.
+ * @returns {Promise<object|null>} - The existing order record or null if not found.
+ */
+export async function findOrderExistsByPaymentId(paymentId) {
+    console.log(`Checking for existing order with payment_id: ${paymentId}`);
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('orders') // Assuming your orders table is named 'orders'
+        .select('id') // Only need the ID to confirm existence
+        .eq('payment_id', paymentId)
+        .maybeSingle(); // Expect 0 or 1
+
+    if (error) {
+        console.error(`Supabase error checking for existing order by payment ID ${paymentId}:`, error);
+        // Re-throw or handle as needed - this indicates a potential issue.
+        throw new Error(`Database error checking for order: ${error.message}`);
+    }
+
+    if (data) {
+        console.log(`Found existing order ID: ${data.id} for payment ID ${paymentId}`);
+    } else {
+        console.log(`No existing order found for payment ID ${paymentId}`);
+    }
+    return data; // Returns the record { id: '...' } or null
+}
+
+/**
+ * Creates an order and its associated order items using an RPC function.
+ * This function calls a PostgreSQL function 'create_order_and_items' defined in Supabase.
+ * @param {object} orderData - Data for the 'orders' table (e.g., payment_id, user_id, total_amount, currency, addresses, status).
+ * @param {object[]} itemsData - Array of items from the cart (e.g., [{ product_id, quantity }, ...]).
+ * @returns {Promise<{data: object|null, error: object|null}>} - The newly created order record or an error.
+ */
+export async function createOrderAndItems(orderData, itemsData) {
+    console.log('Attempting to create order and items via RPC:', { orderData, itemsData });
+    const supabase = getServerSupabaseClient();
+
+    // Prepare the items in the format expected by the PostgreSQL function
+    // Assuming the function expects JSONB like: '[{"product_id": "abc", "quantity": 2}, ...]'
+    const itemsJson = itemsData.map(item => ({
+        product_id: item.product_id, // Ensure names match function parameters
+        quantity: item.quantity
+    }));
+
+    // Call the PostgreSQL function
+    const { data, error } = await supabase.rpc('create_order_and_items', {
+        p_order_data: orderData, // Pass the order details object
+        p_items_data: itemsJson   // Pass the items JSON array
+    });
+
+    if (error) {
+        console.error('Supabase RPC error calling create_order_and_items:', error);
+        // The RPC function should handle internal errors and potentially return a specific error message
+    } else {
+        console.log('Successfully created order via RPC. Result:', data);
+        // The RPC function should return the new order ID or the full order record
+    }
+
+    // The RPC function might return the new order ID or the whole order object.
+    // Adjust based on what your SQL function returns.
+    // If it only returns the ID, you might want to fetch the full order here.
+    return { data, error };
+}
+
+/**
+ * Updates stock levels for multiple items using an RPC function.
+ * Calls a PostgreSQL function 'decrement_stock' defined in Supabase.
+ * @param {object[]} itemsData - Array of items sold (e.g., [{ product_id, quantity }, ...]).
+ * @returns {Promise<{data: any|null, error: object|null}>} - Result from RPC or error.
+ */
+export async function updateInventoryStock(itemsData) {
+    if (!itemsData || itemsData.length === 0) {
+        console.log("No items provided to update inventory stock.");
+        return { data: null, error: null };
+    }
+    console.log('Attempting to update inventory stock via RPC:', itemsData);
+    const supabase = getServerSupabaseClient();
+
+    // Prepare items data for the RPC call
+    const stockUpdates = itemsData.map(item => ({
+        p_product_id: item.product_id,
+        p_quantity_sold: item.quantity
+    }));
+
+    // Call the PostgreSQL function 'decrement_stock'
+    // This function likely takes an array of records or JSONB
+    const { data, error } = await supabase.rpc('decrement_stock', {
+        items_sold: stockUpdates // Adjust parameter name as needed
+    });
+
+    if (error) {
+        console.error('Supabase RPC error calling decrement_stock:', error);
+    } else {
+        console.log('Successfully called decrement_stock RPC. Result:', data);
+        // The RPC might return success status, number of rows affected, etc.
+    }
+
     return { data, error };
 }

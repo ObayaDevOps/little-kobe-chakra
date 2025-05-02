@@ -1,7 +1,16 @@
 // pages/api/payments/verify.js
 import { getPesapalToken } from '@/lib/pesapal';
 // Import the specific Supabase DB functions
-import { getPaymentByTrackingId, updatePaymentStatus } from '@/lib/db';
+import {
+    getPaymentByTrackingId,
+    updatePaymentStatus,
+    // --- Add imports for new order/inventory functions ---
+    findOrderExistsByPaymentId,
+    createOrderAndItems, // We'll create this combined function
+    // getProductDetailsByIds, // Helper if createOrderAndItems doesn't fetch prices itself
+    // updateInventoryStock // Function to decrement stock (add later if needed)
+    // --- End new imports ---
+} from '@/lib/db';
 import axios from 'axios';
 
 const PESAPAL_BASE_URL = process.env.PESAPAL_API_BASE_URL;
@@ -61,63 +70,114 @@ export default async function handler(req, res) {
         }
 
         // Extract relevant data from Pesapal response
-        const paymentStatus = pesapalResponse.data.payment_status_description; // e.g., COMPLETED, FAILED, PENDING, INVALID
-        const confirmationCode = pesapalResponse.data.payment_method; // Often used as confirmation, or a specific field if available
-        const statusDescription = pesapalResponse.data.description; // Pesapal's description of the status
-        const pesapalAmount = pesapalResponse.data.amount; // Amount confirmed by Pesapal
+        const paymentStatus = pesapalResponse.data.payment_status_description;
+        const confirmationCode = pesapalResponse.data.payment_method;
+        const statusDescription = pesapalResponse.data.description;
+        const pesapalAmount = pesapalResponse.data.amount;
+        const statusCode = pesapalResponse.data.status_code; // Assuming this field exists
+
+        // Map Pesapal status to our internal status convention if needed
+        const internalStatus = mapPesapalStatus(statusCode); // Use the helper
 
         // 4. Update your Database record status
-        // Note: IPN might also update this, handle potential race conditions if necessary
-        // Use the DB function to update status based on Pesapal response
-        console.log(`Updating DB status for ${orderTrackingId} to ${paymentStatus}`);
-        await updatePaymentStatus(
+        console.log(`Updating DB payment status for ${orderTrackingId} to ${internalStatus}`);
+        const updatedPayment = await updatePaymentStatus( // Capture the returned record
             orderTrackingId,
-            paymentStatus, // Use the status from Pesapal
+            internalStatus, // Use our mapped status
             confirmationCode,
             statusDescription
         );
 
-
-        // 5. Fetch the *updated and complete* payment record from your DB
-        // This record now includes cart_items, billing_address etc.
-        const dbPaymentRecord = await getPaymentByTrackingId(orderTrackingId);
+        // 5. Fetch the *complete* payment record if update didn't return it or if needed again
+        // If updatePaymentStatus returns the updated record, we might not need this separate fetch
+        // const dbPaymentRecord = updatedPayment || await getPaymentByTrackingId(orderTrackingId);
+        // Let's assume updatePaymentStatus returns the updated record as implemented in the provided db.js
+        const dbPaymentRecord = updatedPayment;
 
         if (!dbPaymentRecord) {
-             // This shouldn't happen if updatePaymentStatus succeeded, but handle defensively
-             console.error(`Failed to retrieve payment record from DB after status update for ${orderTrackingId}`);
-             // Return status based on Pesapal response even if DB fetch failed?
+            console.error(`Failed to retrieve or update payment record in DB for ${orderTrackingId}`);
              return res.status(404).json({
-                message: 'Payment record not found in our system after verification.',
-                status: paymentStatus, // Provide Pesapal status at least
+                message: 'Payment record not found or failed to update in our system after verification.',
+                status: internalStatus,
                 confirmationCode: confirmationCode,
                 statusDescription: statusDescription,
             });
         }
 
-         // Defensive check: Compare amount if possible
-         if (dbPaymentRecord.amount !== pesapalAmount) {
-             console.warn(`Amount mismatch for ${orderTrackingId}. DB: ${dbPaymentRecord.amount}, Pesapal: ${pesapalAmount}`);
-             // Decide how to handle this - log, flag for review, potentially fail?
-         }
+        // *** START: Order Creation Logic ***
+        // Only proceed if the payment is marked as COMPLETED
+        if (internalStatus === 'COMPLETED') {
+            console.log(`Payment ${orderTrackingId} (ID: ${dbPaymentRecord.id}) verified as COMPLETED. Checking/Creating order...`);
 
+            try {
+                // 2. Check if an Order already exists for this payment_id
+                const existingOrder = await findOrderExistsByPaymentId(dbPaymentRecord.id);
+
+                if (!existingOrder) {
+                    console.log(`No existing order found for payment ID ${dbPaymentRecord.id}. Creating new order.`);
+
+                    // 3 & 4. Create Order and Order Items
+                    // We need cart_items, user_id (if available), addresses etc. from dbPaymentRecord
+                    const orderData = {
+                        payment_id: dbPaymentRecord.id,
+                        user_id: dbPaymentRecord.user_id, // Assuming user_id is stored on payments
+                        total_amount: dbPaymentRecord.amount,
+                        currency: dbPaymentRecord.currency,
+                        shipping_address: dbPaymentRecord.delivery_address, // Map field names
+                        billing_address: dbPaymentRecord.billing_address || dbPaymentRecord.delivery_address, // Use delivery if no specific billing
+                        customer_email: dbPaymentRecord.customer_email,
+                        customer_phone: dbPaymentRecord.customer_phone,
+                        status: 'COMPLETED', // Initial status for a new order
+                    };
+
+                    const itemsDataForRPC = dbPaymentRecord.cart_items.map(item => ({
+                        product_id: item._id, // Map _id to product_id
+                        quantity: item.quantity,
+                        // Include other fields like price/name ONLY if the RPC *needs* them
+                        // and doesn't fetch them itself. Based on the PL/pgSQL, it fetches price/name.
+                    }));
+
+                    console.log('ORDER DATA verify - createOrderAndItems', orderData);
+                    console.log('ITEMS DATA verify (mapped) - createOrderAndItems', itemsDataForRPC); // Log mapped data
+                    const { data: newOrder, error: orderError } = await createOrderAndItems(orderData, itemsDataForRPC); // Pass mapped data
+
+                    if (orderError) {
+                        console.error(`Failed to create order/items for payment ID ${dbPaymentRecord.id}:`, orderError);
+                        // Decide how critical this is. Should we still return success to the callback?
+                        // Maybe log the error but don't fail the verification response?
+                        // Or potentially try and set the payment status back to PENDING or NEEDS_ATTENTION?
+                        // For now, log and continue, but flag this might need review.
+                    } else {
+                        console.log(`Successfully created order ${newOrder.id} for payment ${dbPaymentRecord.id}`);
+                        // 5. (Optional Step) Update Inventory Stock Levels
+                        // await updateInventoryStock(itemsData); // Pass items to decrement counts
+                    }
+
+                } else {
+                    console.log(`Order ${existingOrder.id} already exists for payment ID ${dbPaymentRecord.id}. Skipping creation.`);
+                }
+
+            } catch (orderCreationError) {
+                console.error(`Error during order creation/check process for payment ID ${dbPaymentRecord.id}:`, orderCreationError);
+                // Log this critical failure. Depending on policy, might need manual intervention.
+            }
+        }
+        // *** END: Order Creation Logic ***
 
         // 6. Construct the response for the frontend (callback.js)
-        // *** Nest the detailed info under 'orderDetails' ***
         const responsePayload = {
-            status: dbPaymentRecord.status, // Use status from your DB (which should match Pesapal now)
-            statusDescription: dbPaymentRecord.status_description || statusDescription, // Prefer DB description if available
+            status: dbPaymentRecord.status, // Use status from your DB
+            statusDescription: dbPaymentRecord.pesapal_status_description || statusDescription, // Prefer DB description
             confirmationCode: dbPaymentRecord.pesapal_confirmation_code || confirmationCode, // Prefer DB code
-            // --- orderDetails object ---
             orderDetails: {
                 merchantReference: dbPaymentRecord.merchant_reference,
                 totalAmount: dbPaymentRecord.amount,
                 currency: dbPaymentRecord.currency,
-                items: dbPaymentRecord.cart_items, // The JSONB array from DB
-                delivery_address: dbPaymentRecord.delivery_address, //OD: The JSONB object from DB (or individual fields if stored separately)
-                customer_email: dbPaymentRecord.customer_email, // Include for convenience
-                customer_phone: dbPaymentRecord.customer_phone, // Include for convenience
+                items: dbPaymentRecord.cart_items,
+                delivery_address: dbPaymentRecord.delivery_address,
+                customer_email: dbPaymentRecord.customer_email,
+                customer_phone: dbPaymentRecord.customer_phone,
             }
-            // --- End orderDetails object ---
         };
 
         console.log(`Sending verification success response for ${orderTrackingId} to frontend.`);
@@ -130,11 +190,13 @@ export default async function handler(req, res) {
          if (axios.isAxiosError(error) && error.response?.config?.url?.includes(PESAPAL_BASE_URL)) {
              // Error calling Pesapal status check
              return res.status(502).json({ message: 'Failed to communicate with payment provider for status check.' });
-         } else if (error.message.startsWith('Database error')) {
-            // Error interacting with our DB
+         } else if (error.message.startsWith('Supabase') || error.message.startsWith('Database error')) { // Catch DB errors explicitly
+            // Error interacting with our DB during payment update or order creation
+            console.error("Database interaction error during verification:", error);
             return res.status(500).json({ message: 'Internal server error during verification process.' });
         } else {
             // Other unexpected errors
+            console.error("Unexpected error during verification:", error);
             return res.status(500).json({ message: error.message || 'An unexpected error occurred during payment verification.' });
         }
     }
