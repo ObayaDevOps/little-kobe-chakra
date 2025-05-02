@@ -1,5 +1,9 @@
-import supabaseAdmin from '@/lib/supabaseAdmin';
-import sanityClient from '@/lib/sanityClient'; // Needed to map product IDs back to names
+// import supabaseAdmin from '@/lib/supabaseAdmin'; // Can likely be removed if not used elsewhere
+// import sanityClient from '@/lib/sanityClient'; // Needed to map product IDs back to names
+import sanityClient from '../../../../sanity/lib/client';
+
+
+import { getSalesDataForReport } from '@/lib/db'; // Import the new DB function
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -11,61 +15,76 @@ export default async function handler(req, res) {
     // const { startDate, endDate } = req.query;
 
     try {
-        // --- Assumptions about your schema ---
-        // 1. 'orders' table: has 'id', 'created_at'
-        // 2. 'order_items' table: has 'order_id' (FK to orders.id),
-        //    'product_id' (FK to inventory.product_id / Sanity _id), 'quantity', 'price' (price per item at time of sale)
+        // --- Use the new DB function ---
+        const { data: salesData, error: salesError } = await getSalesDataForReport({
+            // Pass date filters here if implemented:
+            // startDate,
+            // endDate,
+        });
 
-        // Example: Get total sales quantity per product
-        const { data: salesData, error: salesError } = await supabaseAdmin
-            .from('order_items')
-            .select(`
-                product_id,
-                quantity
-            `);
-            // Add date filtering if needed:
-            // .gte('created_at', startDate)
-            // .lte('created_at', endDate);
+        // --- Assumptions about your schema remain the same ---
+        // 1. 'orders' table: has 'id', 'created_at'
+        // 2. 'order_items' table: has 'order_id', 'product_id', 'quantity', 'price'
 
         if (salesError) {
-            console.error('Supabase sales fetch error:', salesError);
-            return res.status(500).json({ message: 'Error fetching sales data.', error: salesError.message });
+            // Log the detailed error from the DB function on the server
+            console.error('Sales report DB fetch error:', salesError);
+            // Return a generic error to the client
+            return res.status(500).json({ message: 'Error fetching sales data.' });
         }
 
-        // Aggregate sales data
+        if (!salesData) {
+             // Handle case where data is null/undefined but no error (shouldn't happen with Supabase select)
+             console.warn('Sales data was unexpectedly null/undefined.');
+             return res.status(200).json([]); // Return empty array
+        }
+
+        // Aggregate sales data (stays in the API route)
         const aggregatedSales = salesData.reduce((acc, item) => {
+            if (!item.product_id) return acc; // Skip items without product_id
             if (!acc[item.product_id]) {
                 acc[item.product_id] = { productId: item.product_id, totalQuantity: 0 };
             }
-            acc[item.product_id].totalQuantity += item.quantity;
+            // Ensure quantity is treated as a number
+            acc[item.product_id].totalQuantity += Number(item.quantity || 0);
             return acc;
         }, {});
 
-        // Fetch product names from Sanity to make the report more readable
+        // Fetch product names from Sanity (stays in the API route)
         const productIds = Object.keys(aggregatedSales);
         if (productIds.length > 0) {
             const sanityQuery = `*[_id in $ids]{ _id, "name": name }`; // Adjust 'name' field
             const sanityParams = { ids: productIds };
-            const productNames = await sanityClient.fetch(sanityQuery, sanityParams);
-            const nameMap = new Map(productNames.map(p => [p._id, p.name]));
+             try {
+                const productNames = await sanityClient.fetch(sanityQuery, sanityParams);
+                const nameMap = new Map(productNames.map(p => [p._id, p.name]));
 
-            // Add names to the aggregated data
-             Object.values(aggregatedSales).forEach(item => {
-                item.productName = nameMap.get(item.productId) || 'Unknown Product';
-            });
+                // Add names to the aggregated data
+                Object.values(aggregatedSales).forEach(item => {
+                    item.productName = nameMap.get(item.productId) || 'Unknown Product';
+                });
+             } catch (sanityError) {
+                 console.error('Sanity fetch error for product names:', sanityError);
+                 // Decide how to handle: Proceed without names or return an error?
+                 // For now, let's proceed but log the issue
+                 Object.values(aggregatedSales).forEach(item => {
+                    item.productName = 'Error Fetching Name';
+                });
+             }
         }
 
 
-        // Format for charting (example: array suitable for bar chart)
+        // Format for charting (stays in the API route)
         const chartData = Object.values(aggregatedSales).map(item => ({
-            label: item.productName,
+            label: item.productName, // Already assigned above
             value: item.totalQuantity,
-            productId: item.productId, // Include ID if needed for drill-down
+            productId: item.productId,
         }));
 
         res.status(200).json(chartData);
 
     } catch (error) {
+        // Catch errors from aggregation, Sanity fetch (if re-thrown), etc.
         console.error('Error generating sales report:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }

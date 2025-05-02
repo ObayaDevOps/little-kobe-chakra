@@ -152,4 +152,105 @@ export async function getAllFromInventory() {
 }
 
 
+export async function getAllInventoryItemById(sanity_id) {
+    console.log('ENTERED GET ALL FROM INVENTORY BY ID')
+    const supabase = getServerSupabaseClient();
+   const { data, error } = await supabase
+       .from('inventory')
+       .select('*')
+       .eq('product_id', sanity_id);
+    //    .maybeSingle(); // Use maybeSingle as it might not exist yet
+
+    console.log('SUAPBASE DATA getAllInventoryItemById:', data);
+    console.log('ERROR getAllInventoryItemById', error)
+
+   if (!data) {
+       console.error(`Supabase error getting all from inventory:`, error);
+       // Decide how to handle read errors
+   }
+   return  { data, error }; // Returns the record or null
+}
+
+
+/**
+ * Updates an inventory item in the database.
+ * @param {string} sanityId - The Sanity ID of the product (maps to product_id).
+ * @param {object} updates - An object containing the fields to update (e.g., { price, quantity, min_stock_level }).
+ * @returns {Promise<{data: object|null, error: object|null}>} - The result of the update operation.
+ */
+export async function updateInventoryItem(sanityId, updates) {
+    console.log(`Attempting to update inventory for product_id: ${sanityId} with data:`, updates);
+    const supabase = getServerSupabaseClient();
+
+    // Ensure numeric types are handled correctly, converting empty strings or invalid inputs to null
+    const cleanUpdates = {
+        price: updates.price === '' || isNaN(Number(updates.price)) ? null : Number(updates.price),
+        quantity: updates.quantity === '' || isNaN(Number(updates.quantity)) ? null : Number(updates.quantity),
+        min_stock_level: updates.minStockLevel === '' || isNaN(Number(updates.minStockLevel)) ? null : Number(updates.minStockLevel),
+        // Add any other fields you might want to update here
+    };
+
+     // Remove null keys if Supabase should ignore them instead of setting to NULL
+    // Object.keys(cleanUpdates).forEach(key => cleanUpdates[key] === null && delete cleanUpdates[key]);
+
+
+    const { data, error } = await supabase
+        .from('inventory')
+        .update(cleanUpdates)
+        .eq('product_id', sanityId) // Assuming 'product_id' column stores the sanity ID
+        .select()
+        .single();
+
+    if (error) {
+        console.error(`Supabase error updating inventory for product_id ${sanityId}:`, error);
+    } else if (!data) {
+         console.warn(`No inventory record found to update for product_id: ${sanityId}`);
+    } else {
+        console.log(`Successfully updated inventory for product_id: ${sanityId}`);
+    }
+
+    return { data, error };
+}
+
+
 // Add other functions as needed (e.g., getPaymentByMerchantReference)
+
+
+/**
+ * Fetches sales data aggregated by product ID for the sales report.
+ * Optionally filters by date range in the future.
+ * @param {object} options - Optional filtering options (e.g., { startDate, endDate }).
+ * @returns {Promise<{data: Array<{product_id: string, quantity: number}>|null, error: object|null}>} - The raw sales data or an error.
+ */
+export async function getSalesDataForReport(options = {}) {
+    const supabase = getServerSupabaseClient(); // Use the server client helper
+    // const { startDate, endDate } = options; // For future date filtering
+
+    console.log("Fetching sales data for report...");
+
+    let query = supabase
+        .from('order_items')
+        .select(`
+            product_id,
+            quantity
+        `);
+
+    // Add date filtering if needed:
+    // if (startDate) {
+    //     query = query.gte('created_at', startDate); // Adjust column name if needed
+    // }
+    // if (endDate) {
+    //     query = query.lte('created_at', endDate); // Adjust column name if needed
+    // }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error('Supabase error fetching sales data for report:', error);
+    } else {
+        console.log(`Successfully fetched ${data?.length || 0} order items for sales report.`);
+    }
+
+    // Return the raw data and let the API route handle aggregation
+    return { data, error };
+}
