@@ -60,54 +60,116 @@ export default async function handler(req, res) {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    // --- Verification (Adjust based on raw body access) ---
-    // This part needs careful implementation depending on Pages vs App Router
-    // For now, assuming you have a way to get the rawBody:
+    // --- Verification (Add back when ready) ---
     /*
     if (!SANITY_WEBHOOK_SECRET) {
          console.error("Missing SANITY_WEBHOOK_SECRET");
          return res.status(500).json({ message: 'Internal Server Error: Missing Secret Config' });
     }
-     // const isValid = await verifySignature(req); // Implement based on raw body access
-     // if (!isValid) {
-     //    return res.status(401).json({ message: 'Invalid signature' });
-     // }
+    const rawBody = await getRawBody(req); // Or req.text() for App Router
+    const isValid = await verifySignature(req, rawBody); // Pass rawBody to verify
+     if (!isValid) {
+        return res.status(401).json({ message: 'Invalid signature' });
+     }
+    // If verification is enabled & successful, parse the body manually:
+    // const body = JSON.parse(rawBody.toString('utf-8'));
     */
-    // --- TEMPORARY: Skip verification during initial dev, BUT ADD IT! ---
-    console.warn("Webhook signature verification skipped for development!");
+    // --- Use default parsed body if verification is skipped/bodyParser not disabled ---
+    const body = req.body;
 
-    // --- Process Validated Request ---
-    // If verification passed (or skipped), parse the body (Next.js does this by default if bodyParser is not disabled)
-    const { _id: productId, quantity } = req.body;
+    // --- Process Webhook Request ---
+    // Destructure all fields from the new projection, including 'operation'
+    const { _id: productId, quantity, name, categoryName, price, operation } = body;
 
-    if (!productId || quantity === undefined || quantity === null) {
-        console.log('Webhook received invalid payload:', req.body);
-        return res.status(400).json({ message: 'Bad Request: Missing _id or quantity' });
+    // Check if product ID and operation type exist
+    if (!productId || !operation) {
+        console.log('Webhook received invalid payload (missing _id or operation):', body);
+        return res.status(400).json({ message: 'Bad Request: Missing _id or operation type' });
     }
 
-    console.log(`Webhook received: Sync product ${productId} to quantity ${quantity}`);
+    // Use the explicit operation field to determine the action
+    if (operation === 'delete') {
+        // --- Handle Delete Operation ---
+        console.log(`Webhook received: Delete product ${productId} (Operation: ${operation})`);
+        try {
+            const { error: deleteError } = await supabase
+                .from('inventory')
+                .delete()
+                .match({ product_id: productId });
 
-    try {
+            if (deleteError) {
+                console.error(`Supabase delete error for ${productId}:`, deleteError);
+                if (deleteError.code === 'PGRST116') {
+                     console.log(`Product ${productId} not found in inventory for deletion.`);
+                     return res.status(200).json({ message: 'Product not found or already deleted' });
+                }
+                return res.status(500).json({ message: 'Error deleting inventory item', error: deleteError.message });
+            }
+
+            console.log(`Successfully deleted product ${productId} from Supabase inventory.`);
+            return res.status(200).json({ message: 'Inventory item deleted successfully' });
+
+        } catch (err) {
+            console.error(`Unexpected error processing delete webhook for ${productId}:`, err);
+            return res.status(500).json({ message: 'Internal Server Error during delete' });
+        }
+
+    } else if (operation === 'create' || operation === 'update') {
+        // --- Handle Create/Update Operation (Upsert) ---
+
+        // Validate fields required specifically for create/update
+        if (quantity === undefined || quantity === null || price === undefined || price === null) {
+             console.log(`Webhook received invalid ${operation} payload (missing quantity or price):`, body);
+             return res.status(400).json({ message: `Bad Request: Missing quantity or price for ${operation}` });
+        }
+        if (!name) {
+           console.log(`Webhook received ${operation} payload missing name:`, body);
+           // return res.status(400).json({ message: `Bad Request: Missing name for ${operation}` });
+        }
+         if (!categoryName) {
+            console.log(`Webhook received ${operation} payload missing categoryName:`, body);
+            // return res.status(400).json({ message: `Bad Request: Missing categoryName for ${operation}` });
+         }
+         if (typeof price !== 'number' || price < 0) {
+            console.log(`Webhook received invalid price for ${operation}:`, body);
+            return res.status(400).json({ message: `Bad Request: Invalid price value for ${operation}` });
+         }
+
+        console.log(`Webhook received: ${operation} product ${productId} (Name: ${name || 'N/A'}, Category: ${categoryName || 'N/A'}, Price: ${price}) to quantity ${quantity}`);
+
+        try {
+            const upsertData = {
+                product_id: productId,
+                quantity: quantity,
+                name: name,
+                category: categoryName,
+                price: price,
+                min_stock_level: 0,
+            };
+
+            console.log('Upserting data to Supabase:', upsertData);
+
         const { data, error } = await supabase
             .from('inventory')
-            .upsert(
-                { product_id: productId, quantity: quantity },
-                { onConflict: 'product_id' } // Use Sanity _id as the conflict target
-            )
-            .select(); // Select to see the result
+                .upsert(upsertData, { onConflict: 'product_id' })
+                .select();
 
         if (error) {
-            console.error(`Supabase upsert error for ${productId}:`, error);
-            // Decide if you want to retry or just log
+                console.error(`Supabase upsert error for ${productId} (${operation}):`, error);
             return res.status(500).json({ message: 'Error updating inventory', error: error.message });
         }
 
-        console.log(`Successfully synced product ${productId} to quantity ${quantity} in Supabase. Result:`, data);
+            console.log(`Successfully synced product ${productId} (${operation}) in Supabase. Result:`, data);
         return res.status(200).json({ message: 'Inventory updated successfully' });
 
     } catch (err) {
-        console.error(`Unexpected error processing webhook for ${productId}:`, err);
-        return res.status(500).json({ message: 'Internal Server Error' });
+            console.error(`Unexpected error processing ${operation} webhook for ${productId}:`, err);
+            return res.status(500).json({ message: `Internal Server Error during ${operation}` });
+        }
+    } else {
+        // Handle unexpected operation values
+        console.warn(`Webhook received unknown operation type '${operation}' for ${productId}:`, body);
+        return res.status(400).json({ message: `Bad Request: Unknown operation type '${operation}'` });
     }
 }
 
