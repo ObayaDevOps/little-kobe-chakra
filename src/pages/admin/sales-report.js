@@ -1,75 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Head from 'next/head';
+import {
+    Box,
+    Heading,
+    Divider,
+} from '@chakra-ui/react';
 // Assuming you have some admin layout/wrapper
 // import AdminLayout from '@/components/AdminLayout';
 
-// No interface needed in JS
+// --- Import the new Dashboard Overview component ---
+import DashboardOverview from '@/components/Analytics/DashboardOverview'; // Adjust path if needed
+// --- Import the new Recent Orders component ---
+import RecentOrdersList from '@/components/Analytics/RecentOrdersList'; // Adjust path if needed
 
-const SalesReportPage = () => { // Removed React.FC type
-    const [reportData, setReportData] = useState([]); // Removed type parameter
-    const [isLoading, setIsLoading] = useState(true); // Removed type parameter
-    const [error, setError] = useState(null); // Removed type parameter
-
-    useEffect(() => {
-        const fetchReportData = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const response = await fetch('/api/admin/sales-report');
-                if (!response.ok) {
-                    // Basic error handling, consider more robust error type checking
-                    let errorMsg = `HTTP error! status: ${response.status}`;
-                    try {
-                        const errorBody = await response.json();
-                        errorMsg = errorBody.message || errorMsg;
-                    } catch (parseError) {
-                        // Ignore if response body is not JSON or empty
-                    }
-                    throw new Error(errorMsg);
-                }
-                const data = await response.json(); // Removed type assertion
-                setReportData(data);
-            } catch (err) {
-                console.error("Failed to fetch sales report:", err);
-                setError(err instanceof Error ? err.message : 'An unknown error occurred');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchReportData();
-    }, []); // Empty dependency array means this runs once on mount
-
+const SalesReportPage = () => {
     return (
         // <AdminLayout> {/* Wrap with your admin layout if you have one */}
         <>
             <Head>
-                <title>Admin - Sales Report</title>
+                {/* Updated title to reflect the overview nature */}
+                <title>Admin - Sales Overview</title>
             </Head>
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-2xl font-bold mb-4">Sales Report</h1>
+            {/* Keep outer padding Box */}
+            <Box p={8} maxW="container.xl" mx="auto">
+                {/* Heading remains similar, but the content below changes */}
+                {/* <Heading as="h1" size="lg" mb={6}>
+                    Sales Report
+                </Heading> */}
 
-                {isLoading && <p>Loading sales data...</p>}
-                {error && <p className="text-red-500">Error loading data: {error}</p>}
+                {/* --- Render the Dashboard Overview component --- */}
+                {/* It handles its own heading, loading, error states, and data display */}
+                <DashboardOverview />
 
-                {!isLoading && !error && (
-                    <>
-                        {reportData.length === 0 ? (
-                            <p>No sales data available.</p>
-                        ) : (
-                            <ul>
-                                {/* Ensure item has productId, label, and value */}
-                                {reportData.map((item) => (
-                                    <li key={item.productId} className="border-b py-2">
-                                        <strong>{item.label || 'N/A'}:</strong> {item.value ?? 'N/A'} sold
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        {/* TODO: Add charts or more detailed tables */}
-                    </>
-                )}
-            </div>
+                {/* --- Add a divider --- */}
+                <Divider my={10} /> {/* Add some vertical space and visual separation */}
+
+                {/* --- Render the Recent Orders List --- */}
+                <RecentOrdersList />
+
+            </Box>
         </>
       // </AdminLayout>
     );
