@@ -266,7 +266,7 @@ export async function getProductDetailsByIds(productIds) {
     const supabase = getServerSupabaseClient();
     const { data, error } = await supabase
         .from('inventory')
-        .select('product_id, price, name') // Select fields needed for order items
+        .select('product_id, price, quantity, name') // Select fields needed: added quantity
         .in('product_id', productIds);
 
     if (error) {

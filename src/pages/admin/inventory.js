@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Box,
     Heading,
@@ -27,8 +27,14 @@ import {
     NumberInputStepper,
     NumberIncrementStepper,
     NumberDecrementStepper,
+    List,
+    ListItem,
+    ListIcon
 } from '@chakra-ui/react';
-import { SearchIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
+import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon } from '@chakra-ui/icons';
+
+import Head from 'next/head'
+
 
 function AdminInventoryPage() {
     const [inventory, setInventory] = useState([]);
@@ -39,6 +45,8 @@ function AdminInventoryPage() {
     const toast = useToast();
 
     const [originalInventory, setOriginalInventory] = useState([]);
+    const [highlightedItemId, setHighlightedItemId] = useState(null);
+    const highlightTimeoutRef = useRef(null);
 
     const fetchData = async (query = '') => {
         setLoading(true);
@@ -152,17 +160,112 @@ function AdminInventoryPage() {
         const originalItem = originalInventory.find(item => item.sanityId === sanityId);
         if (!currentItem || !originalItem) return false;
 
-        return String(currentItem.price ?? '') !== String(originalItem.price ?? '') ||
-               String(currentItem.quantity ?? '') !== String(originalItem.quantity ?? '') ||
-               String(currentItem.minStockLevel ?? '') !== String(originalItem.minStockLevel ?? '');
+        const currentPrice = currentItem.price ?? '';
+        const originalPrice = originalItem.price ?? '';
+        const currentQuantity = currentItem.quantity ?? '';
+        const originalQuantity = originalItem.quantity ?? '';
+        const currentMinStock = currentItem.minStockLevel ?? '';
+        const originalMinStock = originalItem.minStockLevel ?? '';
+
+        return String(currentPrice) !== String(originalPrice) ||
+               String(currentQuantity) !== String(originalQuantity) ||
+               String(currentMinStock) !== String(originalMinStock);
     };
+
+    const itemsMissingData = inventory.filter(item =>
+        item.price === null || item.price === undefined || item.price === '' ||
+        item.quantity === null || item.quantity === undefined || item.quantity === ''
+    );
+
+    const handleGoToItemClick = (id) => {
+        if (highlightTimeoutRef.current) {
+            clearTimeout(highlightTimeoutRef.current);
+        }
+
+        setHighlightedItemId(id);
+
+        highlightTimeoutRef.current = setTimeout(() => {
+            setHighlightedItemId(null);
+            highlightTimeoutRef.current = null;
+        }, 3000);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (highlightTimeoutRef.current) {
+                clearTimeout(highlightTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <Box p={5}>
+            <Head>
+            <title>Admin Inventory Management | Little Kobe Japanese Market</title>
+            <meta name="description" content="Little Kobe Japanese Market"  />
+            {/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
+            <link rel="icon" href="/little-kobe-logo-black.svg" />
+
+
+            <meta property="og:title" content='Little Kobe Japanese Market'/> 
+            <meta property="og:description" content="Little Kobe Japanese Market" />
+            <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+            <meta property="og:image:secure_url" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+                    
+            
+            {/* <meta property="og:image:type" content="image/png" />  */}
+            <meta property="og:image:width" content="120" />
+            <meta property="og:image:height" content="120" />
+            {/* <meta property="og:url" content="https://www.nekosero.ug/" /> */}
+            <meta property="og:type" content="website" />
+            </Head>
+
+
+
+
             <Heading mb={2}>Admin Inventory Management</Heading>
             <Text mb={2}>A Dashboard showing Current Price, Inventory and Sales Information</Text>
             <Text mb={2}>Make edits and publish and the prices will be reflected on the website</Text>
             <Text mb={6}>To add Products, edit Product Info or Pictures, please use <Link href="/studio" isExternal color="teal.500">Sanity Studio</Link></Text>
+
+            {itemsMissingData.length > 0 && !loading && (
+                <Box p={4} mb={6} bg="yellow.100" borderRadius="md" shadow="sm">
+                    <Heading size="sm" mb={3} color="yellow.800">Items Requiring Attention</Heading>
+                    <Text mb={3}>The following items are missing a price or quantity. Please update them:</Text>
+                    <List spacing={2}>
+                        {itemsMissingData.map(item => (
+                            <ListItem key={item.sanityId} display="flex" alignItems="center">
+                                <ListIcon as={WarningTwoIcon} color="orange.500" />
+                                <Text mr={2}>{item.name || `Item ID: ${item.sanityId}`}:</Text>
+                                { (item.price === null || item.price === undefined || item.price === '') && <Text mr={2} fontWeight="bold" color="red.600">[Missing Price]</Text> }
+                                { (item.quantity === null || item.quantity === undefined || item.quantity === '') && <Text mr={2} fontWeight="bold" color="red.600">[Missing Quantity]</Text> }
+                                <Link
+                                    href={`#${item.sanityId}`}
+                                    fontSize="sm"
+                                    color="blue.600"
+                                    ml="auto"
+                                    onClick={(e) => {
+                                        handleGoToItemClick(item.sanityId);
+                                    }}
+                                >
+                                    (Go to item)
+                                </Link>
+                                <Link
+                                    href={`/studio/desk/product;${item.sanityId}`}
+                                    isExternal={false}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    fontSize="sm"
+                                    color="teal.600"
+                                    ml={2}
+                                >
+                                    (Edit in Sanity)
+                                </Link>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            )}
 
             <form onSubmit={handleSearch}>
                 <HStack mb={6} spacing={4}>
@@ -216,8 +319,18 @@ function AdminInventoryPage() {
                                 const isUpdating = updatingItems[item.sanityId];
                                 const changed = hasChanges(item.sanityId);
 
+                                const getRowBg = () => {
+                                    if (highlightedItemId === item.sanityId) {
+                                        return 'yellow.200';
+                                    }
+                                    if (changed) {
+                                        return 'yellow.50';
+                                    }
+                                    return 'inherit';
+                                };
+
                                 return (
-                                <Tr key={item.sanityId} bg={changed ? 'yellow.50' : 'inherit'}>
+                                <Tr id={item.sanityId} key={item.sanityId} bg={getRowBg()}>
                                     <Td>
                                         {item.imageUrl ? (
                                             <Image

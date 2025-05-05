@@ -12,6 +12,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import Head from 'next/head'
 import Footer from '../components/Footer'
+import { getProductDetailsByIds } from '../lib/db'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -238,13 +239,14 @@ export default function Home({ products, categories }) {
 }
 
 export async function getStaticProps() {
-  const [products, categories] = await Promise.all([
+  // 1. Fetch initial product details and categories from Sanity
+  const [sanityProducts, categories] = await Promise.all([
     client.fetch(groq`
       *[_type == "product"]{
         _id,
         name,
         description,
-        price,
+        // price, // Price comes from Supabase now
         isPopular,
         "slug": slug.current,
         "mainImage": images[0].asset->url,
@@ -261,13 +263,70 @@ export async function getStaticProps() {
         parent->{title, slug}
       }
     `)
-  ])
+  ]);
 
+  // 2. Get product IDs from Sanity results
+  const productIds = sanityProducts.map(p => p._id);
+
+  // 3. Fetch inventory data from Supabase using the db.js function
+  const { data: inventoryData, error: dbError } = await getProductDetailsByIds(productIds);
+
+  // Handle potential errors from the DB function call
+  if (dbError) {
+    console.error("Error fetching inventory data:", dbError);
+    // Decide how to handle: return empty products, log, etc.
+    // For now, return potentially incomplete data or empty list
+    return {
+        props: {
+            products: [], // Or sanityProducts without inventory enrichment
+            categories,
+            error: "Failed to load product inventory." // Optional: Pass error message to page
+        },
+        revalidate: 10 // Revalidate quickly after an error
+    };
+  }
+
+  // 4. Create a map for quick lookup of inventory data by product_id
+  const inventoryMap = (inventoryData || []).reduce((map, item) => {
+    // Make sure item has product_id before adding to map
+    if (item && item.product_id) {
+        map[item.product_id] = { price: item.price, quantity: item.quantity };
+    } else {
+        console.warn("Inventory item missing product_id:", item);
+    }
+    return map;
+  }, {});
+
+
+  // 5. Merge Sanity data with Supabase inventory and filter
+  const products = sanityProducts
+    .map(product => {
+      const inventory = inventoryMap[product._id];
+      // If inventory exists for this product ID, add price/quantity
+      // Otherwise, price/quantity will be undefined
+      return {
+        ...product,
+        price: inventory?.price,
+        quantity: inventory?.quantity,
+      };
+    })
+    .filter(product => {
+      // Keep only products with non-null/undefined price AND non-null/undefined quantity
+      const hasPrice = product.price !== null && product.price !== undefined;
+      const hasQuantity = product.quantity !== null && product.quantity !== undefined;
+      return hasPrice && hasQuantity;
+    });
+
+    // Optional: Log how many products were filtered out
+    console.log(`Fetched ${sanityProducts.length} products from Sanity, ${products.length} remain after inventory check.`);
+
+
+  // Pass the filtered products and categories to the page
   return {
     props: {
-      products,
+      products, // Contains only products with valid price and quantity
       categories
     },
-    revalidate: 60
+    revalidate: 60 // Or your preferred revalidation time
   }
 } 
