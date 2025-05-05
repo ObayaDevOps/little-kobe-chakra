@@ -48,6 +48,8 @@ async function verifySignature(req) {
     }
 }
 
+//Doc: https://www.sanity.io/answers/webhooks-don-t-indicate-document-creation--update-or-deletion--possible-solution-found-
+
 // Helper to get raw body (needed for Pages Router)
 // Install 'raw-body' if needed: npm install raw-body
 // import getRawBody from 'raw-body';
@@ -79,7 +81,7 @@ export default async function handler(req, res) {
 
     // --- Process Webhook Request ---
     // Destructure all fields from the new projection, including 'operation'
-    const { _id: productId, quantity, name, categoryName, price, operation } = body;
+    const { _id: productId, name, categoryName, operation } = body;
 
     // Check if product ID and operation type exist
     if (!productId || !operation) {
@@ -97,17 +99,16 @@ export default async function handler(req, res) {
                 .delete()
                 .match({ product_id: productId });
 
-            if (deleteError) {
+            if (deleteError && deleteError.code !== 'PGRST116') { // Ignore "not found" errors
                 console.error(`Supabase delete error for ${productId}:`, deleteError);
-                if (deleteError.code === 'PGRST116') {
-                     console.log(`Product ${productId} not found in inventory for deletion.`);
-                     return res.status(200).json({ message: 'Product not found or already deleted' });
-                }
                 return res.status(500).json({ message: 'Error deleting inventory item', error: deleteError.message });
             }
+            if (deleteError && deleteError.code === 'PGRST116'){
+                 console.log(`Product ${productId} not found in inventory for deletion.`);
+            }
 
-            console.log(`Successfully deleted product ${productId} from Supabase inventory.`);
-            return res.status(200).json({ message: 'Inventory item deleted successfully' });
+            console.log(`Successfully processed delete request for product ${productId}.`);
+            return res.status(200).json({ message: 'Inventory item deleted or already absent' });
 
         } catch (err) {
             console.error(`Unexpected error processing delete webhook for ${productId}:`, err);
@@ -115,54 +116,39 @@ export default async function handler(req, res) {
         }
 
     } else if (operation === 'create' || operation === 'update') {
-        // --- Handle Create/Update Operation (Upsert) ---
+        // --- Handle Create/Update Operation (Sync Metadata) ---
+        // No price/quantity validation needed here anymore
 
-        // Validate fields required specifically for create/update
-        if (quantity === undefined || quantity === null || price === undefined || price === null) {
-             console.log(`Webhook received invalid ${operation} payload (missing quantity or price):`, body);
-             return res.status(400).json({ message: `Bad Request: Missing quantity or price for ${operation}` });
-        }
-        if (!name) {
-           console.log(`Webhook received ${operation} payload missing name:`, body);
-           // return res.status(400).json({ message: `Bad Request: Missing name for ${operation}` });
-        }
-         if (!categoryName) {
-            console.log(`Webhook received ${operation} payload missing categoryName:`, body);
-            // return res.status(400).json({ message: `Bad Request: Missing categoryName for ${operation}` });
-         }
-         if (typeof price !== 'number' || price < 0) {
-            console.log(`Webhook received invalid price for ${operation}:`, body);
-            return res.status(400).json({ message: `Bad Request: Invalid price value for ${operation}` });
-         }
-
-        console.log(`Webhook received: ${operation} product ${productId} (Name: ${name || 'N/A'}, Category: ${categoryName || 'N/A'}, Price: ${price}) to quantity ${quantity}`);
+        console.log(`Webhook received: ${operation} product ${productId} (Name: ${name || 'N/A'}, Category: ${categoryName || 'N/A'})`);
 
         try {
+             // Only sync fields coming from Sanity projection.
+             // Price, quantity, min_stock_level are managed via Admin UI / API
             const upsertData = {
                 product_id: productId,
-                quantity: quantity,
-                name: name,
-                category: categoryName,
-                price: price,
-                min_stock_level: 0,
+                name: name,         // Sync name
+                category: categoryName, // Sync category
+                // EXCLUDED: price, quantity, min_stock_level
             };
 
-            console.log('Upserting data to Supabase:', upsertData);
+            // For 'create', this inserts the row with defaults (NULL for price/qty/min_stock)
+            // For 'update', this updates only name/category from Sanity, leaving others untouched
+            console.log('Upserting metadata to Supabase:', upsertData);
 
-        const { data, error } = await supabase
-            .from('inventory')
+            const { data, error } = await supabase
+                .from('inventory')
                 .upsert(upsertData, { onConflict: 'product_id' })
-                .select();
+                .select(); // Select is optional here
 
-        if (error) {
-                console.error(`Supabase upsert error for ${productId} (${operation}):`, error);
-            return res.status(500).json({ message: 'Error updating inventory', error: error.message });
-        }
+            if (error) {
+                console.error(`Supabase metadata upsert error for ${productId} (${operation}):`, error);
+                return res.status(500).json({ message: 'Error syncing inventory metadata', error: error.message });
+            }
 
-            console.log(`Successfully synced product ${productId} (${operation}) in Supabase. Result:`, data);
-        return res.status(200).json({ message: 'Inventory updated successfully' });
+            console.log(`Successfully synced metadata for product ${productId} (${operation}) in Supabase.`);
+            return res.status(200).json({ message: 'Inventory metadata synced successfully' });
 
-    } catch (err) {
+        } catch (err) {
             console.error(`Unexpected error processing ${operation} webhook for ${productId}:`, err);
             return res.status(500).json({ message: `Internal Server Error during ${operation}` });
         }
