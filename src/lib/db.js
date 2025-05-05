@@ -323,29 +323,27 @@ export async function createOrderAndItems(orderData, itemsData) {
     const supabase = getServerSupabaseClient();
 
     // Prepare the items in the format expected by the PostgreSQL function
-    // Assuming the function expects JSONB like: '[{"product_id": "abc", "quantity": 2}, ...]'
+    // *** FIX: Map product_id to _id ***
     const itemsJson = itemsData.map(item => ({
-        product_id: item.product_id, // Ensure names match function parameters
+        _id: item.product_id, // Use _id as the key
         quantity: item.quantity
     }));
 
+    // *** Log the corrected JSON to verify ***
+    console.log('RPC - itemsJson (mapped to _id):', itemsJson);
+
     // Call the PostgreSQL function
     const { data, error } = await supabase.rpc('create_order_and_items', {
-        p_order_data: orderData, // Pass the order details object
-        p_items_data: itemsJson   // Pass the items JSON array
+        p_order_data: orderData,
+        p_items_data: itemsJson // Pass the corrected items JSON array
     });
 
     if (error) {
         console.error('Supabase RPC error calling create_order_and_items:', error);
-        // The RPC function should handle internal errors and potentially return a specific error message
     } else {
         console.log('Successfully created order via RPC. Result:', data);
-        // The RPC function should return the new order ID or the full order record
     }
 
-    // The RPC function might return the new order ID or the whole order object.
-    // Adjust based on what your SQL function returns.
-    // If it only returns the ID, you might want to fetch the full order here.
     return { data, error };
 }
 
