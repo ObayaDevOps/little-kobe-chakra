@@ -1,0 +1,352 @@
+{
+	"info": {
+		"_postman_id": "27f29fdd-8112-4b5a-b86b-b816aa436ea8",
+		"name": "Pesapal API 3.0",
+		"description": "Welcome to Pesapal API 3.0. Getting started with Pesapal is quick and easy!\n\nIn this release, you will learn how to use our API endpoints to access Pesapal services. Our APIs are built on REST(Representational State Transfer) thus our data entities are represented as HTTP resources and are accessed using HTTP verbs GET and POST. Requests and responses are JSON encoded.\n\nFind information about integrating your website with Pesapal. This documentation includes sample codes for each API we have.\n\n**Base URLs**\n\n| Environment | URL |\n| --- | --- |\n| Sandbox | [https://cybqa.pesapal.com/pesapalv3](https://cybqa.pesapal.com/pesapalv3) |\n| Live | [https://pay.pesapal.com/v3](https://pay.pesapal.com/v3) |\n\n**Error Object**\n\nIn case an error occurs during any API call, Pesapal will respond with a json string in the following format;\n\n```\n{\n    \"error\":{\n        \"type\": \"error_type\",\n        \"code\": \"response_code\",\n        \"message\": \"Detailed error message goes here..\"\n    }\n}\n\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13185707"
+	},
+	"item": [
+		{
+			"name": "Iframe3",
+			"item": [
+				{
+					"name": "Authentication",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"consumer_key\": \"{{consumer_key_ke}}\",\r\n  \"consumer_secret\": \"{{consumer_secret_ke}}\"\r\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}Auth/RequestToken",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}Auth"
+							],
+							"path": [
+								"RequestToken"
+							]
+						},
+						"description": "Pesapal's API Authentication requests are done via a **POST** request.\n\nYour Pesapal merchant **consumer_key** and **consumer_secret** will be used to generate an **access token**. This access token is valid for a maximum period of **5 minutes.** Use this token (sent as a Bearer Token) to access all other Pesapal API 3.0 endpoints.\n\nThe URL to the API service is either:\n\n- **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken](https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken)\n- **Production/Live URL:** [https://pay.pesapal.com/v3/api/Auth/RequestToken](https://pay.pesapal.com/v3/api/Auth/RequestToken)\n    \n\n### HTTP request headers\n\n**Accept :** The response format, which is required for operations with a response body.  \n**Content-Type :** The request format, which is required for operations with a request body.\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| Accept | `Required` | Should be set to `application/json` |\n| Content-Type | `Required` | Should be set to `application/json` |\n\n### Request Parameters\n\nYour live/production **consumer_key** and **consumer_secret** will be sent to your merchant email on opening a business/merchant account.\n\nPlease click [here](https://www.pesapal.com/dashboard/account/register) to open a live/production business account.\n\n> Click [here](https://developer.pesapal.com/api3-demo-keys.txt) for some test credentials to use while connecting to our **demo/sandbox** API. \n  \n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| consumer_key | String | `Required` | The consumer_key parameter must be set to `merchant consumer_key` |\n| consumer_secret | String | `Required` | The consumer_secret parameter must be set to `merchant consumer_secret` |\n\n#### Sample Request\n\n``` json\n{\n    \"consumer_key\":\"xxxxx\",\n    \"consumer_secret\":\"xxxxxx\"\n}\n\n ```\n\n### Response Parameters\n\n| Name | Type | Description |\n| --- | --- | --- |\n| token | String | The access token string as issued by the server. The access token issued will have permission to invoke all Pesapa API operations. |\n| expiryDate | String | Date and time the token will expire. The access token usually expires after 5mins - `UTC` |\n| error | Object | Error object |\n| status | String | Response code |\n| message | String | A brief description about the response received. |\n\n#### Sample Response\n\n``` json\n{\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3VzZXJkYXRhIjoiZWQ2MTkwMGYtZGNiMy00NjM2LWIxNGUtY2U1MGQwYzk2M2I1IiwidWlkIjoicWtpbzFCR0dZQVhUdTJKT2ZtN1hTWE5ydW9ac3JxRVciLCJuYmYiOjE2Mjk5NzczNzAsImV4cCI6MTYyOTk4MDk3MCwiaWF0IjoxNjI5OTc3MzcwLCJpc3MiOiJodHRwOi8vY3licWEucGVzYXBhbC5jb20vIiwiYXVkIjoiaHR0cDovL2N5YnFhLnBlc2FwYWwuY29tLyJ9.WGl2uJ68EhEdfrjM1iDveKmSDwO9du0CN9e0j8NtOq4\",\n    \"expiryDate\": \"2021-08-26T12:29:30.5177702Z\",\n    \"error\": null,\n    \"status\": \"200\",\n    \"message\": \"Request processed successfully\"\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
+					"name": "RegisterIPNURL",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"url\": \"\",\r\n    \"ipn_notification_type\": \"GET\" //OR POST\r\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}URLSetup/RegisterIPN",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}URLSetup"
+							],
+							"path": [
+								"RegisterIPN"
+							]
+						},
+						"description": "**IPN** stands for **Instant Payment Notification**. When a payment is made against a transaction, Pesapal will trigger an **IPN** call to the notification URL related to this transaction. This notification URL is usually located on your servers. These notifications allows you to be alerted in **real time** whenever there is a status change for any transaction.\n\nAn **IPN** is particular important as it allows you to be notified incase the following happens:\n\n- Your client gets disconnected after payment due to internet issues\n    \n- Your client experiences server errors hence Pesapal and your application gets disconnected before callback URL is loaded.\n    \n- Your client exits your application / closes the browser during payment.\n    \n- The transaction is rejected.\n    \n\nAs such, it's **mandatory** to have **IPN** configured to allow Pesapal to notify your servers when a status changes. It's also important to note that this IPN URL must be publicly available. In cases where you have strict server rules preventing external systems reaching your end, you must then whitelist all calls from our domain (pesapal.com). Please be informed that IP whitelisting  \nis not feasible as our IP may change without notice.\n\nBefore sending **Submit Order Requests** to Pesapal API 3.0 you are expected to register your IPN URL. Upon registration, you receive an IPN ID which is a mandatory field (notification_id) when submitting an order request to Pesapal API 3.0. This **notification_id** uniquely identifies the endpoint Pesapal will send alerts to whenever a payment status changes for each transaction processed via API 3.0\n\nThe URL to our IPN registration API is either:\n\n- **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/URLSetup/RegisterIPN](https://cybqa.pesapal.com/pesapalv3/api/URLSetup/RegisterIPN)\n    \n- **Production/Live URL:** [https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN](https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN)\n    \n\n### HTTP request headers\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| Accept | `Required` | `application/json` |\n| Content-Type | `Required` | `application/json` |\n\n### Request Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| url | String | `Required` | The notification url Pesapal with send a status alert to. |\n| ipn_notification_type | String | `Required` | `GET` or `POST` . This is the http request method Pesapal will use when triggering the IPN alert. |\n\n#### Sample Request\n\n``` json\n{\n    \"url\": \"https://www.myapplication.com/ipn\",\n    \"ipn_notification_type\": \"GET\"\n}\n\n ```\n\n### Response Parameters\n\n| Name | Type | Description |\n| --- | --- | --- |\n| url | String | The notification url Pesapal with send a status alert to. |\n| created_date | String | Date and time the IPN URL was registered `UTC` |\n| ipn_id | String | A unique identifier that's liked to the IPN endpoint URL. `GUID` |\n| notification_type | Integer |  |\n| ipn_notification_type_description | String | `GET` or `POST` . This is the http request method Pesapal will use when triggering the IPN alert. |\n| ipn_status | Integer |  |\n| ipn_status_decription | String |  |\n| error | Integer |  |\n| status | String | Response code. |\n\n#### Sample Response\n\n``` json\n{\n  \"url\": \"https://www.myapplication.com/ipn\",\n  \"created_date\": \"2022-03-03T17:29:03.7208266Z\",\n  \"ipn_id\": \"e32182ca-0983-4fa0-91bc-c3bb813ba750\",\n  \"notification_type\": 0,\n  \"ipn_notification_type_description\": \"GET\",\n  \"ipn_status\": 1,\n  \"ipn_status_decription\": \"Active\",\n  \"error\": null,\n  \"status\": \"200\"\n}\n\n ```\n\nYou can also use our online forms below to register your IPN URLs.\n\n- [Sandbox/Demo IPN Registration Form](https://cybqa.pesapal.com/PesapalIframe/PesapalIframe3/IpnRegistration)\n    \n- [Production/Live IPN Registration Form](https://pay.pesapal.com/iframe/PesapalIframe3/IpnRegistration)"
+					},
+					"response": []
+				},
+				{
+					"name": "GetIPNList",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}URLSetup/GetIpnList",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}URLSetup"
+							],
+							"path": [
+								"GetIpnList"
+							]
+						},
+						"description": "This endpoint allows you to fetch all registered IPN URLs for a particular Pesapal merchant account.\n\nThe URL to our GetIPNList API is either:\n\n*   **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/URLSetup/GetIpnList](https://cybqa.pesapal.com/pesapalv3/api/URLSetup/GetIpnList)\n*   **Production/Live URL:** [https://pay.pesapal.com/v3/api/URLSetup/GetIpnList](https://pay.pesapal.com/v3/api/URLSetup/GetIpnList)\n    \n\n### Request\n\nThe API call is authenticated using the authorization token.\n\nNo payload is required.\n\n### Response Parameters\n\n| Name | Type | Description |\n| --- | --- | --- |\n| url | String | The notification url Pesapal with send a status alert to. |\n| created_date | String | Date and time the IPN URL was registered `UTC` |\n| ipn_id | String | A unique identifier that's liked to the IPN endpoint URL. `GUID` |\n| error | Integer |  |\n| status | String | Response code. |\n\n#### Sample Response\n\n``` json\n[\n        {\n            \"url\": \"https://www.myapplication.com/ipn\",\n            \"created_date\": \"2022-03-03T17:29:03.7208266Z\",\n            \"ipn_id\": \"e32182ca-0983-4fa0-91bc-c3bb813ba750\",\n            \"error\": null,\n            \"status\": \"200\"\n        },\n        {\n            \"url\": \"https://ipn.myapplication.com/application2\",\n            \"created_date\": \"2021-12-05T04:23:45.5509243Z\",\n            \"ipn_id\": \"c3bb813ba750-0983-4fa0-91bc-e32182ca\",\n            \"error\": null,\n            \"status\": \"200\"\n        }\n    ]\n\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "SubmitOrderRequest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"TEST-01\",\r\n    \"currency\": \"KES\",\r\n    \"amount\": \"1\",\r\n    \"description\": \"Testing\",\r\n    \"callback_url\": \"https://www.google.com\",\r\n    \"notification_id\": \"2b31727d-4c75-44ed-a2be-e28906226d1c\",\r\n    \"billing_address\": {\r\n        \"email_address\": \"lazaro@pesapal.com\",\r\n        \"phone_number\": \"0738681691\",\r\n        \"country_code\": \"\",\r\n        \"first_name\": \"Otieno\",\r\n        \"middle_name\": \"\",\r\n        \"last_name\": \"Laz\",\r\n        \"line_1\": \"\",\r\n        \"line_2\": \"\",\r\n        \"city\": \"\",\r\n        \"state\": \"\",\r\n        \"postal_code\": \"\",\r\n        \"zip_code\": \"\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}Transactions/SubmitOrderRequest",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}Transactions"
+							],
+							"path": [
+								"SubmitOrderRequest"
+							]
+						},
+						"description": "Once you have received the bearer token, the next step will be the actual request to create a payment request.\n\nA good example would be a case where the customer has clicked pay now button on your website. At this point, you call the **SubmitOrderRequest** and in return you will get a response which contains a payment redirect URL which you then redirect the customer to or load the URL as an iframe within your site in case you don’t want to redirect the customer off your application.\n\nThe payment URL will contain the payment methods presented to the customer by Pesapal. After the customer has made the payment, they will be redirected to your callback URL which you will have already provided to us as part of submit order request.\n\nThe URL to our SubmitOrderRequest API is either:\n\n\\* **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest](https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest)  \n\\* **Production/Live URL:** [https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest](https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest)\n\n### HTTP request headers\n\n| Parameter | Required | Value |\n| --- | --- | --- |\n| Accept | `Required` | `application/json` |\n| Content-Type | `Required` | `application/json` |\n\n### Request Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | `Required` | This refers to your unique merchant reference generated by your system. `Maximum - 50 characters` |\n| currency | String | `Required` | This represents the currency you want to charge your customers. `ISO Currency Codes` |\n| amount | Float | `Required` | Amount to be processed. |\n| description | String | `Required` | Represents the description of your order. `Maximum - 100 characters` |\n| callback_url | String | `Required` | A valid URL which Pesapal will redirect your clients to processing the payment. |\n| cancellation_url | String | `Optional` | A valid URL which Pesapal will redirect your clients to incase they click on cancel request while on the Payment link.  <br>  <br>If provided, a cancellation link will appear next to the PROCEED button. |\n| notification_id | Guid | `Required` | This represents an IPN URL which Pesapal will send notifications to after payments have been processed.  <br>  <br>You are required to register all IPN URLs after which a corresponding notification_id will be generated. Please refer to the IPN URL registration endpoint. |\n| billing_address | Object | `Required` | Customer Address Object |\n\n#### Customer Address Object\n\nCustomer billing address details to be included as part of the SUBMIT ORDER REQUEST.\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| phone_number | String | `Optional if email address is provided.`  <br>`Mandatory if email address is NOT provided.` | Customer's phone number |\n| email_address | String | `Optional if phone number is provided.`  <br>`Mandatory if phone number is NOT provided.` | Customer's email address |\n| country_code | String | `Optional` | 2 characters long country code in \\[ISO 3166-1\\]([https://en.wikipedia.org/wiki/ISO_3166-1](https://en.wikipedia.org/wiki/ISO_3166-1)) |\n| first_name | String | `Optional` | Customer's first name |\n| middle_name | String | `Optional` | Customer's middle name |\n| last_name | String | `Optional` | Customer's last name |\n| line_1 | String | `Optional` | Customer's main address |\n| line_2 | String | `Optional` | Customer's alternative address |\n| city | String | `Optional` | Customer's city |\n| state | String | `Optional` | Customer's state `Maximum - 3 characters` |\n| postal_code | Integer | `Optional` | Customer's postal code |\n| zip_code | Integer | `Optional` | Customer's zip code |\n\n#### Sample Request\n\n``` json\n{\n    \"id\": \"AA1122-3344ZZ\",\n    \"currency\": \"KES\",\n    \"amount\": 100.00,\n    \"description\": \"Payment description goes here\",\n    \"callback_url\": \"https://www.myapplication.com/response-page\",\n    \"notification_id\": \"fe078e53-78da-4a83-aa89-e7ded5c456e6\",\n    \"billing_address\": {\n        \"email_address\": \"john.doe@example.com\",\n        \"phone_number\": \"\",\n        \"country_code\": \"KE\",\n        \"first_name\": \"John\",\n        \"middle_name\": \"\",\n        \"last_name\": \"Doe\",\n        \"line_1\": \"\",\n        \"line_2\": \"\",\n        \"city\": \"\",\n        \"state\": \"\",\n        \"postal_code\": \"\",\n        \"zip_code\": \"\"\n    }\n}\n\n```\n\nAfter successfully creating the order, your response will contain a payment URL (redirect_url).\n\n**Status 200** mean your request to process the payment has been received successfully meaning the order has been successfully created on our systems and you can now redirect your customer to make the payment.\n\n### Response Parameters\n\n| Name | Type | Description |\n| --- | --- | --- |\n| order_tracking_id | String | Unique order id generated by Pesapal. |\n| merchant_reference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n| redirect_url | String | URL generated that contains the payment instructions. Redirect to this URL or load it within an iframe |\n| error | Integer |  |\n| message | String | Response message. |\n\n#### Sample Response\n\n``` json\n{\n    \"order_tracking_id\": \"b945e4af-80a5-4ec1-8706-e03f8332fb04\",\n    \"merchant_reference\": \"TEST1515111119\",\n    \"redirect_url\": \"https://cybqa.pesapal.com/pesapaliframe/PesapalIframe3/Index/?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04\",\n    \"error\": null,\n    \"status\": \"200\"\n}\n\n```\n\nRedirecting your customer to this **redirect_url** will present them with a list of available payment methods which they can use to make the payment.\n\nYou can either load this URL outside or within your website (using an Iframe). The advantage of using an iframe is that your customer will not be redirected off the site, hence a seamless payment process.\n\nOnce your customer selects their preferred payment method and makes a payment, Pesapal will process the payment and redirect your customers to the callback URL which you had provided as part of the **SubmitOrderRequest** API call.\n\n#### Callback Details\n\nThe following parameter will be appended to your callback URL.\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| OrderTrackingId | String | Unique order id generated by Pesapal. |\n| OrderNotificationType | String | Has value **CALLBACKURL** to represent a callback request |\n| OrderMerchantReference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n\n**Sample Callback URL:** [https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=CALLBACKURL](https://www.myapplication.com/response-page&OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=CALLBACKURL)\n\n#### IPN Details\n\nAt the same time, Pesapal will send an alert to your IPN URL informing you of a status change.\n\nThe IPN alert will either be a GET or POST request, depending on which HTTP method you selected when registering the IPN URL.\n\nThe IPN call will have the following parameters;\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| OrderTrackingId | String | Unique order id generated by Pesapal. |\n| OrderNotificationType | String | Has value **IPNCHANGE** to represent an IPN call. |\n| OrderMerchantReference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n\n**Sample IPN URL:** [https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=IPNCHANGE](https://www.myapplication.com/response-page&OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=IPNCHANGE)\n\n**NB:** The callback URL and the IPN calls will **NOT** have the status of the payment for security reasons. As such, you will be required to fetch the status of the payment using the **GetTransactionStatus** API once the callback page is loaded and when the IPN URL is triggered."
+					},
+					"response": []
+				},
+				{
+					"name": "DirectMobileMoneySTK",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"msisdn\": \"0723241024\",\r\n\t\"payment_method\":\"MpesaKE\",\r\n    \"id\": \"TEST-01\",\r\n    \"currency\": \"KES\",\r\n    \"amount\": \"1\",\r\n    \"description\": \"Testing\",\r\n    \"callback_url\": \"https://www.google.com\",\r\n    \"notification_id\": \"1812f9d2-36f1-4e0a-831b-dc2995b5af9e\",\r\n    \"billing_address\": {\r\n        \"email_address\": \"lazaro@pesapal.com\",\r\n        \"phone_number\": \"0738681691\",\r\n        \"country_code\": \"\",\r\n        \"first_name\": \"Otieno\",\r\n        \"middle_name\": \"\",\r\n        \"last_name\": \"Laz\",\r\n        \"line_1\": \"\",\r\n        \"line_2\": \"\",\r\n        \"city\": \"\",\r\n        \"state\": \"\",\r\n        \"postal_code\": \"\",\r\n        \"zip_code\": \"\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}transactions/stk",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}transactions"
+							],
+							"path": [
+								"stk"
+							]
+						},
+						"description": "Once you have received the bearer token, the next step will be the actual request to create a payment request.\n\nA good example would be a case where the customer has clicked pay now button on your website. At this point, you call the **SubmitOrderRequest** and in return you will get a response which contains a payment redirect URL which you then redirect the customer to or load the URL as an iframe within your site in case you don’t want to redirect the customer off your application.\n\nThe payment URL will contain the payment methods presented to the customer by Pesapal. After the customer has made the payment, they will be redirected to your callback URL which you will have already provided to us as part of submit order request.\n\nThe URL to our SubmitOrderRequest API is either:\n\n\\* **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest](https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest)  \n\\* **Production/Live URL:** [https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest](https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest)\n\n### HTTP request headers\n\n| Parameter | Required | Value |\n| --- | --- | --- |\n| Accept | `Required` | `application/json` |\n| Content-Type | `Required` | `application/json` |\n\n### Request Parameters\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| id | String | `Required` | This refers to your unique merchant reference generated by your system. `Maximum - 50 characters` |\n| currency | String | `Required` | This represents the currency you want to charge your customers. `ISO Currency Codes` |\n| amount | Float | `Required` | Amount to be processed. |\n| description | String | `Required` | Represents the description of your order. `Maximum - 100 characters` |\n| callback_url | String | `Required` | A valid URL which Pesapal will redirect your clients to processing the payment. |\n| cancellation_url | String | `Optional` | A valid URL which Pesapal will redirect your clients to incase they click on cancel request while on the Payment link.  <br>  <br>If provided, a cancellation link will appear next to the PROCEED button. |\n| notification_id | Guid | `Required` | This represents an IPN URL which Pesapal will send notifications to after payments have been processed.  <br>  <br>You are required to register all IPN URLs after which a corresponding notification_id will be generated. Please refer to the IPN URL registration endpoint. |\n| billing_address | Object | `Required` | Customer Address Object |\n\n#### Customer Address Object\n\nCustomer billing address details to be included as part of the SUBMIT ORDER REQUEST.\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| phone_number | String | `Optional if email address is provided.`  <br>`Mandatory if email address is NOT provided.` | Customer's phone number |\n| email_address | String | `Optional if phone number is provided.`  <br>`Mandatory if phone number is NOT provided.` | Customer's email address |\n| country_code | String | `Optional` | 2 characters long country code in \\[ISO 3166-1\\]([https://en.wikipedia.org/wiki/ISO_3166-1](https://en.wikipedia.org/wiki/ISO_3166-1)) |\n| first_name | String | `Optional` | Customer's first name |\n| middle_name | String | `Optional` | Customer's middle name |\n| last_name | String | `Optional` | Customer's last name |\n| line_1 | String | `Optional` | Customer's main address |\n| line_2 | String | `Optional` | Customer's alternative address |\n| city | String | `Optional` | Customer's city |\n| state | String | `Optional` | Customer's state `Maximum - 3 characters` |\n| postal_code | Integer | `Optional` | Customer's postal code |\n| zip_code | Integer | `Optional` | Customer's zip code |\n\n#### Sample Request\n\n``` json\n{\n    \"id\": \"AA1122-3344ZZ\",\n    \"currency\": \"KES\",\n    \"amount\": 100.00,\n    \"description\": \"Payment description goes here\",\n    \"callback_url\": \"https://www.myapplication.com/response-page\",\n    \"notification_id\": \"fe078e53-78da-4a83-aa89-e7ded5c456e6\",\n    \"billing_address\": {\n        \"email_address\": \"john.doe@example.com\",\n        \"phone_number\": \"\",\n        \"country_code\": \"KE\",\n        \"first_name\": \"John\",\n        \"middle_name\": \"\",\n        \"last_name\": \"Doe\",\n        \"line_1\": \"\",\n        \"line_2\": \"\",\n        \"city\": \"\",\n        \"state\": \"\",\n        \"postal_code\": \"\",\n        \"zip_code\": \"\"\n    }\n}\n\n```\n\nAfter successfully creating the order, your response will contain a payment URL (redirect_url).\n\n**Status 200** mean your request to process the payment has been received successfully meaning the order has been successfully created on our systems and you can now redirect your customer to make the payment.\n\n### Response Parameters\n\n| Name | Type | Description |\n| --- | --- | --- |\n| order_tracking_id | String | Unique order id generated by Pesapal. |\n| merchant_reference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n| redirect_url | String | URL generated that contains the payment instructions. Redirect to this URL or load it within an iframe |\n| error | Integer |  |\n| message | String | Response message. |\n\n#### Sample Response\n\n``` json\n{\n    \"order_tracking_id\": \"b945e4af-80a5-4ec1-8706-e03f8332fb04\",\n    \"merchant_reference\": \"TEST1515111119\",\n    \"redirect_url\": \"https://cybqa.pesapal.com/pesapaliframe/PesapalIframe3/Index/?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04\",\n    \"error\": null,\n    \"status\": \"200\"\n}\n\n```\n\nRedirecting your customer to this **redirect_url** will present them with a list of available payment methods which they can use to make the payment.\n\nYou can either load this URL outside or within your website (using an Iframe). The advantage of using an iframe is that your customer will not be redirected off the site, hence a seamless payment process.\n\nOnce your customer selects their preferred payment method and makes a payment, Pesapal will process the payment and redirect your customers to the callback URL which you had provided as part of the **SubmitOrderRequest** API call.\n\n#### Callback Details\n\nThe following parameter will be appended to your callback URL.\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| OrderTrackingId | String | Unique order id generated by Pesapal. |\n| OrderNotificationType | String | Has value **CALLBACKURL** to represent a callback request |\n| OrderMerchantReference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n\n**Sample Callback URL:** [https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=CALLBACKURL](https://www.myapplication.com/response-page&OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=CALLBACKURL)\n\n#### IPN Details\n\nAt the same time, Pesapal will send an alert to your IPN URL informing you of a status change.\n\nThe IPN alert will either be a GET or POST request, depending on which HTTP method you selected when registering the IPN URL.\n\nThe IPN call will have the following parameters;\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| OrderTrackingId | String | Unique order id generated by Pesapal. |\n| OrderNotificationType | String | Has value **IPNCHANGE** to represent an IPN call. |\n| OrderMerchantReference | String | Your application's unique ID received as part of the SUBMIT ORDER REQUEST. |\n\n**Sample IPN URL:** [https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=IPNCHANGE](https://www.myapplication.com/response-page&OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=IPNCHANGE)\n\n**NB:** The callback URL and the IPN calls will **NOT** have the status of the payment for security reasons. As such, you will be required to fetch the status of the payment using the **GetTransactionStatus** API once the callback page is loaded and when the IPN URL is triggered."
+					},
+					"response": []
+				},
+				{
+					"name": "GetTransactionStatus",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}GetTransactionStatus?orderTrackingId={{order-tracking-id}}",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}GetTransactionStatus"
+							],
+							"query": [
+								{
+									"key": "orderTrackingId",
+									"value": "{{order-tracking-id}}"
+								}
+							]
+						},
+						"description": "Once Pesapal redirect your customer to your callback URL and triggers your IPN URL, you need to check the status of the payment using the **OrderTrackingId**.\n\nThe URL to the API service is either:\n\n\\* **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapal/v3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx](https://cybqa.pesapal.com/pesapal/v3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx)\n\n\\* **Production/Live URL:** [https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx](https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx)\n\nWhere **xxxxxxxxxxxx** represents the **OrderTrackingId** received as part of the callback \\[GET\\] or IPN \\[POST/GET\\] params.\n\n### HTTP request headers\n\n| Parameter | Required | Value |\n| --- | --- | --- |\n| Accept | `Required` | `application/json` |\n| Content-Type | `Required` | `application/json` |\n\n### Request Parameters\n\n| **Parameter** | **type** | **Required** | **Description** |\n| --- | --- | --- | --- |\n| orderTrackingId | string | Required | Unique order id generated by Pesapal e.g 7e6b62d9-883e-440f-a63e-e1105bbfadc3. Attached as a query parameter to the getTransactionStatus endpoint to get status of your submitted order. |\n\n### Response Parameters\n\n| **Name** | **Description** |\n| --- | --- |\n| Payment Method | This refers to the payment method used by your customers to make payment. Can be through CARD, MPESA, MTN, TIGO etc. |\n| amount | Amount paid by the customer. |\n| created_date | Date the payment was made. |\n| confirmation_code | Confirmation code received from the payment provider used. |\n| payment_status_description | Contains the status of the transaction. This will include either INVALID,FAILED, COMPLETED or REVERSED. |\n| description | Description of the payment status. |\n| message | The message shows if transaction request status was processed successfully or not. |\n| payment_account | Masked card number or phone number used during payment. |\n| call_back_url | A valid URL which Pesapal will redirect the client to after payment is made. |\n| status_code | Pesapal status code representing the payment_status_description.  <br>0 - INVALID  <br>1 - COMPLETED  <br>2 - FAILED  <br>3 - REVERSED |\n| merchant_reference | Your application's unique ID as received in the **SubmitOrderRequest** call. |\n| currency | Currency the payment was made in. **ISO Currency Codes**. |\n| error | An error object containing **error_type**, **code**, **message** and **call_back_url**. |\n| status | HTTP status code as defined on RFC 2616. A status of 200 means the request was successful. |\n\n#### Sample Response\n\n``` json\n{\n    \"payment_method\": \"Visa\",\n    \"amount\": 100,\n    \"created_date\": \"2022-04-30T07:41:09.763\",\n    \"confirmation_code\": \"6513008693186320103009\",\n    \"payment_status_description\": \"Failed\",\n    \"description\": \"Unable to Authorize Transaction.Kindly contact your bank for assistance\",\n    \"message\": \"Request processed successfully\",\n    \"payment_account\": \"476173**0010\",\n    \"call_back_url\": \"https://test.com/?OrderTrackingId=7e6b62d9-883e-440f-a63e-e1105bbfadc3&OrderMerchantReference=1515111111\",\n    \"status_code\": 2,\n    \"merchant_reference\": \"1515111111\",\n    \"payment_status_code\": \"\",\n    \"currency\": \"KES\",\n    \"error\": {\n        \"error_type\": null,\n        \"code\": null,\n        \"message\": null,\n        \"call_back_url\": null\n    },\n    \"status\": \"200\"\n}\n\n ```\n\n#### What Next?\n\nOnce you've received the payment details, you are then required to store the same in your system and provide services / services paid for.\n\nYour IPN endpoint should then respond to Pesapal with a json string confirming receipt of the IPN call. Part of the json string contains a _**status**_ parameter that should be set as **200** (meaning request was received and processed) or **500** (meaning IPN request was received but there was an issue completing the process).\n\n**Sample IPN JSON Response String:** {\"orderNotificationType\":\"IPNCHANGE\",\"orderTrackingId\":\"d0fa69d6-f3cd-433b-858e-df86555b86c8\",\"orderMerchantReference\":\"1515111111\",\"status\":200}\n\n**NB:** Your callback page should not implement a json response. Instead, redirect the customer to a page on your system showing the payment details."
+					},
+					"response": []
+				},
+				{
+					"name": "RecurringPayments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"account_number\": \"{{account_number}}\",\r\n    \"id\": \"\",\r\n    \"currency\": \"\",\r\n    \"amount\": \"\",\r\n    \"description\": \"\",\r\n    \"callback_url\": \"\",\r\n    \"notification_id\": \"\",\r\n    \"billing_address\": {\r\n        \"email_address\": \"\",\r\n        \"phone_number\": \"\",\r\n        \"country_code\": \"\",\r\n        \"first_name\": \"\",\r\n        \"middle_name\": \"\",\r\n        \"last_name\": \"\",\r\n        \"line_1\": \"\",\r\n        \"line_2\": \"\",\r\n        \"city\": \"\",\r\n        \"state\": \"\",\r\n        \"postal_code\": \"\",\r\n        \"zip_code\": \"\"\r\n    }\r\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}Transactions/SubmitOrderRequest",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}Transactions"
+							],
+							"path": [
+								"SubmitOrderRequest"
+							]
+						},
+						"description": "Recurring payment is a payment model where customers authorize the business to pull funds from their accounts automatically at regular intervals for the goods and services provided to them on an ongoing basis.\n\nWith Pesapal's subscription based payments, customers can set automated card payments on their account where they can be debited automatically at a different set times. Examples of services one can enroll to include cable bills,cell phone bills, gym membership fees, utility bills and magazine subscriptions. These payments can be set to run an various intervals such as daily, weekly, monthly or yearly.\n\n##### <u>How can recurring payments benefit your business?</u>\n\n- **Saves customers time:** Customers no longer have to go through the payment process every time they need to make a payment.\n- **Ensures prompt payment:** Businesses no longer need to worry about getting paid on time. Since the payments are automated, they no longer need to send out overdue payment reminders.\n- **Boosts customer loyalty:** With a subscription model, businesses can form closer relationships with their customers.\n- **Cash flow prediction:** Businesses can easily predict their cash flow, which helps with business strategy.\n- **Lowers billing and collection costs:** Businesses no longer need to chase after missed payments, freeing up their time to concentrate on other elements of the business.\n    \n\n##### <u>How do i enable recurring payment for my customers?</u>\n\nEnable our subscription based payments by passing an additional **account_number** field when sending data to our **SubmitOrderRequest** endpoint. This account_number should relate to an account number / invoice number that helps you identify the payment.\n\n**Note:** It's critical that you get to understand all other Pesapal API 3.0 endpoints before implementing the recurring feature. Click [here](https://developer.pesapal.com/how-to-integrate/api-30-json/api-reference) to get started.\n\nIn adition to the _SubmitOrderRequest_ parameters, include one more param as show below.\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| account_number | `Optional` | Customer's identification number know to your system. This can be an invoice number or an account number. |\n\n#### Sample Request\n\n``` json\n{\n    \"id\": \"AA1122-3344ZZ\",\n    \"currency\": \"KES\",\n    \"amount\": 100.00,\n    \"description\": \"Payment description goes here\",\n    \"callback_url\": \"https://www.myapplication.com/response-page\",\n    \"notification_id\": \"fe078e53-78da-4a83-aa89-e7ded5c456e6\",\n    \"billing_address\": {\n        \"email_address\": \"john.doe@example.com\",\n        \"phone_number\": \"0723xxxxxx\",\n        \"country_code\": \"KE\",\n        \"first_name\": \"John\",\n        \"middle_name\": \"\",\n        \"last_name\": \"Doe\",\n        \"line_1\": \"Pesapal Limited\",\n        \"line_2\": \"\",\n        \"city\": \"\",\n        \"state\": \"\",\n        \"postal_code\": \"\",\n        \"zip_code\": \"\"\n    },\n    \"account_number\": \"555-678\"\n}    \n\n ```\n\nAfter successfully processing your request using the _**SubmitOrderRequest**_ endpoint, the customer will be shown an option to opt into the recurring model on the Pesapal iframe during payment. The customer will then configure the frequency (Daily, weekly, monthly, quarterly or yearly), set a start and enddate, and finally enter an amount to be automatically deducted from their card on each payment cycle.\n\n<img src=\"https://developer.pesapal.com/images/card_tokenization.png\">\n\nOnce the customer has made a successful payment, Pesapal will automatically create a scheduled subscription on their behalf and an email alert will be sent to the provided card billing email that was used during the payment proccess, notifying them of the newly created subscription together with a link they can access a dashboard to manage their subscription.\n\nPesapal will **NOT** store the customer's card details. Instead, Pesapal has implemented the card tokenization technology.\n\n**Credit card tokenization** is the process of de-identifying sensitive cardholder data by converting it to a string of randomly generated numbers called a \"token.\" Similar to encryption, tokenization obfuscates the original data to render it unreadable to a user. Unlike encryption, however, credit card tokenization is irreversible.\n\n##### <u>Is it possible to send the extra subscription parameters (Frequency, amount, period) via the API?</u>\n\nYes, in cases where your application already handles the process where the customer opts into a subscription based model from your application, Pesapal allows your to send these extra parameters via the API. This ensures that the user does not have to fill in the same details again (on your application and on the Pesapal Iframe).\n\nHowever, it's important to note that the customer **MUST** accept to enroll to your subscription on the iframe. They will however not be able to edit the subscription details on the iframe.\n\nIn adition to the **account_number** parameter included in the _SubmitOrderRequest_, you are required to send the following parameter.\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| subscription_details | `Optional` | Customer Subscription Object You can pass subscription data to Pesapal allowing a user to setup recurring payment.. |\n\n#### Subscription Object\n\n| Name | Type | Required | Description |\n| --- | --- | --- | --- |\n| start_date | String | `Mandatory` | Your subscription's start date in the format dd-MM-yyyy e.g 24-01-2023 representing 24th Jan 2023 |\n| end_date | String | `Mandatory` | Your subscription's end date in the format dd-MM-yyyy e.g 31-12-2023 represeting 31st Dec 2023 |\n| frequency | String | `Mandatory` | The period billed to the account is set out in the user contract. For instance, if users subscribe to a monthly service. Accepted values include DAILY, WEEKLY, MONTHLY or YEARLY |\n\n#### Sample Request\n\n``` json\n{\n    \"id\": \"AA1122-3344ZZ\",\n    \"currency\": \"KES\",\n    \"amount\": 100.00,\n    \"description\": \"Payment description goes here\",\n    \"callback_url\": \"https://www.myapplication.com/response-page\",\n    \"notification_id\": \"fe078e53-78da-4a83-aa89-e7ded5c456e6\",\n    \"billing_address\": {\n        \"email_address\": \"john.doe@example.com\",\n        \"phone_number\": \"0723xxxxxx\",\n        \"country_code\": \"KE\",\n        \"first_name\": \"John\",\n        \"middle_name\": \"\",\n        \"last_name\": \"Doe\",\n        \"line_1\": \"Pesapal Limited\",\n        \"line_2\": \"\",\n        \"city\": \"\",\n        \"state\": \"\",\n        \"postal_code\": \"\",\n        \"zip_code\": \"\"\n    },\n    \"account_number\": \"555-678\",\n    \"subscription_details\": {\n        \"start_date\": \"24-01-2023\",\n        \"end_date\": \"31-12-2023\",\n        \"frequency\": \"DAILY\"\n    }\n}    \n\n ```\n\nAfter successfully processing your request using the _SubmitOrderRequest_ endpoint, the customer will be shown an option to opt into the recurring model on the Pesapal iframe during payment. The iframe will this time load without he options to re-select the Frequecy, period and dates.\n\n<img src=\"https://developer.pesapal.com/images/subscriptions.png\">\n\n##### <u>Can a customer opt out of recurring payments before the end date?</u>\n\nYes, customers have the right to cancel their subscription at anytime. Pesapal will send them email alerts a day or two prior to charging their cards. This ensures customers are always aware of all upcoming charges giving them the freedom to opt out or pausing their subscriptions.\n\n##### <u>Which cards are currently supported?</u>\n\nWe currently support **Visa** and **MasterCard** for recurring payments. More card options will be enabled in the near future.\n\n##### <u>How will Pesapal alert my business about successful recurring payments?</u>\n\nOnce a schedule is created and executed successfully, Pesapal will trigger an IPN (Instant Payment Notification) to the IPN endpoint you provided when calling the _SubmitOrderRequest_ endpoint. This IPN call will have the _OrderNotificationType_i> set as **RECURRING**.\n\n**Sample Callback URL:** [https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&amp;OrderMerchantReference=555-678&amp;OrderNotificationType=RECURRING](https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=555-678&OrderNotificationType=RECURRING)\n\n##### <u>Recurring IPN Details</u>\n\nThe IPN alert will either be a GET or POST request, depending on which HTTP method you selected when registering the IPN URL. Click [here](https://developer.pesapal.com/how-to-integrate/api-30-json/registeripnurl) for more details on how to register your IPN endpoint.\n\nThe **IPN** call will have the following parameters;\n\n| Parameter | Type | Description |\n| --- | --- | --- |\n| OrderTrackingId | String | Unique order id generated by Pesapal. |\n| OrderNotificationType | String | Value set as **RECURRING** to represent a Recurring IPN call. |\n| OrderMerchantReference | String | Your account number received as part of the SUBMIT ORDER REQUEST. |\n\n> _The IPN call will_ _**NOT**_ _have all details of the payment for security reasons. As such, you will be required to fetch the payment using the_ _**GetTransactionStatus**_ _API once the IPN URL is triggered._ \n  \n\nIn addition to the normal payment status details received from the _GetTransactionStatus_ endpoint, Pesapal will append an object _subscription_transaction_info_ containing some additional recurring payment data\n\n##### <u>Recurring Payments Extra Data (subscription_transaction_info)</u>\n\n| Name | Description |\n| --- | --- |\n| account_reference | Customer's identification number know to your system. This can be an invoice number or an account number. |\n| amount | Amount paid by the customer. |\n| first_name | Customer's first name. |\n| last_name | Customer's last name. |\n| correlation_id | Pesapal's unique recurring payment identifier / id. |\n\n#### Request Response\n\n``` json\n{\n    \"payment_method\": \"Visa\",\n    \"amount\": 100,\n    \"created_date\": \"2022-04-30T07:41:09.763\",\n    \"confirmation_code\": \"6513008693186320103009\",\n    \"payment_status_description\": \"Failed\",\n    \"description\": \"Unable to Authorize Transaction.Kindly contact your bank for assistance\",\n    \"message\": \"Request processed successfully\",\n    \"payment_account\": \"476173**0010\",\n    \"call_back_url\": \"https://test.com/?OrderTrackingId=7e6b62d9-883e-440f-a63e-e1105bbfadc3&OrderMerchantReference=555-678\",\n    \"status_code\": 2,\n    \"merchant_reference\": \"1515111111\",\n    \"payment_status_code\": \"\",\n    \"currency\": \"KES\",\n    \"subscription_transaction_info\": {\n        \"account_reference\": \"555-678\",\n        \"amount\": 100,\n        \"first_name\": \"John\",\n        \"last_name\": \"Doe\",\n        \"correlation_id\": 111222\n    },\n    \"error\": {\n        \"error_type\": null,\n        \"code\": null,\n        \"message\": null,\n        \"call_back_url\": null\n    },\n    \"status\": \"200\"\n}    \n\n ```\n\n##### <u>What Next?</u>\n\nOnce you've fetched the recurring data, you are then required to store the same in your system and provide services / goods as subscribed.\n\nYour IPN endpoint should then respond to Pesapal with a json string confirming service delivery. Part of the json string contains a _**status**_ parameter that should be set as **200** (meaning request was received and processed) or **500** (meaning request was received but there was an issue providing the services).\n\n**Sample JSON Response String:** {\"orderNotificationType\":\"RECURRING\",\"orderTrackingId\":\"d0fa69d6-f3cd-433b-858e-df86555b86c8\",\"orderMerchantReference\":\"555-678\",\"status\":200}\n\n> **NB:** Constant complains from your customers about service / goods not delivered which were paid using recurring / subscription based payment mode will lead to the subscriptions being terminated and your profile banned from using the feature."
+					},
+					"response": []
+				},
+				{
+					"name": "RefundRequest",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"confirmation_code\": \"\",\r\n    \"amount\": \"\",\r\n    \"username\": \"\",\r\n    \"remarks\": \"\"\r\n} "
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}Transactions/RefundRequest",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}Transactions"
+							],
+							"path": [
+								"RefundRequest"
+							]
+						},
+						"description": "The refund request endpoint allow you to refund a charge that has previously been processed but not yet refunded. Funds will be refunded to the credit / debit card or mobile money wallet that was originally charged.\n\nThe ability to process a refund has the following limitations:\n\n1. A refund has to be approved by the merchant.\n2. You can't refund more than what was originally collected.\n3. You can only refund payments with the status of COMPLETED.\n4. You can partially or fully refund a payment card payment.\n5. You can only fully refund a payment mobile payment.\n6. Refunds are performed in the currency of the original payment.\n7. Multiple refunds are not allowed. You can only request one refund against a payment.\n    \n\nThe URL to our RequestRefund API is either:\n\n- **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/Transactions/RefundRequestt](https://cybqa.pesapal.com/pesapalv3/api/Transactions/RefundRequest)\n- **Production/Live URL:** [https://pay.pesapal.com/v3/api/Transactions/RefundRequest](https://pay.pesapal.com/v3/api/Transactions/RefundRequest)\n    \n\n#### <u>Authentication</u>\n\n**Bearer Token :** Use token generated during authentication.\n\n#### <u>HTTP request headers</u>\n\n**Accept:** The response format, which is required for operations with a response body.  \n**Content-Type:** The request format, which is required for operations with a request body.\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| Accept | `Required` | Should be set to `application/json` |\n| Content-Type | `Required` | Should be set to `application/json` |\n\n#### <u>Request parameters</u>\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| confirmation_code | String | `Required` | This refers to payment confirmation code that was returned by the processor |\n| amount | Float | `Required` | Amount to be refunded. |\n| username | String | `Required` | Identity of the user who has initiated the refund. |\n| remarks | String | `Required` | A brief description on the reason for the refund. |\n\n#### **Sample Request**\n\n``` json\n{\n    \"confirmation_code\": \"AA11BB22\",\n    \"amount\": \"100.00\",\n    \"username\": \"John Doe\",\n    \"remarks\": \"Service not offered\"\n}    \n\n ```\n\nAfter successfully placing a refund request, a request will be sent to our finance team to start processing the refund.\n\n#### <u>Response parameters</u>\n\n| Name | Type | Description |\n| --- | --- | --- |\n| error | Integer | 200 - Refund received successfully and is being processed. 500 - Refund rejected. |\n| message | String | A brief summary of the response received. |\n\nStatus 200 mean your request to process the refund has been received successfully. However, please note that this does not mean the refund has been effected. Pesapal has to get the go ahead from the merchant before finalising the refund.\n\nStatus 500 mean your request to process the refund was rejected for one reason or another. Refer to the error message for more details.\n\n#### **Sample Response**\n\n``` json\n{\n    \"status\": \"200\",\n    \"message\": \"Refund request successfully\"\n}  \n\n ```\n\n> The refund API uses the confirm code for identification. It's important that you store all payment confirmation codes as returned in the Get Transaction Status Endpoint"
+					},
+					"response": []
+				},
+				{
+					"name": "OrderCancellation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"order_tracking_id\": \"{{order-tracking-id}}\"\r\n} "
+						},
+						"url": {
+							"raw": "{{protocol}}{{api-host}}{{api-url}}Transactions/CancelOrder",
+							"host": [
+								"{{protocol}}{{api-host}}{{api-url}}Transactions"
+							],
+							"path": [
+								"CancelOrder"
+							]
+						},
+						"description": "The Order Cancellation API enables you to revoke a previously placed order request that remains incomplete on our end. This API facilitates the cancellation of orders that have encountered failures or are pending transactions.\n\nHowever, there are certain constraints associated with cancelling a prior request:\n\n1. Cancellation is exclusively supported for failed or pending payments.\n2. A cancellation request can only be submitted once.\n3. Cancellation is not allowed for payments that have already been processed.\n    \n\nYou can access our Cancel Order API via the endpoints provided below:\n\n- **Sandbox/Demo URL:** [https://cybqa.pesapal.com/pesapalv3/api/Transactions/CancelOrder](https://cybqa.pesapal.com/pesapalv3/api/Transactions/CancelOrder)\n- **Production/Live URL:**[https://pay.pesapal.com/v3/api/Transactions/CancelOrder](https://pay.pesapal.com/v3/api/Transactions/CancelOrder)\n    \n\n#### <u>Authentication</u>\n\n**Bearer Token :**Use token generated during authentication.\n\n#### <u>HTTP request headers</u>\n\n**Accept:** The response format, which is required for operations with a response body.  \n**Content-Type:** The request format, which is required for operations with a request body.\n\n| Parameter | Required | Description |\n| --- | --- | --- |\n| Accept | `Required` | Should be set to `application/json` |\n| Content-Type | `Required` | Should be set to `application/json` |\n\n#### <u>Request Parameters</u>\n\n| Parameter | Type | Required | Description |\n| --- | --- | --- | --- |\n| order_tracking_id | Guid | `Required` | This refers to the original Pesapal Order tracking ID that was returned after submitting your order request earlier during the initial submit order request api call. |\n\n#### **Sample Request**\n\n``` json\n{\n    \"order_tracking_id\": \"xxxxxxxxxxxxxxxxxxxxxxx\"\n}    \n\n ```\n\nAfter successfully cancelling the request, the order shall be cancelled on our systems preventing a customer from making further payments to an already cancelled order.\n\n#### <u>Response Parameters</u>\n\n| Name | Type | Description |\n| --- | --- | --- |\n| status | Integer | 200 – Order Successfully cancelled. 500 – Order could not be cancelled. |\n| message | String | A summary of the response received. |\n\n#### Sample Response\n\n``` json\n{\n    \"status\": \"200\",\n    \"message\": \"Order successfully cancelled.\"\n}  \n\n ```\n\n> The Order Cancellation API uses the Pesapal Order Tracking ID to cancel the order. It's important that you store the Pesapal Order Tracking ID that is sent back to your system during your initial order placement stage i.e. on the submit order request endpoint."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

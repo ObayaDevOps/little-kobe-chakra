@@ -3,7 +3,7 @@ import { Badge, IconButton } from '@chakra-ui/react'
 import { useCartStore } from '../lib/cartStore'
 import { useEffect, useState } from 'react'
 
-export default function CartIcon() {
+export default function CartIcon({ onClick }) {
   const [mounted, setMounted] = useState(false)
   const items = useCartStore(state => state.items)
   
@@ -29,6 +29,7 @@ export default function CartIcon() {
               position="absolute"
               top="-4px"
               right="-4px"
+              borderRadius="full"
             >
               {totalItems}
             </Badge>
@@ -37,6 +38,8 @@ export default function CartIcon() {
       }
       variant="ghost"
       position="relative"
+      onClick={onClick}
+      _hover={{ bg: 'gray.100' }}
     />
   )
 }

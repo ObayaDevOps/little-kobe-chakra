@@ -1,7 +1,8 @@
 import { extendTheme } from '@chakra-ui/react'
 import {  Unbounded, Lexend_Mega, Public_Sans, Archivo, DM_Sans, Red_Hat_Text, 
   RocknRoll_One, Work_Sans,
-  Noto_Serif, Zen_Kaku_Gothic_New, Dela_Gothic_One, Murecho
+  Noto_Serif, Zen_Kaku_Gothic_New, Dela_Gothic_One, Murecho,
+  Press_Start_2P
   } from 'next/font/google'
 
 const neobrutalismFont1 = Unbounded({ subsets: [ 'latin' ], weight: ['400'] })
@@ -18,6 +19,8 @@ const logoFont2 = Zen_Kaku_Gothic_New({ subsets: [ 'latin' ], weight: ['400'] })
 const logoFont3= Dela_Gothic_One({ subsets: [ 'latin' ], weight: ['400'] })
 const logoFont4 = Noto_Serif({ subsets: [ 'latin' ], weight: ['400'] })
 const logoFont5 = Murecho({ subsets: [ 'latin' ], weight: ['400'] })
+const logoFont6 = Press_Start_2P({ subsets: [ 'latin' ], weight: ['400'] })
+
 
 
 
@@ -25,7 +28,7 @@ const theme = extendTheme({
   fonts: {
     heading: "'Noto Sans JP', sans-serif",
     body: "'Noto Sans JP', sans-serif",
-    logoFont: logoFont.style.fontFamily,
+    logoFont: logoFont6.style.fontFamily,
     neobrutalismFont1: neobrutalismFont1.style.fontFamily,
     neobrutalismFont2: neobrutalismFont2.style.fontFamily,
     neobrutalismFont3: neobrutalismFont3.style.fontFamily,

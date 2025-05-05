@@ -1,47 +1,124 @@
-import { Box, Flex, Heading, Link, IconButton, Image, Text } from '@chakra-ui/react'
+import { Box, Flex, Heading, Link, IconButton, Image, Text, Input, Stack, Grid, GridItem } from '@chakra-ui/react'
 import Marquee from "react-fast-marquee";
+import { FiInstagram, FiFacebook, FiTwitter, FiMail } from "react-icons/fi";
 
-
-export default function NavBar() {
+export default function Footer() {
     return (
         <Box 
-        borderTop={'4px'}
-        minH={{base: '40vh'}} 
-        bg='brand.red'
-                 bottom={'0px'}
->
-            Footer
+            bg="brand.red"
+            color="brand.beige"
+            borderTop="4px"
+            borderColor="brand.darkRed"
+            pt={{base: 16, md: 24}}
+            pb={{base: 16, md: 20}}
+            px={{ base: 8, md: 8 }}
+        >
+            <Flex
+                direction={{ base: 'column', md: 'row' }}
+                justify="space-between"
+                maxW="1400px"
+                mx="auto"
+                gap={8}
+            >
+                <Box display={{base: 'none', lg: 'flex'}}>
+                    <Image
+                        src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745851600/image-black-2_m163vh.svg'}
+                        alt={'Little Kobe Logo'}
+                        h="100px"
+                        w="100px"
+                        objectFit="cover"
+                    />
+                </Box>
+                {/* Brand Info */}
+                <Box flexBasis={{ md: '30%' }}>
+  
+
+                    <Heading size="lg" mb={4} fontFamily="logoFont">
+                        Little Kobe Japanese Market
+                    </Heading>
+                    <Text fontSize="sm" lineHeight="tall" fontFamily="nbText">
+                        Sourcing exceptional Japanese Ingredients since 2010. 
+                    </Text>
+                    <Text 
+                        fontSize="sm" 
+                        borderColor="brand.darkRed"
+                        fontFamily="nbText"
+                        lineHeight="tall"
+                    >
+                        © {new Date().getFullYear()} Little Kobe. All rights reserved.
+                    </Text>
+                </Box>
+
+                {/* Quick Links */}
+                <Grid 
+                    templateColumns="repeat(2, 1fr)" 
+                    gap={6} 
+                    flexBasis={{ md: '40%' }}
+                >
+                    <GridItem>
+                        <Heading size="sm" mb={3} fontFamily="nbText">Explore</Heading>
+                        <Stack spacing={2}>
+                            {/* <Link href="/location" fontSize="sm" fontFamily="nbText">Popular Items</Link> */}
+                            <Link href="/categories" fontSize="sm" fontFamily="nbText">Categories</Link>
+                            <Link href="/" fontSize="sm" fontFamily="nbText">Special Offers</Link>
 
 
-        {/* <Box 
-         borderColor="black"
-         borderTopWidth={'4px'}
-         borderBottomWidth={'4px'}
-         position='relative'
-        //  top={{base:'45vh' , lg: '70vh'}} 
-        //  bottom={'0px'}
-         bg='white'
-         >
-        <Marquee autofill speed={75}>
-            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-                Premium Japanese Groceries
-            </Text>
-            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-                特別オファー
-            </Text>
-            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            Premium Japanese Groceries
-            </Text>
-            <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-                酒
-            </Text>
-            
-        </Marquee>
-        </Box> */}
+                        </Stack>
+                    </GridItem>
+                    <GridItem>
+                        <Heading size="sm" mb={3} fontFamily="nbText">Support</Heading>
+                        <Stack spacing={2}>
+                            <Link href="/contact" fontSize="sm" fontFamily="nbText">Contact</Link>
+                            <Link href="/faq" fontSize="sm" fontFamily="nbText">FAQ</Link>
+                            <Link href="/refund-cancellation" fontSize="sm" fontFamily="nbText">Refunds and Cancellations</Link>
 
-        <Box>
-            
-        </Box>
+                        </Stack>
+                    </GridItem>
+                </Grid>
+
+                {/* Social & Newsletter */}
+                <Box flexBasis={{ md: '30%' }}>
+                    <Heading size="sm" mb={4} fontFamily="nbText">Stay Connected</Heading>
+                    <Flex gap={3} mb={6}>
+                        <IconButton
+                            aria-label="Instagram"
+                            icon={<FiInstagram />}
+                            variant="outline"
+                            color="black"
+                            _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                        />
+                        <IconButton
+                            aria-label="Facebook"
+                            icon={<FiFacebook />}
+                            variant="outline"
+                            color="currentColor"
+                            _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                            
+                        />
+                        <IconButton
+                            aria-label="Twitter"
+                            icon={<FiTwitter />}
+                            variant="outline"
+                            color="currentColor"
+                            _hover={{ bg: 'brand.darkRed' }}
+                            borderColor="black"
+                            borderWidth={'2px'}
+                            borderRadius="lg"
+                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                        />
+                    </Flex>
+
+                </Box>
+            </Flex>
+
         </Box>
     )
 }

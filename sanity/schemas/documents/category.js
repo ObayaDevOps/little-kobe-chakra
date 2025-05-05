@@ -11,8 +11,9 @@ export default {
       },
       {
         name: 'slug',
-        title: 'Slug',
+        title: 'Slug (will appear at the end of a url after slash e.g little-kobe.ug/soy-sauce',
         type: 'slug',
+        validation: (Rule) => Rule.required(),
         options: {
           source: 'title',
           maxLength: 96,
