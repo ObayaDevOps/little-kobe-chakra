@@ -204,7 +204,7 @@ const RecentOrdersList = () => {
                                     <Th>Date</Th>
                                     <Th>Customer</Th>
                                     <Th isNumeric>Total</Th>
-                                    <Th>Status</Th>
+                                    <Th>Payment Status</Th>
                                 </Tr>
                             </Thead>
                             <Tbody>

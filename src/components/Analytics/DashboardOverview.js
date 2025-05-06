@@ -202,17 +202,16 @@ const DashboardOverview = () => {
                             {/* <StatHelpText>Vs previous period</StatHelpText> */}
                         </Stat>
                          <Stat p={5} shadow="md" border="1px" borderColor="gray.200" borderRadius="md">
-                            <StatLabel>Total Items Sold</StatLabel>
+                            <StatLabel>Types of Items Sold</StatLabel>
                             <StatNumber>{data.totalItemsSold?.toLocaleString()}</StatNumber>
                             {/* <StatHelpText>Vs previous period</StatHelpText> */}
                         </Stat>
                     </SimpleGrid>
 
                     {/* Trend Charts Section - Use LineChart component */}
-                     <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+                     {/* <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
                         <Box p={5} shadow="md" border="1px" borderColor="gray.200" borderRadius="md" minHeight="300px">
                             <Heading size="md" mb={4}>Sales Trend</Heading>
-                             {/* Replace Placeholder Flex with LineChart */}
                             <LineChart
                                 data={processedSalesData}
                                 xAccessor={d => d.day} // Access the 'day' (Date object)
@@ -223,14 +222,13 @@ const DashboardOverview = () => {
                                 yAxisLabel="Revenue (UGX)"
                                 lineColor={salesLineColor} // Use theme color
                                 // Adjust width/height/margins as needed
-                                // width={/* calculated width or fixed */}
+                                // width= calculated width or fixed
                                 // height={300}
                                 yAxisFormat="~s" // Use SI prefixes (k, M) for revenue
                             />
                         </Box>
                          <Box p={5} shadow="md" border="1px" borderColor="gray.200" borderRadius="md" minHeight="300px">
                             <Heading size="md" mb={4}>Orders Trend</Heading>
-                             {/* Replace Placeholder Flex with LineChart */}
                             <LineChart
                                 data={processedOrdersData}
                                 xAccessor={d => d.day} // Access the 'day' (Date object)
@@ -240,12 +238,12 @@ const DashboardOverview = () => {
                                 xAxisLabel="Date"
                                 yAxisLabel="Number of Orders"
                                 lineColor={ordersLineColor} // Use theme color
-                                // width={/* calculated width or fixed */}
+                                // width=calculated width or fixed 
                                 // height={300}
                                 yAxisFormat="d" // Integer format for orders count
                             />
                         </Box>
-                    </SimpleGrid>
+                    </SimpleGrid> */}
                 </>
             )}
         </Box>
