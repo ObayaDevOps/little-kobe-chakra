@@ -9,6 +9,7 @@ import Head from 'next/head'
 import { useCartToast } from '../../utils/useCartToast'
 import { useState } from 'react'
 import Footer from '../../components/Footer'
+import { getProductDetailsByIds } from '../../lib/db'
 
 
 export default function ProductPage({ product }) {
@@ -41,6 +42,12 @@ export default function ProductPage({ product }) {
     )
     setQuantity(1) // Reset quantity after adding to cart
   }
+
+  // Inside ProductCard component (example assuming the issue is with price)
+  // Make sure price exists and is a number before formatting
+  const displayPrice = typeof product.price === 'number'
+    ? product.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) // Or your desired locale/currency
+    : 'Price not available';
 
   return (
     <Box bg="#fcd7d7" minH='100vh'>
@@ -87,13 +94,13 @@ export default function ProductPage({ product }) {
         <Stack spacing={{base:4, md:6}}>
           <Heading size="xl" fontFamily={'nbHeading'}>{product.name}</Heading>
           <Text fontSize="2xl" fontFamily={'nbHeading'} fontWeight="bold">
-            {product.price.toLocaleString()} UGX
+            {displayPrice}
           </Text>
           
           <Stack direction="row" spacing={4}>
-            {product.categories?.map(category => (
+            {product.categories && (
               <Tag 
-                key={category._id} 
+                key={product.categories._id} 
                 colorScheme="red" 
                 fontFamily={'nbText'}
                 variant={'solid'} 
@@ -102,11 +109,10 @@ export default function ProductPage({ product }) {
                 borderWidth="1px"
                 boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
                 aria-label="category title"
-                
-                >
-                {category.title}
+              >
+                {product.categories.title}
               </Tag>
-            ))}
+            )}
           </Stack>
 
           <Text fontSize="lg" fontFamily={'nbText'} whiteSpace="pre-wrap">
@@ -175,12 +181,13 @@ export async function getStaticPaths() {
 }
 
 export async function getStaticProps({ params }) {
-  const product = await client.fetch(groq`
+  // 1. Fetch the base product data from Sanity
+  const sanityProduct = await client.fetch(groq`
     *[_type == "product" && slug.current == $slug][0] {
       _id,
       name,
       description,
-      price,
+      // price, // Price comes from Supabase now
       isPopular,
       "slug": slug.current,
       "mainImage": images[0].asset->url,
@@ -192,14 +199,46 @@ export async function getStaticProps({ params }) {
           }
         }
       },
-      categories[]->{title, _id}
+      categories->{title, _id}
     }
   `, { slug: params.slug })
 
+  // If no product found in Sanity, return 404
+  if (!sanityProduct) {
+    return { notFound: true }
+  }
+
+  // 2. Fetch inventory data from Supabase for this specific product
+  const { data: inventoryData, error: dbError } = await getProductDetailsByIds([sanityProduct._id]);
+
+  // Handle potential DB errors
+  if (dbError) {
+    console.error("Error fetching inventory data for product:", sanityProduct._id, dbError);
+    // Treat as not found if DB fails for this single product
+    return { notFound: true };
+  }
+
+  // 3. Find the inventory details for the current product
+  const inventory = inventoryData && inventoryData.length > 0 ? inventoryData[0] : null;
+
+  // 4. If no inventory data (price/quantity) found for this product, treat as not found
+  if (!inventory || inventory.price === null || inventory.price === undefined || inventory.quantity === null || inventory.quantity === undefined) {
+      console.warn(`Inventory data missing or incomplete for product ID: ${sanityProduct._id}. Marking as not found.`);
+      return { notFound: true };
+  }
+
+  // 5. Merge Sanity data with Supabase inventory data
+  const product = {
+    ...sanityProduct,
+    price: inventory.price,
+    quantity: inventory.quantity,
+  };
+
+  // 6. Pass the complete product data to the page
   return {
     props: {
       product
     },
-    revalidate: 60
+    revalidate: 60 // Or your preferred revalidation time
   }
 }

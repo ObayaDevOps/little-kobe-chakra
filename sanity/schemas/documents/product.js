@@ -39,7 +39,7 @@ export default {
       },
       {
         name: 'slug',
-        title: 'Slug',
+        title: 'Slug [This is the end of the url e.g soy-sauce in  litle-kobe.com/soy-sauce], Just click generate :)',
         type: 'slug',
         options: {
           source: 'name',

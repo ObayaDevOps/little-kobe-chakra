@@ -1,7 +1,7 @@
 // import supabaseAdmin from '@/lib/supabaseAdmin';
 import supabaseAdmin from '../../../../lib/supabaseClient';
 
-import { getAllInventoryItemById } from '../../../../lib/db';
+import { getAllInventoryItemById, updateInventoryItem } from '../../../../lib/db';
 
 
 export default async function handler(req, res) {
@@ -66,44 +66,57 @@ export default async function handler(req, res) {
 
     // --- Handle PUT/PATCH Request (Update/Upsert item) ---
     else if (req.method === 'PUT' || req.method === 'PATCH') {
-        const { price, quantity, min_stock_level } = req.body; // Get data to update
+        // Get data to update - use standard names expected by updateInventoryItem
+        const { price, quantity, minStockLevel } = req.body;
 
         // Basic validation: Ensure at least one field is being updated
-        if (price === undefined && quantity === undefined && min_stock_level === undefined) {
-            return res.status(400).json({ message: 'No update data provided (price, quantity, or min_stock_level).' });
+        // Use the standard names here too
+        if (price === undefined && quantity === undefined && minStockLevel === undefined) {
+            return res.status(400).json({ message: 'No update data provided (price, quantity, or minStockLevel).' });
         }
 
         try {
-            // Construct the data object for Supabase, only including provided fields
-            const updateData = {};
-            // Add validation here if needed (e.g., ensure price/quantity are numbers)
-            if (price !== undefined) updateData.price = price;
-            if (quantity !== undefined) updateData.quantity = quantity;
-            if (min_stock_level !== undefined) updateData.min_stock_level = min_stock_level;
+            // Construct the updates object for the db function
+            // Use the names expected by updateInventoryItem
+            const updates = {};
+            if (price !== undefined) updates.price = price;
+            if (quantity !== undefined) updates.quantity = quantity;
+            // Map the incoming min_stock_level (if exists) or minStockLevel to the expected field
+            if (req.body.min_stock_level !== undefined) {
+                 updates.minStockLevel = req.body.min_stock_level;
+             } else if (minStockLevel !== undefined) {
+                updates.minStockLevel = minStockLevel;
+            }
 
-            const { data, error } = await supabaseAdmin
-                .from('inventory')
-                .upsert(
-                    {
-                        product_id: sanity_id, // Match/Set the link to Sanity's _id
-                        ...updateData,         // Add the fields to update/insert
-                    },
-                    {
-                        onConflict: 'product_id', // Specify the column to check for conflicts
-                    }
-                )
-                .select() // Return the updated/inserted row
-                .single(); // Expecting a single row result
+
+            // Call the db helper function instead of direct Supabase access
+            const { data, error } = await updateInventoryItem(sanity_id, updates);
 
             if (error) {
-                console.error('Supabase upsert error:', error);
+                console.error('Update inventory item error:', error);
+                // Check if the error indicates the item wasn't found, which might be a 404
+                if (error.message.includes('No inventory record found')) { // Or check error code if available
+                     return res.status(404).json({ message: `Inventory item with Sanity ID ${sanity_id} not found for update.`, error: error.message });
+                }
+                // Otherwise, it's likely a server error
                 return res.status(500).json({ message: 'Failed to update inventory.', error: error.message });
             }
 
+            // Handle the case where updateInventoryItem might return null data even without an error
+            // if the record didn't exist (though the error check above might cover this)
+            if (!data) {
+                 console.warn(`Inventory item with Sanity ID ${sanity_id} might not have been found or updated, but no explicit error was thrown.`);
+                 // You might still return 404 here depending on desired behavior
+                 return res.status(404).json({ message: `Inventory item with Sanity ID ${sanity_id} not found or no changes made.` });
+            }
+
+
+            // Send back the updated data returned by the db function
             res.status(200).json({ message: 'Inventory updated successfully.', data });
 
         } catch (error) {
-            console.error('Error updating inventory:', error);
+            // Catch any unexpected errors during the process
+            console.error('PUT/PATCH /api/admin/inventory/[sanity_id] caught exception:', error);
             res.status(500).json({ message: 'Internal Server Error', error: error.message });
         }
     }

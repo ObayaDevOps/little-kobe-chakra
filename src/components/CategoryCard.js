@@ -11,6 +11,9 @@ export default function CategoryCard({ category }) {
       boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
       overflow="hidden"
       _hover={{ transform: 'translateY(-4px)', transition: 'transform 0.2s' }}
+      h="100%"
+      display="flex"
+      flexDirection="column"
     >
       <Box 
             borderColor="black"
@@ -30,7 +33,7 @@ export default function CategoryCard({ category }) {
         </Link>
         </Box>
 
-      <Stack p={4} spacing={3}>
+      <Stack p={4} spacing={3} flexGrow={1}>
         <Link href={`/categories/${category.slug}`}>
           <Heading 
             textColor={'black'} 

@@ -15,9 +15,13 @@ export default function ProductCard({ product }) {
     )
   }
 
+  // Check if price is a valid number before formatting
+  const displayPrice = typeof product.price === 'number'
+    ? product.price.toLocaleString('en-US', { style: 'currency', currency: 'UGX' }) // Or your desired locale/currency
+    : 'Price not available'; // Fallback text
+
   return (
     <Box
-      // bg="brand.red"
       bg="white"
       borderColor="black"
       borderWidth={'2px'}
@@ -25,6 +29,9 @@ export default function ProductCard({ product }) {
       boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
       overflow="hidden"
       _hover={{ transform: 'translateY(-4px)', transition: 'transform 0.2s' }}
+      display="flex"
+      flexDirection="column"
+      h="100%"
     >
       <Box 
             borderColor="black"
@@ -37,36 +44,35 @@ export default function ProductCard({ product }) {
           <Image
             src={product.mainImage}
             alt={product.name}
-            h="350px"
+            h="275px"
             w="auto"
             objectFit="fit"
           />
         </Link>
       </Box>
 
-      <Stack p={4} spacing={3} 
-      bg="brand.red"
-      // bgColor={'#fcd7d7'}
+      <Stack 
+        p={4} 
+        spacing={3} 
+        bg="brand.red"
+        flexGrow={1}
       >
         <Link href={`/products/${product.slug}`}>
           <Heading size="md" cursor="pointer" fontFamily={'nbHeading'}>{product.name}</Heading>
         </Link>
 
         <Text color="black" fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
-        <Text fontWeight="bold" size="xl" fontFamily={'nbHeading'}>{product.price.toLocaleString()} UGX</Text>
+        <Text fontWeight="bold" size="xl" fontFamily={'nbHeading'}>{displayPrice}</Text>
         
         <Button
-        mt={4}
-          colorScheme="green"
+          mt="auto"
           bgColor={'#fcd7d7'}
-          // bg="brand.red"
           fontFamily={'nbHeading'}
           onClick={handleAddToCart}
           borderColor="black"
           textColor={'black'}
           borderWidth={'1px'}
           boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-
         >
           Add to Cart
         </Button>
