@@ -1,13 +1,33 @@
-import { useToast,  Select, Box, Heading, Grid, FormControl, FormLabel, Input, Button, Alert, AlertIcon, Stack, Text, Flex, Tag, FormErrorMessage } from '@chakra-ui/react'
+import { useToast,  Select, Box, Heading, Grid, 
+  FormControl, FormLabel, Input, Button, Alert,
+   AlertIcon, Stack, Text, Flex, Tag, FormErrorMessage, 
+   Textarea, InputGroup, InputRightElement, InputLeftElement } from '@chakra-ui/react'
+import { SearchIcon } from '@chakra-ui/icons';
 import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import NextLink from 'next/link'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import axios from 'axios'; // Using axios for API calls
 import Footer from '../components/Footer'
+import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 
+const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+const containerStyle = {
+  width: '100%',
+  height: '400px',
+  borderRadius: 'lg',
+  borderWidth: '2px',
+  borderColor: 'black',
+  boxShadow: '2px 2px 0px 0px rgba(0, 0, 0, 1)',
+};
+
+const kampalaCenter = {
+  lat: 0.347596,
+  lng: 32.582520
+};
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCartStore()
@@ -19,7 +39,9 @@ export default function CheckoutPage() {
     city: '',
     cardNumber: '',
     phone: '',
-    paymentMethod: 'CARD'
+    paymentMethod: 'CARD',
+    latitude: null,
+    longitude: null,
   })
 
   // Form validation errors
@@ -29,11 +51,11 @@ export default function CheckoutPage() {
     email: '',
     address: '',
     city: '',
-    phone: ''
+    phone: '',
+    mapLocation: '',
+    geocodingError: '',
   })
 
-  // const [isSubmitting, setIsSubmitting] = useState(false)
-  // const [orderSuccess, setOrderSuccess] = useState(false)
   const router = useRouter()
   const toast = useToast()
 
@@ -43,9 +65,85 @@ export default function CheckoutPage() {
   // where is the sucess callback ?
 
   const [loading, setLoading] = useState(false);
-  // const [orderTotal, setOrderTotal] = useState(0);
   const [currency] = useState('UGX');
   const [error, setError] = useState(null);
+
+  // Map state
+  const [map, setMap] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: MAPS_API_KEY,
+  });
+
+  const onLoad = useCallback(function callback(mapInstance) {
+    setMap(mapInstance);
+  }, []);
+
+  const onUnmount = useCallback(function callback(mapInstance) {
+    setMap(null);
+  }, []);
+
+  const handleMapClick = useCallback((event) => {
+    const lat = event.latLng.lat();
+    const lng = event.latLng.lng();
+    setSelectedPosition({ lat, lng });
+    setFormData(prevData => ({
+      ...prevData,
+      latitude: lat,
+      longitude: lng,
+    }));
+    if (errors.mapLocation) {
+      setErrors(prevErrors => ({ ...prevErrors, mapLocation: '' }));
+    }
+    if (errors.geocodingError) {
+      setErrors(prevErrors => ({ ...prevErrors, geocodingError: '' }));
+    }
+  }, [errors.mapLocation, errors.geocodingError]);
+
+  // Function to geocode address
+  const geocodeAddress = async (addressString) => {
+    if (!isLoaded || !addressString.trim()) {
+      return;
+    }
+    if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+      console.error("Google Maps Geocoder not available.");
+      setErrors(prev => ({ ...prev, geocodingError: "Map service not ready. Try again." }));
+      return;
+    }
+
+    setIsGeocoding(true);
+    setErrors(prev => ({ ...prev, geocodingError: '' }));
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ address: addressString, componentRestrictions: { country: 'UG' } }, (results, status) => {
+      setIsGeocoding(false);
+      if (status === 'OK' && results && results[0]) {
+        const location = results[0].geometry.location;
+        const lat = location.lat();
+        const lng = location.lng();
+        
+        setSelectedPosition({ lat, lng });
+        setFormData(prevData => ({
+          ...prevData,
+          latitude: lat,
+          longitude: lng,
+        }));
+        if (map) {
+          map.panTo({ lat, lng });
+          map.setZoom(15);
+        }
+        if (errors.mapLocation) {
+          setErrors(prevErrors => ({ ...prevErrors, mapLocation: '' }));
+        }
+      } else {
+        console.error('Geocode was not successful for the following reason: ' + status);
+        setErrors(prev => ({ ...prev, geocodingError: `Could not find address "${addressString}". Please try a different address or select on the map.` }));
+      }
+    });
+  };
 
   // Validation functions
   const validateEmail = (email) => {
@@ -66,7 +164,8 @@ export default function CheckoutPage() {
       email: '',
       address: '',
       city: '',
-      phone: ''
+      phone: '',
+      mapLocation: '',
     };
     
     let isValid = true;
@@ -107,6 +206,11 @@ export default function CheckoutPage() {
       isValid = false;
     }
 
+    if (!formData.latitude || !formData.longitude) {
+      newErrors.mapLocation = 'Please select your location on the map.';
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -118,6 +222,26 @@ export default function CheckoutPage() {
     // Clear error when user types
     if (errors[name]) {
       setErrors({...errors, [name]: ''});
+    }
+  };
+
+  const handleAddressBlur = (e) => {
+    const { value } = e.target;
+    if (value && value.trim() !== '') {
+      // geocodeAddress(value); // Optionally keep or remove
+    }
+  };
+
+  const handleAddressSearch = () => {
+    if (formData.address && formData.address.trim() !== '') {
+      geocodeAddress(formData.address);
+    }
+  };
+
+  const handleAddressKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission if it's part of a larger form
+      handleAddressSearch();
     }
   };
 
@@ -189,6 +313,10 @@ export default function CheckoutPage() {
           price: item.price,
           // Add other relevant fields like SKU if needed
         })),
+        deliveryLocation: {
+            latitude: formData.latitude,
+            longitude: formData.longitude,
+        }
       };
 
       // 5. Call Payment Initiation API (/api/payments/initiate)
@@ -309,14 +437,44 @@ export default function CheckoutPage() {
       )}
   
       <Grid templateColumns={['1fr', '1fr', '2fr 1fr']} gap={8}>
-        <Box as="form" onSubmit={handlePaymentPesapal}
-              borderColor="black"
-              borderWidth={'2px'}
-              borderRadius="lg"
-             boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-              bg="white"
-              mb={{base: 16, lg :40}} 
+        <Box
+          bg="white"
+          p={6}
+          mt={{base: -4, md: 0}}
+          h="fit-content"
+          borderColor="black"
+          borderWidth={'2px'}
+          borderRadius="lg"
+          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+          order={{ base: 1, md: 2 }}
+        >
+          <Heading size="lg" mb={6} fontFamily={'nbHeading'}>Order Summary</Heading>
+          <Stack spacing={4}>
+            {items.map(item => (
+              <Flex key={item._id} justify="space-between" align="center">
+                <Text fontFamily={'nbText'}>
+                  {item.name} <Tag>×{item.quantity}</Tag>
+                </Text>
+                <Text fontFamily={'nbText'}>{(item.price * item.quantity).toLocaleString()} UGX</Text>
+              </Flex>
+            ))}
+            <Flex justify="space-between" fontWeight="bold" pt={4} borderTop="1px" borderColor="gray.100">
+              <Text fontFamily={'nbHeading'}>Total:</Text>
+              <Text fontFamily={'nbHeading'}>{total.toLocaleString()} UGX</Text>
+            </Flex>
+          </Stack>
+        </Box>
 
+        <Box
+          as="form"
+          onSubmit={handlePaymentPesapal}
+          borderColor="black"
+          borderWidth={'2px'}
+          borderRadius="lg"
+          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+          bg="white"
+          mb={{base: 16, lg :40}}
+          order={{ base: 2, md: 1 }}
         >
 
       <Box 
@@ -343,6 +501,15 @@ export default function CheckoutPage() {
           bg="white"
            p={6} 
           borderRadius="lg" boxShadow="md">
+
+          <Heading 
+            size="md"  
+            mt={0} 
+            fontFamily={'nbHeading'}
+            >
+            Your Details
+            </Heading>
+
             <FormControl isRequired isInvalid={!!errors.firstName}>
               <FormLabel>First Name</FormLabel>
               <Input
@@ -393,38 +560,7 @@ export default function CheckoutPage() {
               <FormErrorMessage>{errors.email}</FormErrorMessage>
             </FormControl>
 
-            <FormControl isRequired isInvalid={!!errors.address}>
-              <FormLabel>Address</FormLabel>
-              <Input
-                name="address"
-                type="text"
-                value={formData.address}
-                onChange={handleInputChange}
-                placeholder="Nakesero..."
-                borderColor="black"
-                borderWidth={'2px'}
-                borderRadius="lg"
-                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-              />
-              <FormErrorMessage>{errors.address}</FormErrorMessage>
-            </FormControl>
-
-            <FormControl isRequired isInvalid={!!errors.city}>
-              <FormLabel>City</FormLabel>
-              <Input
-                name="city"
-                type="text"
-                fontFamily={'nbText'}
-                value={formData.city}
-                onChange={handleInputChange}
-                placeholder="Kampala"
-                borderColor="black"
-                borderWidth={'2px'}
-                borderRadius="lg"
-                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-              />
-              <FormErrorMessage>{errors.city}</FormErrorMessage>
-            </FormControl>
+            
 
             <FormControl isRequired isInvalid={!!errors.phone}>
               <FormLabel>Phone Number</FormLabel>
@@ -442,6 +578,114 @@ export default function CheckoutPage() {
               <FormErrorMessage>{errors.phone}</FormErrorMessage>
             </FormControl>
 
+            <Heading 
+            size="md"  
+            mt={8} 
+            fontFamily={'nbHeading'}
+            >
+            Delivery Location
+            </Heading>
+
+            <FormControl isRequired isInvalid={!!errors.address || !!errors.geocodingError}>
+              <FormLabel>Address</FormLabel>
+              <Flex align="center">
+                <Input
+                  name="address"
+                  type="text"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  onBlur={handleAddressBlur}
+                  onKeyDown={handleAddressKeyDown}
+                  placeholder="e.g., Plot 123, Nakasero Road"
+                  borderColor="black"
+                  borderWidth={'2px'}
+                  borderRadius="lg"
+                  boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                  mr={2}
+                />
+                <Button
+                  onClick={handleAddressSearch}
+                  aria-label="Search address"
+                  color={'white'}
+                  borderColor="black"
+                  borderWidth={'2px'}
+                  borderRadius="lg"
+                  boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+                  px={4}
+                >
+                  <SearchIcon />
+                </Button>
+              </Flex>
+              {errors.address && <FormErrorMessage>{errors.address}</FormErrorMessage>}
+              {errors.geocodingError && !errors.address && <FormErrorMessage>{errors.geocodingError}</FormErrorMessage>}
+            </FormControl>
+
+            {/* <FormControl isRequired isInvalid={!!errors.city}>
+              <FormLabel>City</FormLabel>
+              <Input
+                name="city"
+                type="text"
+                fontFamily={'nbText'}
+                value={formData.city}
+                onChange={handleInputChange}
+                placeholder="Kampala"
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+              />
+              <FormErrorMessage>{errors.city}</FormErrorMessage>
+            </FormControl> */}
+
+            {/* Google Map Integration */}
+            <FormControl isRequired isInvalid={!!errors.mapLocation} mt={2}>
+              <FormLabel>
+                Please Drop a Pin in the Exact Delivery Location
+                {isGeocoding && <Text as="span" fontSize="sm" color="gray.500" ml={2}>(Locating address...)</Text>}
+              </FormLabel>
+              {isLoaded && !loadError && (
+                <Box
+                  borderColor="black"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  boxShadow="2px 2px 0px 0px rgba(0,0,0,1)"
+                  overflow="hidden" // Ensures the map respects the border radius
+                >
+                  <GoogleMap
+                    mapContainerStyle={containerStyle}
+                    center={kampalaCenter}
+                    zoom={11}
+                    onLoad={onLoad}
+                    onUnmount={onUnmount}
+                    onClick={handleMapClick}
+                  >
+                    {selectedPosition && (
+                      <Marker
+                        position={selectedPosition}
+                      />
+                    )}
+                  </GoogleMap>
+                </Box>
+              )}
+              {loadError && <Text color="red.500">Error loading map. Please ensure your API key is correct and the API is enabled.</Text>}
+              <FormErrorMessage>{errors.mapLocation}</FormErrorMessage>
+            </FormControl>
+
+            <FormControl isInvalid={!!errors.deliveryNote}>
+              <FormLabel>Any Other Delivery Notes?</FormLabel>
+              <Textarea
+                name="deliveryNote"
+                fontFamily={'nbText'}
+                value={formData.deliveryNote}
+                onChange={handleInputChange}
+                placeholder="e.g Call me when you arrive"
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+              />
+              <FormErrorMessage>{errors.deliveryNote}</FormErrorMessage>
+            </FormControl>            
 
             <Button
               type="submit"
@@ -457,32 +701,8 @@ export default function CheckoutPage() {
               mt={2}
               isDisabled={loading || items.length === 0}
             >
-              {loading ? 'Processing...' : `Pay ${currency} ${total.toLocaleString()} with Pesapal`}
+              {loading ? 'Processing...' : `Proceed to Pay ${currency} ${total.toLocaleString()} with Pesapal`}
            </Button>
-          </Stack>
-        </Box>
-
-        <Box bg="white" p={6}
-        h="fit-content"
-              borderColor="black"
-              borderWidth={'2px'}
-              borderRadius="lg"
-              boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-        >
-          <Heading size="lg" mb={6} fontFamily={'nbHeading'}>Order Summary</Heading>
-          <Stack spacing={4}>
-            {items.map(item => (
-              <Flex key={item._id} justify="space-between" align="center">
-                <Text fontFamily={'nbText'}>
-                  {item.name} <Tag>×{item.quantity}</Tag>
-                </Text>
-                <Text fontFamily={'nbText'}>{(item.price * item.quantity).toLocaleString()} UGX</Text>
-              </Flex>
-            ))}
-            <Flex justify="space-between" fontWeight="bold" pt={4} borderTop="1px" borderColor="gray.100">
-              <Text fontFamily={'nbHeading'}>Total:</Text>
-              <Text fontFamily={'nbHeading'}>{total.toLocaleString()} UGX</Text>
-            </Flex>
           </Stack>
         </Box>
       </Grid>
