@@ -31,7 +31,7 @@ export default function SuccessPage() {
       <Box 
         maxW="800px" 
         mx="auto" 
-        px={{ base: 4, md: 8 }} 
+        px={{ base: 8, md: 8 }} 
         py={{base: 12, lg: 20}}
         color="black"
         minH={'100vh'}
@@ -40,7 +40,16 @@ export default function SuccessPage() {
           Success! Thanks for your Order
         </Heading>
 
+        <Text fontFamily="nbText" fontSize={{base: "xl", md: "2xl"}}>
+        It should take one hour to process your order and dispatch, and if placed outside of business hours,
+         we shall resume from 11AM the next business day. 
+        </Text>
+        <Text  mt={2} fontFamily="nbText" fontSize={{base: "xl", md: "2xl"}}>
+        You will be messaged and or called before the order is dispatched
+        </Text>
+
         <Button
+        mt={4}
         as='a'
         href='/'
           textColor={'black'}

@@ -103,9 +103,30 @@ const OrderDetailsModal = ({ orderId, isOpen, onClose }) => {
                              <Box>
                                 <Heading size="sm" mb={2}>Delivery Address</Heading>
                                 {orderDetails.shipping_address ? (
-                                     <Code display="block" whiteSpace="pre-wrap" p={3} borderRadius="md" bg="gray.50">
-                                        {JSON.stringify(orderDetails.shipping_address, null, 2)}
-                                    </Code>
+                                    <>
+                                        <Code display="block" whiteSpace="pre-wrap" p={3} borderRadius="md" bg="gray.50" mb={3}>
+                                            {JSON.stringify(orderDetails.shipping_address, null, 2)}
+                                        </Code>
+                                        {/* Embedded Google Map */}
+                                        {typeof orderDetails.shipping_address.latitude === 'number' &&
+                                         typeof orderDetails.shipping_address.longitude === 'number' ? (
+                                            <Box mt={4}>
+                                                <Heading size="xs" mb={2}>Map Location</Heading>
+                                                <iframe
+                                                    width="100%"
+                                                    height="300"
+                                                    style={{ border: 0, borderRadius: 'md' }}
+                                                    loading="lazy"
+                                                    allowFullScreen
+                                                    referrerPolicy="no-referrer-when-downgrade"
+                                                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY}&q=${orderDetails.shipping_address.latitude},${orderDetails.shipping_address.longitude}&zoom=15`}
+                                                >
+                                                </iframe>
+                                            </Box>
+                                        ) : (
+                                            <Text fontSize="sm" color="gray.500">Map location not available (latitude/longitude missing in shipping address).</Text>
+                                        )}
+                                    </>
                                 ) : (
                                     <Text>N/A</Text>
                                 )}

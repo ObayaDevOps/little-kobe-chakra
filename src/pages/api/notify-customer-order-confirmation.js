@@ -69,13 +69,18 @@ export default async (req, res) => {
 
     // --- Validation ---
     if (!orderDetails) {
-        console.error("notify-order-confirmation: Missing 'orderDetails' in request body.");
+        console.error("notify-user-order-confirmation: Missing 'orderDetails' in request body.");
         return res.status(400).json({ message: "Missing order details." });
     }
     // Check essential nested properties
     if (!orderDetails.items || !orderDetails.delivery_address || !orderDetails.totalAmount || !orderDetails.currency) {
-         console.error("notify-order-confirmation: Incomplete 'orderDetails' structure (expecting delivery_address):", orderDetails);
+         console.error("notify-user-order-confirmation: Incomplete 'orderDetails' structure (expecting delivery_address):", orderDetails);
          return res.status(400).json({ message: "Incomplete order details provided." });
+    }
+    // Add check for deliveryLocation
+    if (!orderDetails.deliveryLocation || typeof orderDetails.deliveryLocation.latitude !== 'number' || typeof orderDetails.deliveryLocation.longitude !== 'number') {
+        console.warn("notify-user-order-confirmation: Missing or invalid 'deliveryLocation' in orderDetails:", orderDetails.deliveryLocation);
+        // Decide if this is critical. For now, we'll proceed but won't show the map link.
     }
     // --- End Validation ---
 
@@ -87,6 +92,7 @@ export default async (req, res) => {
         delivery_address,
         confirmationCode,
         merchantReference,
+        deliveryLocation, // Destructure deliveryLocation
         // customer_email, // Can still use these if needed, but primary info is in delivery_address
         // customer_phone,
     } = orderDetails;
@@ -101,10 +107,18 @@ export default async (req, res) => {
      const city = delivery_address?.city || '';
      const countryCode = delivery_address?.country_code || ''; // Often 'UG'
 
+    // Extract map coordinates safely
+    const latitude = deliveryLocation?.latitude;
+    const longitude = deliveryLocation?.longitude;
+    let googleMapsLink = '';
+    if (typeof latitude === 'number' && typeof longitude === 'number') {
+        googleMapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    }
+
 
     // --- Environment Variable Check ---
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD || !process.env.RECIPIENT_ADDRESS) {
-        console.error("Email configuration (SMTP_USER, SMTP_PASSWORD, RECIPIENT_ADDRESS) missing.");
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+        console.error("Email configuration (SMTP_USER, SMTP_PASSWORD) missing.");
         // Don't block the user, but fail the email sending part.
         // We already responded positively in callback.js if payment was okay.
         return res.status(500).json({ message: "Email server configuration error." });
@@ -129,10 +143,11 @@ export default async (req, res) => {
     const formattedTotal = formatCurrency(totalAmount, currency);
 
     const mailData = {
+        //TODO: Remove email address ?
         from: `"Little Kobe Orders" <${process.env.SMTP_USER}>`, // Use a sender name and your email
-        to: process.env.RECIPIENT_ADDRESS, // Your internal notification address
+        to: delivery_address.email_address, //TODO confirm this is passed 
         replyTo: email, // Set reply-to the customer's email if available
-        subject: `✅ New Order Received - Ref: ${merchantReference || 'N/A'}`,
+        subject: `✅ Thanks for your order - Ref: ${merchantReference || 'N/A'}`,
         html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                 <h1 style="color: #333;">New Order Received!</h1>
@@ -151,6 +166,9 @@ export default async (req, res) => {
                 <p><strong>Phone:</strong> ${phone || 'N/A'}</p>
                 <p><strong>Address:</strong> ${addressLine1 || 'N/A'}</p>
                 <p><strong>City:</strong> ${city || 'N/A'} ${countryCode ? `(${countryCode})` : ''}</p>
+                ${googleMapsLink ? `
+                <p><strong>Map Location:</strong> <a href="${googleMapsLink}" target="_blank" style="color: #007bff; text-decoration: none;">View on Google Maps</a></p>
+                ` : ''}
                  <hr style="border: none; border-top: 1px solid #eee;">
 
 

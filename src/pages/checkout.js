@@ -36,7 +36,6 @@ export default function CheckoutPage() {
     lastName: '',
     email: '',
     address: '',
-    city: '',
     cardNumber: '',
     phone: '',
     paymentMethod: 'CARD',
@@ -50,7 +49,6 @@ export default function CheckoutPage() {
     lastName: '',
     email: '',
     address: '',
-    city: '',
     phone: '',
     mapLocation: '',
     geocodingError: '',
@@ -89,6 +87,7 @@ export default function CheckoutPage() {
   const handleMapClick = useCallback((event) => {
     const lat = event.latLng.lat();
     const lng = event.latLng.lng();
+    console.log("Map clicked. Lat:", lat, "Lng:", lng);
     setSelectedPosition({ lat, lng });
     setFormData(prevData => ({
       ...prevData,
@@ -124,6 +123,7 @@ export default function CheckoutPage() {
         const location = results[0].geometry.location;
         const lat = location.lat();
         const lng = location.lng();
+        console.log("Address geocoded. Lat:", lat, "Lng:", lng);
         
         setSelectedPosition({ lat, lng });
         setFormData(prevData => ({
@@ -163,7 +163,6 @@ export default function CheckoutPage() {
       lastName: '',
       email: '',
       address: '',
-      city: '',
       phone: '',
       mapLocation: '',
     };
@@ -193,10 +192,6 @@ export default function CheckoutPage() {
       isValid = false;
     }
 
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
-      isValid = false;
-    }
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
@@ -297,7 +292,8 @@ export default function CheckoutPage() {
         first_name: formData.firstName,
         last_name: formData.lastName,
         line_1: formData.address,
-        city: formData.city,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
       };
 
       // Prepare the *full* order details payload for the initiate API
@@ -312,11 +308,7 @@ export default function CheckoutPage() {
           quantity: item.quantity,
           price: item.price,
           // Add other relevant fields like SKU if needed
-        })),
-        deliveryLocation: {
-            latitude: formData.latitude,
-            longitude: formData.longitude,
-        }
+        }))
       };
 
       // 5. Call Payment Initiation API (/api/payments/initiate)
@@ -468,12 +460,12 @@ export default function CheckoutPage() {
         <Box
           as="form"
           onSubmit={handlePaymentPesapal}
-          borderColor="black"
-          borderWidth={'2px'}
-          borderRadius="lg"
-          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-          bg="white"
-          mb={{base: 16, lg :40}}
+              borderColor="black"
+              borderWidth={'2px'}
+              borderRadius="lg"
+             boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+              bg="white"
+              mb={{base: 16, lg :40}} 
           order={{ base: 2, md: 1 }}
         >
 
@@ -587,7 +579,7 @@ export default function CheckoutPage() {
             </Heading>
 
             <FormControl isRequired isInvalid={!!errors.address || !!errors.geocodingError}>
-              <FormLabel>Address</FormLabel>
+              <FormLabel>Address (within Kampala)</FormLabel>
               <Flex align="center">
                 <Input
                   name="address"
@@ -619,23 +611,6 @@ export default function CheckoutPage() {
               {errors.address && <FormErrorMessage>{errors.address}</FormErrorMessage>}
               {errors.geocodingError && !errors.address && <FormErrorMessage>{errors.geocodingError}</FormErrorMessage>}
             </FormControl>
-
-            {/* <FormControl isRequired isInvalid={!!errors.city}>
-              <FormLabel>City</FormLabel>
-              <Input
-                name="city"
-                type="text"
-                fontFamily={'nbText'}
-                value={formData.city}
-                onChange={handleInputChange}
-                placeholder="Kampala"
-                borderColor="black"
-                borderWidth={'2px'}
-                borderRadius="lg"
-                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-              />
-              <FormErrorMessage>{errors.city}</FormErrorMessage>
-            </FormControl> */}
 
             {/* Google Map Integration */}
             <FormControl isRequired isInvalid={!!errors.mapLocation} mt={2}>
@@ -671,7 +646,7 @@ export default function CheckoutPage() {
               <FormErrorMessage>{errors.mapLocation}</FormErrorMessage>
             </FormControl>
 
-            <FormControl isInvalid={!!errors.deliveryNote}>
+            <FormControl >
               <FormLabel>Any Other Delivery Notes?</FormLabel>
               <Textarea
                 name="deliveryNote"
@@ -684,8 +659,7 @@ export default function CheckoutPage() {
                 borderRadius="lg"
                 boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               />
-              <FormErrorMessage>{errors.deliveryNote}</FormErrorMessage>
-            </FormControl>            
+            </FormControl>
 
             <Button
               type="submit"

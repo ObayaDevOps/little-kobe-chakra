@@ -50,8 +50,8 @@ function PaymentCallbackPage() {
     // Extract query parameters safely only when router is ready
     const { OrderTrackingId, OrderMerchantReference } = router.query;
 
-    // --- Function to send order confirmation email ---
-    const sendOrderConfirmationEmail = useCallback(async (orderDetails) => {
+    // --- Function to send order confirmation email to shop keeper ---
+    const sendOrderConfirmationEmailShopkeeper = useCallback(async (orderDetails) => {
         console.log('Email Order Details:', orderDetails);
         
         // Check if essential parts of orderDetails exist
@@ -70,9 +70,9 @@ function PaymentCallbackPage() {
         }
 
         try {
-            console.log("Sending order confirmation email with details:", orderDetails);
+            console.log("Sending order confirmation email with details to shopkeeper:", orderDetails);
             // Call the new API endpoint created in Step 7
-            await axios.post('/api/notify-order-confirmation', { orderDetails }, {
+            await axios.post('/api/notify-shopkeeper-order-confirmation', { orderDetails }, {
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 15000, // Timeout for the email sending API
             });
@@ -80,7 +80,50 @@ function PaymentCallbackPage() {
             // Optional: Success toast (might be too much)
             // toast({ title: 'Order Notification Sent', status: 'success', duration: 2000 });
         } catch (emailError) {
-            console.error("Failed to send order confirmation email via API:", emailError.response?.data || emailError.message);
+            console.error("Failed to send order confirmation email to shopkeeper via API:", emailError.response?.data || emailError.message);
+            toast({
+                title: 'Email Notification Failed',
+                description: 'The order confirmation email could not be sent automatically. Please contact support if you need confirmation.',
+                status: 'warning', // Use warning, as payment itself was likely successful
+                duration: 6000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Log this error for investigation. Do NOT block the user flow.
+        }
+    }, [toast]); // Dependency
+
+    // --- Function to send order confirmation email to customer ---
+    const sendOrderConfirmationEmailCustomer = useCallback(async (orderDetails) => {
+        console.log('Email Order Details:', orderDetails);
+        
+        // Check if essential parts of orderDetails exist
+        if (!orderDetails || !orderDetails.items || !orderDetails.delivery_address || !orderDetails.totalAmount) {
+            console.error("Cannot send confirmation email: Missing or incomplete order details (expecting delivery_address).", orderDetails);
+            toast({
+                title: 'Email Notification Issue',
+                description: 'Could not assemble order confirmation email (details missing). Support notified.',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Potentially log this error more formally
+            return; // Don't proceed
+        }
+
+        try {
+            console.log("Sending order confirmation email with details to customer:", orderDetails);
+            // Call the new API endpoint created in Step 7
+            await axios.post('/api/notify-customer-order-confirmation', { orderDetails }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000, // Timeout for the email sending API
+            });
+            console.log("Order confirmation email request sent successfully.");
+            // Optional: Success toast (might be too much)
+            // toast({ title: 'Order Notification Sent', status: 'success', duration: 2000 });
+        } catch (emailError) {
+            console.error("Failed to send order confirmation email to customer via API:", emailError.response?.data || emailError.message);
             toast({
                 title: 'Email Notification Failed',
                 description: 'The order confirmation email could not be sent automatically. Please contact support if you need confirmation.',
@@ -150,8 +193,11 @@ function PaymentCallbackPage() {
                      orderDetailsForEmail.merchantReference = OrderMerchantReference || orderDetailsForEmail.merchantReference;
 
 
-                    // 1. Send Email (async, non-blocking for user flow)
-                    sendOrderConfirmationEmail(orderDetailsForEmail);
+                    // 1. Send Emails to Shopkeeper and Customer (async, non-blocking for user flow)
+                    sendOrderConfirmationEmailShopkeeper(orderDetailsForEmail);
+                    sendOrderConfirmationEmailCustomer(orderDetailsForEmail);
+
+                    //TODO: Send WhatsApp to Customer and Shopkeeper here
 
                     // 2. Clear the Cart
                     console.log('Clearing cart...');
@@ -198,7 +244,7 @@ function PaymentCallbackPage() {
             setError(errorMessage);
             setProcessStatus(VerificationState.ERROR);
         }
-    }, [router, OrderMerchantReference, toast, clearCart, sendOrderConfirmationEmail]); // Added dependencies
+    }, [router, OrderMerchantReference, toast, clearCart, sendOrderConfirmationEmailShopkeeper, sendOrderConfirmationEmailCustomer]); // Added dependencies
 
     // --- Effect Hook ---
     useEffect(() => {
