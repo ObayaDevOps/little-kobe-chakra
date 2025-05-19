@@ -136,6 +136,92 @@ function PaymentCallbackPage() {
         }
     }, [toast]); // Dependency
 
+    // --- Function to send order confirmation WhatsApp to shop keeper ---
+    const sendOrderConfirmationWhatsAppShopkeeper = useCallback(async (orderDetails) => {
+        console.log('WhatsApp Order Details:', orderDetails);
+        
+        // Check if essential parts of orderDetails exist
+        if (!orderDetails || !orderDetails.items || !orderDetails.delivery_address || !orderDetails.totalAmount) {
+            console.error("Cannot send confirmation WhatsApp: Missing or incomplete order details (expecting delivery_address).", orderDetails);
+            toast({
+                title: 'WhatsApp Notification Issue',
+                description: 'Could not assemble order confirmation WhatsApp (details missing). Support notified.',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Potentially log this error more formally
+            return; // Don't proceed
+        }
+
+        try {
+            console.log("Sending order confirmation WhatsApp with details to shopkeeper:", orderDetails);
+            // Call the new API endpoint created in Step 7
+            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: process.env.SHOPKEEPER_CONTACT_NUMBER, orderDetails, isShopkeeper: true }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000, // Timeout for the WhatsApp sending API
+            });
+            console.log("Order confirmation WhatsApp request sent successfully.");
+            // Optional: Success toast (might be too much)
+            // toast({ title: 'Order Notification Sent', status: 'success', duration: 2000 });
+        } catch (whatsappError) {
+            console.error("Failed to send order confirmation WhatsApp to shopkeeper via API:", whatsappError.response?.data || whatsappError.message);
+            toast({
+                title: 'WhatsApp Notification Failed',
+                description: 'The order confirmation WhatsApp could not be sent automatically. Please contact support if you need confirmation.',
+                status: 'warning', // Use warning, as payment itself was likely successful
+                duration: 6000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Log this error for investigation. Do NOT block the user flow.
+        }
+    }, [toast]); // Dependency
+
+    // --- Function to send order confirmation WhatsApp to customer ---
+    const sendOrderConfirmationWhatsAppCustomer = useCallback(async (orderDetails) => {
+        console.log('WhatsApp Order Details:', orderDetails);
+        
+        // Check if essential parts of orderDetails exist
+        if (!orderDetails || !orderDetails.items || !orderDetails.delivery_address || !orderDetails.totalAmount) {
+            console.error("Cannot send confirmation WhatsApp: Missing or incomplete order details (expecting delivery_address).", orderDetails);
+            toast({
+                title: 'WhatsApp Notification Issue',
+                description: 'Could not assemble order confirmation WhatsApp (details missing). Support notified.',
+                status: 'warning',
+                duration: 5000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Potentially log this error more formally
+            return; // Don't proceed
+        }
+
+        try {
+            console.log("Sending order confirmation WhatsApp with details to customer:", orderDetails);
+            // Call the new API endpoint created in Step 7
+            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: orderDetails.customerPhoneNumber, orderDetails, isShopkeeper: false }, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 15000, // Timeout for the WhatsApp sending API
+            });
+            console.log("Order confirmation WhatsApp request sent successfully.");
+            // Optional: Success toast (might be too much)
+            // toast({ title: 'Order Notification Sent', status: 'success', duration: 2000 });
+        } catch (whatsappError) {
+            console.error("Failed to send order confirmation WhatsApp to customer via API:", whatsappError.response?.data || whatsappError.message);
+            toast({
+                title: 'WhatsApp Notification Failed',
+                description: 'The order confirmation WhatsApp could not be sent automatically. Please contact support if you need confirmation.',
+                status: 'warning', // Use warning, as payment itself was likely successful
+                duration: 6000,
+                isClosable: true,
+                position: 'top',
+            });
+            // Log this error for investigation. Do NOT block the user flow.
+        }
+    }, [toast]); // Dependency
+
     // --- Verification Logic ---
     const verifyPayment = useCallback(async (trackingId) => {
         if (!trackingId) {
@@ -183,21 +269,24 @@ function PaymentCallbackPage() {
                     console.log("Payment completed successfully. Processing post-payment actions.");
 
                     // Extract orderDetails from the response
-                    const orderDetailsForEmail = response.data.orderDetails;
+                    const orderDetailsForComms = response.data.orderDetails;
 
                     // Add confirmation code if available (might already be in orderDetails depending on verify API)
-                    if (response.data.confirmationCode && !orderDetailsForEmail.confirmationCode) {
-                        orderDetailsForEmail.confirmationCode = response.data.confirmationCode;
+                    if (response.data.confirmationCode && !orderDetailsForComms.confirmationCode) {
+                        orderDetailsForComms.confirmationCode = response.data.confirmationCode;
                     }
                      // Ensure merchant ref is consistent (URL query param might be more reliable if different)
-                     orderDetailsForEmail.merchantReference = OrderMerchantReference || orderDetailsForEmail.merchantReference;
+                     orderDetailsForComms.merchantReference = OrderMerchantReference || orderDetailsForComms.merchantReference;
 
 
                     // 1. Send Emails to Shopkeeper and Customer (async, non-blocking for user flow)
-                    sendOrderConfirmationEmailShopkeeper(orderDetailsForEmail);
-                    sendOrderConfirmationEmailCustomer(orderDetailsForEmail);
+                    sendOrderConfirmationEmailShopkeeper(orderDetailsForComms);
+                    sendOrderConfirmationEmailCustomer(orderDetailsForComms);
 
-                    //TODO: Send WhatsApp to Customer and Shopkeeper here
+                    //Send WhatsApp to Customer and Shopkeeper here
+                    sendOrderConfirmationWhatsAppShopkeeper(orderDetailsForComms);
+                    sendOrderConfirmationWhatsAppCustomer(orderDetailsForComms);
+
 
                     // 2. Clear the Cart
                     console.log('Clearing cart...');

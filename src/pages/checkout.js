@@ -273,6 +273,8 @@ export default function CheckoutPage() {
 
     try {
       // 3. Call Stock Check API (/api/checkout)
+      //TODO: OD - This stock check is also actively decrementing the stock without confirming payment first
+      // Needs to be modifiesd to check 'item quantity is > 0 && not NULL'
       console.log("Calling stock check API with items:", stockCheckItems);
       await axios.post('/api/checkout', { items: stockCheckItems }, {
           headers: { 'Content-Type': 'application/json' },
@@ -432,6 +434,7 @@ export default function CheckoutPage() {
         <Box
           bg="white"
           p={6}
+          maxW='95vw'
           mt={{base: -4, md: 0}}
           h="fit-content"
           borderColor="black"
@@ -459,6 +462,7 @@ export default function CheckoutPage() {
 
         <Box
           as="form"
+          maxW='95vw'
           onSubmit={handlePaymentPesapal}
               borderColor="black"
               borderWidth={'2px'}

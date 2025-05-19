@@ -26,6 +26,9 @@ export default async function handler(req, res) {
     // is often simpler, relying on the function's row-level lock.
     // If one fails, we need to signal failure immediately.
 
+    //TODO: OD - The check for 'stock quanity > 0' and the decrementing of stock should be separate
+    // The Decrement should only occur when payment has been comnfirmed in 'callback.js'
+
     const decrementPromises = cartItems.map(item => {
         console.log(`Attempting to decrement stock for ${item.productId} by ${item.requestedQuantity}`);
         return supabase.rpc('decrement_stock', {

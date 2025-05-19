@@ -23,7 +23,7 @@ export default function PesapalIframePage() {
   
   // Set iframe height based on screen size
   const iframeHeight = useBreakpointValue({ 
-    base: '450px',  // Mobile
+    base: '600px',  // Mobile
     md: '650px',    // Tablet
     lg: '750px'     // Desktop
   });
@@ -34,7 +34,7 @@ export default function PesapalIframePage() {
   };
 
   return (
-    <Box bg="#fcd7d7"  display="flex" flexDirection="column">
+    <Box bg="#fcd7d7"  display="flex" flexDirection="column" minH={{base: '100vh'}}>
       <Head>
         <title>Complete Payment | Little Kobe Japanese Market</title>
         <meta name="description" content="Complete your payment securely with Pesapal" />
@@ -56,7 +56,7 @@ export default function PesapalIframePage() {
                     borderWidth={'2px'}
                     borderRadius="lg"
                     boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-                    // minH={{base:"100vh", md:'100vh'}}
+                    minH={{base:"85vh", md:'80vh'}}
                     my={{base:12, md: 4}}
         >
           <Heading as="h1" size="lg" textAlign="center"  mt={6} mb={6} fontFamily='nbText'>
@@ -100,6 +100,7 @@ export default function PesapalIframePage() {
         </Box>
       </Container>
 
+      
       <Footer />
     </Box>
   );
