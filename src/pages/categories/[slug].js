@@ -40,7 +40,10 @@ export default function CategoryPage({ products, categoryTitle }) {
       <NavBar />
 
       <Box p={8}>
-      <Heading size="xl" mb={8}>{categoryTitle || router.query.slug}</Heading>
+      <Heading size="xl" 
+        fontFamily={'nbHeading'}
+        mb={8}>
+        {categoryTitle || router.query.slug}</Heading>
       {products.length > 0 ? (
         <Grid
           templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}

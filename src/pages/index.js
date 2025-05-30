@@ -105,39 +105,43 @@ export default function Home({ products, categories }) {
       <Hero />
 
       
-    <Box p={8} >
-      <Box 
-      // my={{base:20, md:28, lg: 20}}
-      mt={{base:20, md:16, lg: 20}}
-      >
-        <Heading 
-          size={{base: '2xl', lg: "2xl"}} 
-          textAlign={{base: 'left', md: 'left'}}
-          mt={{base: 6, md: 10, lg:2}}
-          mb={{base: 6, md:8, lg: 4}}
-          fontFamily={'nbHeading'}
+    {filteredPopularProducts.length > 0 && (
+      <Box p={8} >
+        <Box 
+        // my={{base:20, md:28, lg: 20}}
+        mt={{base:20, md:16, lg: 20}}
         >
-          Popular Items
-        </Heading>
-        <Grid
-          templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
-          gap={{base: 12, lg: 6}}
-        >
-          {filteredPopularProducts.map((product, index) => (
-            <AnimatedProductCard 
-              key={product._id} 
-              product={product} 
-              index={index} 
-            />
-          ))}
-        </Grid>
+          <Heading 
+            size={{base: '2xl', lg: "2xl"}} 
+            textAlign={{base: 'left', md: 'left'}}
+            mt={{base: 6, md: 10, lg:2}}
+            mb={{base: 6, md:8, lg: 4}}
+            fontFamily={'nbHeading'}
+          >
+            Popular Items
+          </Heading>
+          <Grid
+            templateColumns={['1fr', 'repeat(2, 1fr)', 'repeat(3, 1fr)']}
+            gap={{base: 12, lg: 6}}
+          >
+            {filteredPopularProducts.map((product, index) => (
+              <AnimatedProductCard 
+                key={product._id} 
+                product={product} 
+                index={index} 
+              />
+            ))}
+          </Grid>
+        </Box>
       </Box>
-    </Box>
+    )}
       
       <Box  
       p={8}
       >
-      <Box my={{base:20, md:28, lg: 20}}>
+      <Box my={{base:20, md:28, lg: 20}}
+
+      >
         <Heading 
           size={{base: '2xl', lg: "2xl"}} 
           textAlign={{base: 'left', md: 'left'}}
