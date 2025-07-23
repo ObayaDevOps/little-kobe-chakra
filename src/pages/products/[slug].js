@@ -46,7 +46,7 @@ export default function ProductPage({ product }) {
   // Inside ProductCard component (example assuming the issue is with price)
   // Make sure price exists and is a number before formatting
   const displayPrice = typeof product.price === 'number'
-    ? product.price.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) // Or your desired locale/currency
+    ? product.price.toLocaleString('en-US', { style: 'currency', currency: 'UGX' }) // Or your desired locale/currency
     : 'Price not available';
 
   return (
@@ -73,22 +73,27 @@ export default function ProductPage({ product }) {
 
       <Box p={{base: 8, md: 20}} minH='85vh'>
       <SimpleGrid columns={[1, 1, 2]} gap={8} maxW="6xl" mx="auto">
+        {/* Original image box, now hidden on mobile */}
         <Box 
-        bg="white" 
-        p={4} 
-        
-        borderColor="black"
-        borderWidth={'2px'}
-        borderRadius="lg"
-        boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+          bg="white" 
+          p={4} 
+          borderColor="black"
+          borderWidth={'2px'}
+          borderRadius="lg"
+          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+          display={{ base: 'none', md: 'block' }} // Show only on desktop
         >
-          <NextImage
-            src={product.mainImage}
-            alt={product.name}
-            width={600}
-            height={600}
-            objectFit="contain"
-          />
+          <Box 
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+          >
+            <Image
+              src={product.mainImage}
+              alt={product.name}
+              objectFit="fit"
+            />
+          </Box>
         </Box>
         
         <Stack spacing={{base:4, md:6}}>
@@ -115,9 +120,34 @@ export default function ProductPage({ product }) {
             )}
           </Stack>
 
+          {/* New image box for mobile */}
+          <Box 
+            bg="white" 
+            p={4} 
+            borderColor="black"
+            borderWidth={'2px'}
+            borderRadius="lg"
+            boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
+            display={{ base: 'block', md: 'none' }} // Show only on mobile
+          >
+            <Box 
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Image
+                src={product.mainImage}
+                alt={product.name}
+                objectFit="fit"
+              />
+            </Box>
+          </Box>
+
           <Text fontSize="lg" fontFamily={'nbText'} whiteSpace="pre-wrap">
             {product.description}
           </Text>
+
+          <Stack spacing={4} align="center">
 
           <Stack direction="row" spacing={4} align="center">
             <Button
@@ -143,6 +173,8 @@ export default function ProductPage({ product }) {
               +
             </Button>
           </Stack>
+          </Stack>
+
 
           <Button
             colorScheme="red"

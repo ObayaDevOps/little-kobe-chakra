@@ -10,7 +10,7 @@ export default function Hero() {
 
     return (
         <Box 
-        minH={{base:'45vh' , lg: '70vh'}} 
+        minH={{base:'45vh' , lg: '50vh'}} 
 
         bg={'#fcd7d7'}
         bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747948/pexels-apasaric-3423860_ddbmcf.jpg'
@@ -29,7 +29,7 @@ export default function Hero() {
          borderTopWidth={'4px'}
          borderBottomWidth={'4px'}
          position='relative'
-         top={{base:'45vh' , lg: '70vh'}} 
+         top={{base:'45vh' , lg: '50vh'}} 
          bottom={'0px'}
          bg='white'
          >
@@ -57,7 +57,7 @@ export default function Hero() {
             Imported from Japan
             </Text>
             <Text fontFamily={'nbHeading'} fontSize={'3xl'} mr={52}>
-            日本から輸入
+            日本直輸入
             </Text>
             
         </Marquee>
