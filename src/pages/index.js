@@ -264,8 +264,9 @@ export async function getStaticProps() {
         description,
         "slug": slug.current,
         "imageUrl": image.asset->url,
-        parent->{title, slug}
-      }
+        parent->{title, slug},
+        order // Fetch the new order field
+      } | order(order asc) // Sort by the order field in ascending order
     `)
   ]);
 

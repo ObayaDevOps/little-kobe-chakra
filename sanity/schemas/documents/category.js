@@ -31,6 +31,13 @@ export default {
         to: [{ type: 'category' }],
       },
       {
+        name: 'order',
+        title: 'Order',
+        type: 'number',
+        description: 'Number to determine the order of categories. Lower numbers appear first.',
+        validation: (Rule) => Rule.integer().min(0),
+      },
+      {
         name: 'image',
         title: 'Image',
         type: 'image',
