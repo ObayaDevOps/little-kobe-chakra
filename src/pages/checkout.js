@@ -15,6 +15,11 @@ import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+// HQ address used for road distance calculation
+const HQ_ADDRESS = '36 Kyadondo Road, Kampala';
+// Fallback approximate coordinates for HQ (used if Maps services are unavailable in tests)
+const HQ_COORDS = { lat: 0.324, lng: 32.582 };
+
 const containerStyle = {
   width: '100%',
   height: '400px',
@@ -70,11 +75,17 @@ export default function CheckoutPage() {
   const [map, setMap] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [isGeocoding, setIsGeocoding] = useState(false);
+  // Delivery distance and fee estimate
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
+  const [distanceError, setDistanceError] = useState('');
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: MAPS_API_KEY,
   });
+
+  const isE2E = process.env.NEXT_PUBLIC_E2E === '1'
 
   const onLoad = useCallback(function callback(mapInstance) {
     setMap(mapInstance);
@@ -100,7 +111,24 @@ export default function CheckoutPage() {
     if (errors.geocodingError) {
       setErrors(prevErrors => ({ ...prevErrors, geocodingError: '' }));
     }
+    // Compute distance + estimate when user drops a pin
+    computeDeliveryEstimate({ lat, lng });
   }, [errors.mapLocation, errors.geocodingError]);
+
+  const handleMockMapClick = useCallback(() => {
+    // Fixed coordinates within Kampala for E2E tests
+    const lat = 0.347596
+    const lng = 32.58252
+    setSelectedPosition({ lat, lng })
+    setFormData(prevData => ({
+      ...prevData,
+      latitude: lat,
+      longitude: lng,
+    }))
+    if (errors.mapLocation) setErrors(prev => ({ ...prev, mapLocation: '' }))
+    if (errors.geocodingError) setErrors(prev => ({ ...prev, geocodingError: '' }))
+    computeDeliveryEstimate({ lat, lng })
+  }, [errors.mapLocation, errors.geocodingError])
 
   // Function to geocode address
   const geocodeAddress = async (addressString) => {
@@ -138,12 +166,66 @@ export default function CheckoutPage() {
         if (errors.mapLocation) {
           setErrors(prevErrors => ({ ...prevErrors, mapLocation: '' }));
         }
+        computeDeliveryEstimate({ lat, lng });
       } else {
         console.error('Geocode was not successful for the following reason: ' + status);
         setErrors(prev => ({ ...prev, geocodingError: `Could not find address "${addressString}". Please try a different address or select on the map.` }));
       }
     });
   };
+
+  // --- Delivery estimate calculation ---
+  // Rounds up to nearest 1000 UGX
+  const roundToNearestThousand = (value) => Math.ceil(value / 1000) * 1000;
+
+  const computeDeliveryEstimate = async ({ lat, lng }) => {
+    try {
+      setDistanceError('')
+      // Prefer road distance via Distance Matrix when Maps is loaded
+      if (window.google?.maps?.DistanceMatrixService) {
+        const svc = new window.google.maps.DistanceMatrixService()
+        const matrix = await new Promise((resolve, reject) => {
+          try {
+            svc.getDistanceMatrix({
+              origins: [HQ_ADDRESS],
+              destinations: [{ lat, lng }],
+              travelMode: window.google.maps.TravelMode.DRIVING,
+              unitSystem: window.google.maps.UnitSystem.METRIC,
+            }, (resp, status) => {
+              if (status === 'OK' && resp) resolve(resp)
+              else reject(new Error(`DistanceMatrix status: ${status}`))
+            })
+          } catch (e) { reject(e) }
+        })
+        const el = matrix?.rows?.[0]?.elements?.[0]
+        const meters = el?.status === 'OK' ? el?.distance?.value : null
+        if (typeof meters === 'number' && meters > 0) {
+          const km = meters / 1000
+          setDistanceKm(km)
+          const fee = roundToNearestThousand(km * 800)
+          setDeliveryEstimate(fee)
+          return
+        }
+        // else fall through to haversine fallback
+      }
+      // Fallback: straight-line distance (haversine)
+      const R = 6371 // km
+      const toRad = (d) => (d * Math.PI) / 180
+      const dLat = toRad(lat - HQ_COORDS.lat)
+      const dLng = toRad(lng - HQ_COORDS.lng)
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(HQ_COORDS.lat)) * Math.cos(toRad(lat)) * Math.sin(dLng/2) * Math.sin(dLng/2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+      const km = R * c
+      setDistanceKm(km)
+      const fee = roundToNearestThousand(km * 800)
+      setDeliveryEstimate(fee)
+    } catch (e) {
+      console.error('Failed to compute delivery estimate:', e)
+      setDistanceError('Could not estimate delivery distance. Please try again.')
+      setDistanceKm(null)
+      setDeliveryEstimate(null)
+    }
+  }
 
   // Validation functions
   const validateEmail = (email) => {
@@ -581,9 +663,22 @@ export default function CheckoutPage() {
             >
             Delivery Location
             </Heading>
+            {/* <Text 
+              fontFamily={'nbHeading'}
+              fontWeight={200}
+            >
+           Delivery Fees: 800Ush per km from Little Kobe (36 Kyadondo Rd, Kampala, Uganda)
+           </Text>
+           <Text 
+              fontFamily={'nbHeading'}
+              mt={-4}
+            >
+            Orders over 200k in value get free delivery within Kampala
+           </Text> */}
+
 
             <FormControl isRequired isInvalid={!!errors.address || !!errors.geocodingError}>
-              <FormLabel>Address (within Kampala)</FormLabel>
+              <FormLabel>First Search Address (within Kampala)</FormLabel>
               <Flex align="center">
                 <Input
                   name="address"
@@ -616,13 +711,30 @@ export default function CheckoutPage() {
               {errors.geocodingError && !errors.address && <FormErrorMessage>{errors.geocodingError}</FormErrorMessage>}
             </FormControl>
 
-            {/* Google Map Integration */}
+            {/* Google Map Integration (with E2E mock fallback) */}
             <FormControl isRequired isInvalid={!!errors.mapLocation} mt={2}>
               <FormLabel>
                 Please Drop a Pin in the Exact Delivery Location
                 {isGeocoding && <Text as="span" fontSize="sm" color="gray.500" ml={2}>(Locating address...)</Text>}
               </FormLabel>
-              {isLoaded && !loadError && (
+              {isE2E && (
+                <Box
+                  data-testid="mock-map"
+                  onClick={handleMockMapClick}
+                  bg="gray.100"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  borderColor="black"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  boxShadow="2px 2px 0px 0px rgba(0,0,0,1)"
+                  style={{ width: '100%', height: '400px', cursor: 'crosshair' }}
+                >
+                  <Text>Test Map: Click to drop pin</Text>
+                </Box>
+              )}
+              {!isE2E && isLoaded && !loadError && (
                 <Box
                   borderColor="black"
                   borderWidth="1px"
@@ -646,9 +758,48 @@ export default function CheckoutPage() {
                   </GoogleMap>
                 </Box>
               )}
-              {loadError && <Text color="red.500">Error loading map. Please ensure your API key is correct and the API is enabled.</Text>}
+              {!isE2E && loadError && <Text color="red.500">Error loading map. Please ensure your API key is correct and the API is enabled.</Text>}
               <FormErrorMessage>{errors.mapLocation}</FormErrorMessage>
             </FormControl>
+
+            {/* Delivery estimate display */}
+            {selectedPosition && (deliveryEstimate != null || total > 200000) && (
+              <Box
+                mt={4}
+                bg="white"
+                p={4}
+                borderColor="black"
+                borderWidth={'2px'}
+                borderRadius="lg"
+                boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
+              >
+                <Heading size="md" fontFamily={'nbHeading'} mb={2}>Estimated Delivery Fee</Heading>
+                {total > 200000 ? (
+                  <Text fontFamily={'nbText'} fontWeight="bold" color="green.600">
+                    Free delivery for orders over 200k!
+                  </Text>
+                ) : (
+                  <>
+                    <Flex justify="space-between" align="center">
+                      <Text fontFamily={'nbText'}>Approx. road distance</Text>
+                      <Text fontFamily={'nbText'} fontWeight="bold">{(distanceKm || 0).toFixed(1)} km</Text>
+                    </Flex>
+                    <Flex justify="space-between" align="center" mt={2}>
+                      <Text fontFamily={'nbText'}>Estimated delivery fee</Text>
+                      <Text fontFamily={'nbText'} fontWeight="bold">{(deliveryEstimate || 0).toLocaleString()} UGX</Text>
+                    </Flex>
+                    <Text mt={2} fontSize="sm" color="gray.600" fontFamily={'nbText'}>
+                      Final fee may vary slightly based on exact route.
+                    </Text>
+                  </>
+                )}
+              </Box>
+            )}
+            {distanceError && (
+              <Alert status="warning" mt={4} borderRadius="md">
+                <AlertIcon /> {distanceError}
+              </Alert>
+            )}
 
             <FormControl >
               <FormLabel>Any Other Delivery Notes?</FormLabel>
