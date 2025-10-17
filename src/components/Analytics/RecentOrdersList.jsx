@@ -93,6 +93,35 @@ const OrderDetailsModal = ({ orderId, isOpen, onClose }) => {
                                 <Text><strong>Total:</strong> {formatCurrency(orderDetails.total_amount, orderDetails.currency)}</Text>
                             </Box>
                             <Divider />
+
+                            
+                             <Box>
+                                <Heading size="sm" mb={2}>Items ({orderDetails.items.length})</Heading>
+                                <TableContainer borderTopWidth="1px" borderColor="gray.100">
+                                    <Table variant="simple" size="sm">
+                                        <Thead>
+                                            <Tr>
+                                                <Th>Product</Th>
+                                                <Th isNumeric>Qty</Th>
+                                                <Th isNumeric>Unit Price</Th>
+                                                <Th isNumeric>Total</Th>
+                                            </Tr>
+                                        </Thead>
+                                        <Tbody>
+                                            {orderDetails.items.map((item, index) => (
+                                                <Tr key={`${item.product_id}-${index}`}>
+                                                    <Td>{item.product_name || item.product_id}</Td>
+                                                    <Td isNumeric>{item.quantity}</Td>
+                                                    <Td isNumeric>{formatCurrency(item.unit_price_at_purchase, orderDetails.currency)}</Td>
+                                                    <Td isNumeric>{formatCurrency(item.total_item_price, orderDetails.currency)}</Td>
+                                                </Tr>
+                                            ))}
+                                        </Tbody>
+                                    </Table>
+                                </TableContainer>
+                            </Box>
+
+                            <Divider />
                             <Box>
                                 <Heading size="sm" mb={2}>Customer</Heading>
                                 <Text><strong>Email:</strong> {orderDetails.customer_email || 'N/A'}</Text>
@@ -131,32 +160,7 @@ const OrderDetailsModal = ({ orderId, isOpen, onClose }) => {
                                     <Text>N/A</Text>
                                 )}
                             </Box>
-                            <Divider />
-                             <Box>
-                                <Heading size="sm" mb={2}>Items ({orderDetails.items.length})</Heading>
-                                <TableContainer borderTopWidth="1px" borderColor="gray.100">
-                                    <Table variant="simple" size="sm">
-                                        <Thead>
-                                            <Tr>
-                                                <Th>Product</Th>
-                                                <Th isNumeric>Qty</Th>
-                                                <Th isNumeric>Unit Price</Th>
-                                                <Th isNumeric>Total</Th>
-                                            </Tr>
-                                        </Thead>
-                                        <Tbody>
-                                            {orderDetails.items.map((item, index) => (
-                                                <Tr key={`${item.product_id}-${index}`}>
-                                                    <Td>{item.product_name || item.product_id}</Td>
-                                                    <Td isNumeric>{item.quantity}</Td>
-                                                    <Td isNumeric>{formatCurrency(item.unit_price_at_purchase, orderDetails.currency)}</Td>
-                                                    <Td isNumeric>{formatCurrency(item.total_item_price, orderDetails.currency)}</Td>
-                                                </Tr>
-                                            ))}
-                                        </Tbody>
-                                    </Table>
-                                </TableContainer>
-                            </Box>
+
                         </VStack>
                     )}
                 </ModalBody>
