@@ -119,7 +119,7 @@ const OrderDetailsModal = ({ orderId, isOpen, onClose }) => {
                                                     loading="lazy"
                                                     allowFullScreen
                                                     referrerPolicy="no-referrer-when-downgrade"
-                                                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_API_KEY}&q=${orderDetails.shipping_address.latitude},${orderDetails.shipping_address.longitude}&zoom=15`}
+                                                    src={`https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${orderDetails.shipping_address.latitude},${orderDetails.shipping_address.longitude}&zoom=15`}
                                                 >
                                                 </iframe>
                                             </Box>
