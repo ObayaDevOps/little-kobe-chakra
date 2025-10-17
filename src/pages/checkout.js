@@ -161,7 +161,7 @@ export default function CheckoutPage() {
         }));
         if (map) {
           map.panTo({ lat, lng });
-          map.setZoom(15);
+          map.setZoom(17);
         }
         if (errors.mapLocation) {
           setErrors(prevErrors => ({ ...prevErrors, mapLocation: '' }));

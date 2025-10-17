@@ -165,6 +165,25 @@ export default async function handler(req, res) {
         // *** END: Order Creation Logic ***
 
         // 6. Construct the response for the frontend (callback.js)
+        const deliveryAddress = dbPaymentRecord.delivery_address || {};
+        const customerName =
+            (typeof deliveryAddress === 'object' && (deliveryAddress.first_name || deliveryAddress.name)) ||
+            dbPaymentRecord.customer_name ||
+            'Customer';
+        const hasLatLng =
+            typeof deliveryAddress === 'object' &&
+            typeof deliveryAddress.latitude === 'number' &&
+            typeof deliveryAddress.longitude === 'number';
+        const deliveryLocation = hasLatLng
+            ? {
+                  latitude: deliveryAddress.latitude,
+                  longitude: deliveryAddress.longitude,
+              }
+            : null;
+        const deliveryLocationText =
+            typeof deliveryAddress === 'object'
+                ? (deliveryAddress.line_1 || deliveryAddress.address || deliveryAddress.city || '').toString().trim()
+                : '';
         const responsePayload = {
             status: dbPaymentRecord.status, // Use status from your DB
             statusDescription: dbPaymentRecord.pesapal_status_description || statusDescription, // Prefer DB description
@@ -177,6 +196,10 @@ export default async function handler(req, res) {
                 delivery_address: dbPaymentRecord.delivery_address,
                 customer_email: dbPaymentRecord.customer_email,
                 customer_phone: dbPaymentRecord.customer_phone,
+                customerName,
+                estimatedDelivery: 'Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent',
+                deliveryLocation,
+                deliveryLocationText,
             }
         };
 

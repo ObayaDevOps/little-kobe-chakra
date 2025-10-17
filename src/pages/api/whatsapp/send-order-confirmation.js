@@ -78,8 +78,15 @@ export default async function handler(req, res) {
         // Using ?? for nullish coalescing (handles null or undefined) and String() to ensure it's a string
         const customerName = String(orderDetails?.customerName ?? "Customer");
         const itemsList = String(orderDetails?.items?.map(item => `${String(item?.quantity ?? 1)} ${String(item?.name ?? 'Unnamed Item')}`).join(', ') ?? "No items listed");
-        const deliveryAddress = String(orderDetails?.delivery_address ? `${String(orderDetails.delivery_address.address ?? '')}, ${String(orderDetails.delivery_address.city ?? '')}`.trim().replace(/^, /,'').replace(/,$/,'') || "not specified" : "not specified");
-        const estimatedDelivery = String(orderDetails?.estimatedDelivery ?? "not specified");
+        const fallbackAddress = orderDetails?.delivery_address
+            ? `${String(orderDetails.delivery_address.address ?? '')}, ${String(orderDetails.delivery_address.city ?? '')}`
+                .trim()
+                .replace(/^, /, '')
+                .replace(/,$/, '')
+            : '';
+        const deliveryLocationText = orderDetails?.deliveryLocationText ?? fallbackAddress;
+        const deliveryLocation = String(deliveryLocationText || fallbackAddress || "not specified");
+        const estimatedDelivery = String(orderDetails?.estimatedDelivery ?? "Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent");
         const contactInfo = String(isShopkeeper ? (orderDetails?.customerPhoneNumber ?? "Customer number not available") : shopkeeperContact);
 
 
@@ -91,7 +98,7 @@ export default async function handler(req, res) {
                     { type: "text", text: "order" }, // {{2}} Purchase/Order type - changed to "order"
                     { type: "text", text: itemsList }, // {{3}} Items Ordered
                     { type: "text", text: estimatedDelivery }, // {{4}} Estimated delivery
-                    { type: "text", text: deliveryAddress }, // {{5}} Delivery Location
+                    { type: "text", text: deliveryLocation }, // {{5}} Delivery Location
                     { type: "text", text: contactInfo } // {{6}} Contact info
                 ]
             }

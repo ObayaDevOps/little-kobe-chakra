@@ -25,6 +25,8 @@ import { useCartStore } from '../../lib/cartStore'
 
 
 
+const SHOPKEEPER_WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER;
+
 // Define possible states for the verification process
 const VerificationState = {
     IDLE: 'idle', // Initial state before checks
@@ -158,7 +160,22 @@ function PaymentCallbackPage() {
         try {
             console.log("Sending order confirmation WhatsApp with details to shopkeeper:", orderDetails);
             // Call the new API endpoint created in Step 7
-            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: process.env.SHOPKEEPER_CONTACT_NUMBER, orderDetails, isShopkeeper: true }, {
+            const shopkeeperPhone = SHOPKEEPER_WHATSAPP_NUMBER?.toString().trim();
+
+            if (!shopkeeperPhone) {
+                console.error('NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER env variable is not set, skipping shopkeeper WhatsApp notification.');
+                toast({
+                    title: 'WhatsApp Notification Unavailable',
+                    description: 'Shopkeeper WhatsApp number is not configured yet. Please let support know.',
+                    status: 'warning',
+                    duration: 6000,
+                    isClosable: true,
+                    position: 'top',
+                });
+                return;
+            }
+
+            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: shopkeeperPhone, orderDetails, isShopkeeper: true }, {
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 15000, // Timeout for the WhatsApp sending API
             });
@@ -201,7 +218,22 @@ function PaymentCallbackPage() {
         try {
             console.log("Sending order confirmation WhatsApp with details to customer:", orderDetails);
             // Call the new API endpoint created in Step 7
-            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: orderDetails.customerPhoneNumber, orderDetails, isShopkeeper: false }, {
+            const customerPhone = orderDetails.customerPhoneNumber?.toString().trim();
+
+            if (!customerPhone) {
+                console.warn('Customer WhatsApp number missing, skipping customer notification.');
+                toast({
+                    title: 'WhatsApp Notification Unavailable',
+                    description: 'Customer WhatsApp number was not provided at checkout.',
+                    status: 'warning',
+                    duration: 6000,
+                    isClosable: true,
+                    position: 'top',
+                });
+                return;
+            }
+
+            await axios.post('/api/whatsapp/send-order-confirmation', { recipientPhoneNumber: customerPhone, orderDetails, isShopkeeper: false }, {
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 15000, // Timeout for the WhatsApp sending API
             });
@@ -269,7 +301,43 @@ function PaymentCallbackPage() {
                     console.log("Payment completed successfully. Processing post-payment actions.");
 
                     // Extract orderDetails from the response
-                    const orderDetailsForComms = response.data.orderDetails;
+                    const orderDetailsForComms = { ...response.data.orderDetails };
+
+                    const deliveryAddressForComms = orderDetailsForComms?.delivery_address || {};
+                    if (!orderDetailsForComms.customerName) {
+                        orderDetailsForComms.customerName =
+                            deliveryAddressForComms.first_name ||
+                            deliveryAddressForComms.name ||
+                            'Customer';
+                    }
+                    const locationLine =
+                        deliveryAddressForComms.line_1 ||
+                        deliveryAddressForComms.address ||
+                        deliveryAddressForComms.city ||
+                        '';
+                    const lat = typeof deliveryAddressForComms.latitude === 'number' ? deliveryAddressForComms.latitude : null;
+                    const lng = typeof deliveryAddressForComms.longitude === 'number' ? deliveryAddressForComms.longitude : null;
+                    if (
+                        (!orderDetailsForComms.deliveryLocation ||
+                            typeof orderDetailsForComms.deliveryLocation.latitude !== 'number' ||
+                            typeof orderDetailsForComms.deliveryLocation.longitude !== 'number') &&
+                        typeof lat === 'number' &&
+                        typeof lng === 'number'
+                    ) {
+                        orderDetailsForComms.deliveryLocation = { latitude: lat, longitude: lng };
+                    }
+                    if (!orderDetailsForComms.deliveryLocationText) {
+                        orderDetailsForComms.deliveryLocationText = locationLine.toString().trim();
+                    }
+                    orderDetailsForComms.estimatedDelivery =
+                        'Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent';
+
+                    if (!orderDetailsForComms.customerPhoneNumber) {
+                        const fallbackPhone = orderDetailsForComms.customer_phone || orderDetailsForComms.customer_phone_number;
+                        if (fallbackPhone) {
+                            orderDetailsForComms.customerPhoneNumber = fallbackPhone.toString().trim();
+                        }
+                    }
 
                     // Add confirmation code if available (might already be in orderDetails depending on verify API)
                     if (response.data.confirmationCode && !orderDetailsForComms.confirmationCode) {
@@ -333,7 +401,16 @@ function PaymentCallbackPage() {
             setError(errorMessage);
             setProcessStatus(VerificationState.ERROR);
         }
-    }, [router, OrderMerchantReference, toast, clearCart, sendOrderConfirmationEmailShopkeeper, sendOrderConfirmationEmailCustomer]); // Added dependencies
+    }, [
+        router,
+        OrderMerchantReference,
+        toast,
+        clearCart,
+        sendOrderConfirmationEmailShopkeeper,
+        sendOrderConfirmationEmailCustomer,
+        sendOrderConfirmationWhatsAppShopkeeper,
+        sendOrderConfirmationWhatsAppCustomer,
+    ]); // Added dependencies
 
     // --- Effect Hook ---
     useEffect(() => {

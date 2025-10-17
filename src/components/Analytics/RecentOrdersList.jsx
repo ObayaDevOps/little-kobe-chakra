@@ -129,10 +129,16 @@ const OrderDetailsModal = ({ orderId, isOpen, onClose }) => {
                                 {/* Add Name if available */}
                             </Box>
                             <Divider />
-                             <Box>
-                                <Heading size="sm" mb={2}>Delivery Address</Heading>
-                                {orderDetails.shipping_address ? (
-                                    <>
+                            <Box>
+                               <Heading size="sm" mb={2}>Delivery Address</Heading>
+                               {orderDetails.shipping_address ? (
+                                   <>
+                                        <VStack align="stretch" spacing={1} mb={3}>
+                                            <Text><strong>Exact Location:</strong> {orderDetails.shipping_address.line_1 || 'N/A'}</Text>
+                                            <Text fontSize="sm" color="gray.600">
+                                                Full address data below for reference.
+                                            </Text>
+                                        </VStack>
                                         <Code display="block" whiteSpace="pre-wrap" p={3} borderRadius="md" bg="gray.50" mb={3}>
                                             {JSON.stringify(orderDetails.shipping_address, null, 2)}
                                         </Code>
