@@ -7,6 +7,7 @@ import {
     SimpleGrid,
     Stack,
     Text,
+    Link,
     useColorModeValue
 } from '@chakra-ui/react';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -84,6 +85,21 @@ function AdminLandingPage() {
                         </Box>
                     ))}
                 </SimpleGrid>
+
+                <Box borderWidth="1px" borderRadius="lg" borderColor={cardBorder} bg={cardBg} p={6} boxShadow="sm">
+                    <Heading as="h2" size="md" mb={3}>Pesapal Dummy Cards</Heading>
+                    <Text color="gray.600" mb={4}>
+                        Use Pesapal&apos;s sandbox card numbers when testing checkout flows without live payments.
+                    </Text>
+                    <Button
+                        as={Link}
+                        href="https://cybqa.pesapal.com/PesapalIframe/PesapalIframe3/TestPayments"
+                        colorScheme="teal"
+                        isExternal
+                    >
+                        View Dummy Card List
+                    </Button>
+                </Box>
             </Stack>
         </Container>
         </>
