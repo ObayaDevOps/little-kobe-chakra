@@ -33,7 +33,8 @@ import {
 } from '@chakra-ui/react';
 import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon } from '@chakra-ui/icons';
 
-import Head from 'next/head'
+import Head from 'next/head';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 
 function AdminInventoryPage() {
@@ -199,6 +200,8 @@ function AdminInventoryPage() {
     }, []);
 
     return (
+        <>
+        <AdminNavbar />
         <Box p={5}>
             <Head>
             <title>Admin Inventory Management | Little Kobe Japanese Market</title>
@@ -424,6 +427,7 @@ function AdminInventoryPage() {
                 </>
             )}
         </Box>
+        </>
     );
 }
 

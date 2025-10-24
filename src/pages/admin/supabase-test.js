@@ -16,6 +16,7 @@ import {
     Code,
     Badge
 } from '@chakra-ui/react';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 function SupabaseTestPage() {
     const toast = useToast();
@@ -113,6 +114,8 @@ function SupabaseTestPage() {
     };
 
     return (
+        <>
+        <AdminNavbar />
         <Container maxW="lg" py={12}>
             <Stack spacing={6}>
                 <Heading as="h1" size="lg">Supabase Connectivity Test</Heading>
@@ -194,6 +197,7 @@ function SupabaseTestPage() {
                 </Box>
             </Stack>
         </Container>
+        </>
     );
 }
 

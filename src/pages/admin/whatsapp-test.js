@@ -14,6 +14,7 @@ import {
     useToast,
     Code
 } from '@chakra-ui/react';
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 function WhatsAppTestPage() {
     const toast = useToast();
@@ -86,6 +87,8 @@ function WhatsAppTestPage() {
     };
 
     return (
+        <>
+        <AdminNavbar />
         <Container maxW="lg" py={12}>
             <Stack spacing={6}>
                 <Heading as="h1" size="lg">WhatsApp Template Test</Heading>
@@ -142,6 +145,7 @@ function WhatsAppTestPage() {
                 </Box>
             </Stack>
         </Container>
+        </>
     );
 }
 

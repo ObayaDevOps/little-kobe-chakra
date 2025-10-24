@@ -1,10 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
-import {
-    Box,
-    Heading,
-    Divider,
-} from '@chakra-ui/react';
+import { Box, Divider } from '@chakra-ui/react';
 // Assuming you have some admin layout/wrapper
 // import AdminLayout from '@/components/AdminLayout';
 
@@ -12,6 +8,7 @@ import {
 import DashboardOverview from '@/components/Analytics/DashboardOverview'; // Adjust path if needed
 // --- Import the new Recent Orders component ---
 import RecentOrdersList from '@/components/Analytics/RecentOrdersList'; // Adjust path if needed
+import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const SalesReportPage = () => {
     return (
@@ -21,6 +18,7 @@ const SalesReportPage = () => {
                 {/* Updated title to reflect the overview nature */}
                 <title>Admin - Sales Overview</title>
             </Head>
+            <AdminNavbar />
             {/* Keep outer padding Box */}
             <Box p={8} maxW="container.xl" mx="auto">
                 {/* Heading remains similar, but the content below changes */}

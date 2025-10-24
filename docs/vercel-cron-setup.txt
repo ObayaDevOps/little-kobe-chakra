@@ -1,0 +1,42 @@
+Daily Health Check Setup on Vercel
+==================================
+
+Prerequisites
+- Deploy the latest code (includes `/api/admin/daily-health-check`).
+- Confirm the following environment variables are available in the Vercel project:
+  - `SMTP_USER` / `SMTP_PASSWORD` (+ optional `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`) for Nodemailer.
+  - `HEALTHCHECK_ALERT_RECIPIENTS`: comma-separated list of emails to notify.
+  - `HEALTHCHECK_ALERT_SENDER` (defaults to `SMTP_USER` if omitted).
+  - `HEALTHCHECK_SECRET`: shared secret that secures the health-check endpoint.
+  - `HEALTHCHECK_SUPABASE_TABLE` (optional, defaults to `orders`).
+  - `HEALTHCHECK_SUPABASE_COLUMNS` (optional, defaults to `*`).
+  - `HEALTHCHECK_SUPABASE_LIMIT` (optional, defaults to `1`).
+  - Existing WhatsApp env vars: `WHATSAPP_API_VERSION`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN`.
+  - Existing Supabase env vars: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
+
+Step 1 – Verify the endpoint
+1. In a local dev session (or using a tool like curl against your deployed URL), call:
+   ```
+   curl -X POST "https://<your-domain>/api/admin/daily-health-check?secret=<HEALTHCHECK_SECRET>"
+   ```
+2. Ensure you receive JSON with both `supabase.ok` and `whatsapp.ok`.
+3. Temporarily break a credential (e.g. use a wrong secret locally) to confirm an email alert is triggered.
+
+Step 2 – Create the Vercel Cron Job
+1. Open Vercel dashboard → your project → Settings → Cron Jobs.
+2. Click “Add Cron Job”.
+3. Enter:
+   - **Endpoint**: `/api/admin/daily-health-check?secret=<HEALTHCHECK_SECRET>`
+   - **Schedule**: `0 7 * * *` (example: runs daily at 07:00 UTC; adjust as needed).
+   - **Region**: keep default unless you have specific latency requirements.
+4. Save the cron job. Vercel immediately validates the endpoint; you should see the first scheduled run time.
+
+Step 3 – Monitor executions
+- Vercel → Functions → Filter by `daily-health-check` to see invocation logs and latency.
+- Failed runs return HTTP 503 and log the exception payload. Email alerts fire when either Supabase or WhatsApp checks return `ok: false`.
+- Adjust cron schedule or alert list anytime through Vercel settings / environment variables.
+
+Optional Enhancements
+- Add a Slack/Webhook notifier inside `daily-health-check` alongside the email function.
+- Store last-known status in an analytics DB (Supabase table, Logflare, etc.) for trend reporting.
+- Increase frequency (e.g. hourly) by upgrading Vercel plan if you need tighter monitoring.
