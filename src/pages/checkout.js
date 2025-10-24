@@ -641,7 +641,7 @@ export default function CheckoutPage() {
             
 
             <FormControl isRequired isInvalid={!!errors.phone}>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>WhatsApp Phone Number (We will use this to send order details and updates)</FormLabel>
               <Input
                 name="phone"
                 type="tel"
@@ -678,7 +678,7 @@ export default function CheckoutPage() {
 
 
             <FormControl isRequired isInvalid={!!errors.address || !!errors.geocodingError}>
-              <FormLabel>First Search Address (within Kampala)</FormLabel>
+              <FormLabel>First Search Road/General Area (within Kampala)</FormLabel>
               <Flex align="center">
                 <Input
                   name="address"

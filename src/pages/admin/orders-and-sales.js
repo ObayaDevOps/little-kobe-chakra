@@ -10,7 +10,7 @@ import DashboardOverview from '@/components/Analytics/DashboardOverview'; // Adj
 import RecentOrdersList from '@/components/Analytics/RecentOrdersList'; // Adjust path if needed
 import AdminNavbar from '@/components/admin/AdminNavbar';
 
-const SalesReportPage = () => {
+const OrdersAndSalesPage = () => {
     return (
         // <AdminLayout> {/* Wrap with your admin layout if you have one */}
         <>
@@ -42,7 +42,7 @@ const SalesReportPage = () => {
     );
 };
 
-export default SalesReportPage;
+export default OrdersAndSalesPage;
 
 // Optional: Add authentication/authorization check if needed
 // export async function getServerSideProps(context) {

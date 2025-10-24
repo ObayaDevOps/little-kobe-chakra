@@ -19,9 +19,9 @@ const adminTools = [
         description: 'Search, edit, and publish product stock levels pulled from Sanity. Use this to keep pricing and availability in sync.'
     },
     {
-        title: 'Sales Report',
-        href: '/admin/sales-report',
-        description: 'Generate product sales totals to identify best sellers and restock needs. Pulls aggregated order data from Supabase.'
+        title: 'Orders & Sales',
+        href: '/admin/orders-and-sales',
+        description: 'View Orders, Generate product sales totals to identify best sellers and restock needs. Pulls aggregated order data from Supabase.'
     },
     {
         title: 'WhatsApp Template Test',

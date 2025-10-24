@@ -12,7 +12,7 @@ import {
 const ADMIN_LINKS = [
     { label: 'Control Center', href: '/admin' },
     { label: 'Inventory Manager', href: '/admin/inventory' },
-    { label: 'Sales Report', href: '/admin/sales-report' },
+    { label: 'Orders & Sales', href: '/admin/orders-and-sales' },
     { label: 'WhatsApp Test', href: '/admin/whatsapp-test' },
     { label: 'Supabase Test', href: '/admin/supabase-test' }
 ];
