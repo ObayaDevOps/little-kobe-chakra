@@ -8,19 +8,19 @@ import Footer from '../../components/Footer'
 const faqItems = [
   {
     question: "What are your delivery options?",
-    answer: "We offer same day delivery (1-3 hours) across Kampala. International shipping available for select items."
+    answer: "We offer same day delivery (1-3 hours) across Kampala."
   },
   {
     question: "How do I track my order?",
-    answer: "You'll receive a tracking number via email once your order ships. Use our order tracking page or the carrier's website to monitor your package."
+    answer: "Please reach out to us on what's app: +256 708 109856 "
   },
   {
     question: "Do you offer international shipping?",
-    answer: "Yes, we ship to over 50 countries. Shipping costs and delivery times vary depending on destination."
+    answer: "Not currently :)"
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards and Mobile Money (MTN and Airtel)."
+    answer: "We accept all major credit/debit cards and Mobile Money (MTN and Airtel)."
   }
 ];
 
