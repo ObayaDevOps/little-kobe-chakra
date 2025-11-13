@@ -1,6 +1,81 @@
 // pages/api/whatsapp/send-order-confirmation.js
 import axios from 'axios';
 
+export function extractDeliveryLocationInfo(orderDetails = {}) {
+    const deliveryAddress = orderDetails?.delivery_address;
+    const deliveryLocation = orderDetails?.deliveryLocation;
+
+    const addressParts = [];
+    if (deliveryAddress) {
+        const candidates = [
+            deliveryAddress?.address,
+            deliveryAddress?.line_1,
+            deliveryAddress?.line_2,
+            deliveryAddress?.line1,
+            deliveryAddress?.line2,
+            deliveryAddress?.city,
+            deliveryAddress?.state,
+            deliveryAddress?.country,
+        ];
+        candidates.forEach((part) => {
+            if (part && typeof part === 'string') {
+                const trimmed = part.trim();
+                if (trimmed && !addressParts.includes(trimmed)) {
+                    addressParts.push(trimmed);
+                }
+            }
+        });
+    }
+
+    const hasLatLng =
+        typeof deliveryLocation?.latitude === 'number' &&
+        typeof deliveryLocation?.longitude === 'number';
+
+    const fallbackAddress = addressParts.join(', ');
+
+    const deliveryLocationText = orderDetails?.deliveryLocationText || fallbackAddress || '';
+
+    let deliveryLocationUrl = '';
+    let deliveryLocationButtonParam = '';
+    if (orderDetails?.deliveryLocationUrl && typeof orderDetails.deliveryLocationUrl === 'string') {
+        deliveryLocationUrl = orderDetails.deliveryLocationUrl.trim();
+    } else if (hasLatLng) {
+        const { latitude, longitude } = deliveryLocation;
+        deliveryLocationUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    } else if (deliveryLocationText) {
+        deliveryLocationUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(deliveryLocationText)}`;
+    }
+
+    if (orderDetails?.deliveryLocationButtonParam && typeof orderDetails.deliveryLocationButtonParam === 'string') {
+        deliveryLocationButtonParam = orderDetails.deliveryLocationButtonParam.trim();
+    }
+
+    if (!deliveryLocationButtonParam && deliveryLocationUrl) {
+        const trimmed = deliveryLocationUrl.trim();
+        const googleBaseVariants = [
+            'https://www.google.com',
+            'https://google.com',
+            'https://www.google.co.ke',
+            'https://maps.google.com',
+        ];
+        const variant = googleBaseVariants.find((base) => trimmed.startsWith(base));
+        if (variant) {
+            deliveryLocationButtonParam = trimmed.substring(variant.length);
+            if (!deliveryLocationButtonParam.startsWith('/')) {
+                deliveryLocationButtonParam = `/${deliveryLocationButtonParam}`;
+            }
+        } else {
+            deliveryLocationButtonParam = trimmed;
+        }
+    }
+
+    return {
+        deliveryLocationText: deliveryLocationText || 'not specified',
+        deliveryLocationUrl,
+        deliveryLocationButtonParam,
+    };
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST' && req.method !== 'GET') { // Allow GET for easy testing via browser
         return res.status(405).json({ message: 'Method Not Allowed' });
@@ -78,14 +153,8 @@ export default async function handler(req, res) {
         // Using ?? for nullish coalescing (handles null or undefined) and String() to ensure it's a string
         const customerName = String(orderDetails?.customerName ?? "Customer");
         const itemsList = String(orderDetails?.items?.map(item => `${String(item?.quantity ?? 1)} ${String(item?.name ?? 'Unnamed Item')}`).join(', ') ?? "No items listed");
-        const fallbackAddress = orderDetails?.delivery_address
-            ? `${String(orderDetails.delivery_address.address ?? '')}, ${String(orderDetails.delivery_address.city ?? '')}`
-                .trim()
-                .replace(/^, /, '')
-                .replace(/,$/, '')
-            : '';
-        const deliveryLocationText = orderDetails?.deliveryLocationText ?? fallbackAddress;
-        const deliveryLocation = String(deliveryLocationText || fallbackAddress || "not specified");
+        const { deliveryLocationText, deliveryLocationUrl } = extractDeliveryLocationInfo(orderDetails);
+        const deliveryLocation = String(deliveryLocationText || "not specified");
         const estimatedDelivery = String(orderDetails?.estimatedDelivery ?? "Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent");
         const contactInfo = String(isShopkeeper ? (orderDetails?.customerPhoneNumber ?? "Customer number not available") : shopkeeperContact);
 
@@ -120,6 +189,9 @@ export default async function handler(req, res) {
 
          // Optional: Log the constructed payload for debugging - Moved after whatsappPayload is defined
          console.log("Sending WhatsApp payload:", JSON.stringify(whatsappPayload, null, 2));
+        if (deliveryLocationUrl) {
+            console.log("Delivery location URL:", deliveryLocationUrl);
+        }
         console.log(`Sending WhatsApp message to ${recipientPhoneNumber}...`);
 
         const response = await axios.post(whatsappApiUrl, whatsappPayload, {

@@ -33,46 +33,46 @@ export default function RefundPage() {
         px={{ base: 4, md: 8 }} 
         py={12}
         color="black"
+        fontFamily="nbText"
       >
         <Heading as="h1" size="lg" mb={8} fontFamily="logoFont">
           Refunds & Cancellations
         </Heading>
+
+        <Text mb={2} fontFamily="nbText">
+              Need help with an existing order? Contact us at : +256 708 109856
+              and our team will do everything we can to assist.
+            </Text>
         
         <Stack spacing={8}>
           <Box>
-            <Heading size="lg" mb={4}>Order Cancellations</Heading>
-            <Text>
-              Orders can be cancelled within 24 hours of placement if they haven't entered the shipping process. 
-              To cancel an order, please contact our support team immediately at 
-              <Link href="mailto:support@littlekobe.jp" color="brand.darkRed" mx={1}>
-                support@littlekobe.jp
-              </Link>
-              with your order number.
+            <Heading size="lg" mb={4} fontFamily="nbText">Order Cancellations</Heading>
+            <Text fontFamily="nbText">
+              We currently do not accept order cancellation once a payment has been confirmed, so we kindly ask you to double-check your selections before you place an order.
             </Text>
+
           </Box>
           
           <Box>
-            <Heading size="lg" mb={4}>Return Policy</Heading>
-            <Text>
-              We accept returns within 14 days of delivery for unopened and unused items in their original packaging. 
-              Perishable goods and special order items are final sale. Please include your original receipt and 
-              contact our team to initiate a return.
+            <Heading size="lg" mb={4} fontFamily="nbText">Return Policy</Heading>
+            <Text fontFamily="nbText">
+              We currently do not return any product once it has left our store. Because we focus on specialty food imports, every order is packed with care and handled under strict safety guidelines. Once it is delivered, we cannot re-stock it.
             </Text>
+
           </Box>
           
           <Box>
-            <Heading size="lg" mb={4}>Refund Process</Heading>
-            <Text>
-              Approved refunds will be processed within 5 business days. Refunds will be issued to the original 
-              payment method. Shipping costs are non-refundable unless the return is due to our error.
+            <Heading size="lg" mb={4} fontFamily="nbText">Refund Process</Heading>
+            <Text fontFamily="nbText">
+              We currently do not issue refunds after an order has been fulfilled. Our products are specialty imports with limited availability, so once an order has shipped, the items are considered final sale.
             </Text>
+
           </Box>
           
           <Box>
-            <Heading size="lg" mb={4}>Damaged Items</Heading>
-            <Text>
-              If you receive damaged or defective items, please contact us within 48 hours of delivery with 
-              photos of the damaged product and packaging. We will arrange for a replacement or full refund.
+            <Heading size="lg" mb={4} fontFamily="nbText">Damaged Items</Heading>
+            <Text fontFamily="nbText">
+            If you receive damaged or defective items, please contact us within 48 hours of delivery with photos of the damaged product and packaging. 
             </Text>
           </Box>
         </Stack>

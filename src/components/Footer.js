@@ -1,6 +1,6 @@
 import { Box, Flex, Heading, Link, IconButton, Image, Text, Input, Stack, Grid, GridItem } from '@chakra-ui/react'
 import Marquee from "react-fast-marquee";
-import { FiInstagram, FiFacebook, FiTwitter, FiMail } from "react-icons/fi";
+import { FiInstagram, FiYoutube, FiTwitter, FiMail } from "react-icons/fi";
 
 export default function Footer() {
     return (
@@ -82,6 +82,8 @@ export default function Footer() {
                     <Flex gap={3} mb={6}>
                         <IconButton
                             aria-label="Instagram"
+                            as={Link}
+                            href='https://www.instagram.com/yujoizakaya?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=='
                             icon={<FiInstagram />}
                             variant="outline"
                             color="black"
@@ -92,8 +94,10 @@ export default function Footer() {
                             boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                         />
                         <IconButton
-                            aria-label="Facebook"
-                            icon={<FiFacebook />}
+                            aria-label="Youtube"
+                            as={Link}
+                            href='https://www.youtube.com/@Yujo_Izakaya'
+                            icon={<FiYoutube />}
                             variant="outline"
                             color="currentColor"
                             _hover={{ bg: 'brand.darkRed' }}
@@ -103,17 +107,17 @@ export default function Footer() {
                             boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                             
                         />
-                        <IconButton
-                            aria-label="Twitter"
-                            icon={<FiTwitter />}
-                            variant="outline"
-                            color="currentColor"
-                            _hover={{ bg: 'brand.darkRed' }}
-                            borderColor="black"
-                            borderWidth={'2px'}
-                            borderRadius="lg"
-                            boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
-                        />
+                    </Flex>
+
+                </Box>
+
+                <Box flexBasis={{ md: '30%' }}>
+                    <Heading size="sm" mb={4} fontFamily="nbText">Stay Connected</Heading>
+                    <Flex gap={3} mb={6}>
+                        <Text>
+                            Address
+                        </Text>
+
                     </Flex>
 
                 </Box>

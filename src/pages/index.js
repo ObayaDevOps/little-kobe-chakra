@@ -105,7 +105,7 @@ export default function Home({ products, categories }) {
       <Hero />
 
       
-    {filteredPopularProducts.length > 0 && (
+    {/* {filteredPopularProducts.length > 0 && (
       <Box p={8} >
         <Box 
         // my={{base:20, md:28, lg: 20}}
@@ -134,7 +134,7 @@ export default function Home({ products, categories }) {
           </Grid>
         </Box>
       </Box>
-    )}
+    )} */}
       
       <Box  
       p={8}
