@@ -157,14 +157,14 @@ export default async function handler(req, res) {
         const deliveryLocation = String(deliveryLocationText || "not specified");
         const estimatedDelivery = String(orderDetails?.estimatedDelivery ?? "Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent");
         const contactInfo = String(isShopkeeper ? (orderDetails?.customerPhoneNumber ?? "Customer number not available") : shopkeeperContact);
-
+        const customerMerchantReference = String(merchantReference || 'order' )
 
         const components = [
             {
                 type: "body",
                 parameters: [
                     { type: "text", text: customerName }, // {{1}} Name
-                    { type: "text", text: "order" }, // {{2}} Purchase/Order type - changed to "order"
+                    { type: "text", text: merchantReference }, // {{2}} Purchase/Order type - changed to "order"
                     { type: "text", text: itemsList }, // {{3}} Items Ordered
                     { type: "text", text: estimatedDelivery }, // {{4}} Estimated delivery
                     { type: "text", text: deliveryLocationUrl }, // {{5}} Delivery Location

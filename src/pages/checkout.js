@@ -589,7 +589,7 @@ export default function CheckoutPage() {
             </Heading>
 
             <FormControl isRequired isInvalid={!!errors.firstName}>
-              <FormLabel>First Name</FormLabel>
+              <FormLabel fontFamily='nbText'>First Name</FormLabel>
               <Input
                 name="firstName"
                 type="text"
@@ -606,7 +606,7 @@ export default function CheckoutPage() {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.lastName}>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel fontFamily='nbText'>Last Name</FormLabel>
               <Input
                 name="lastName"
                 type="text"
@@ -623,7 +623,7 @@ export default function CheckoutPage() {
             </FormControl>
 
             <FormControl isRequired isInvalid={!!errors.email}>
-              <FormLabel>Email Address</FormLabel>
+              <FormLabel fontFamily='nbText'>Email Address</FormLabel>
               <Input
                 name="email"
                 type="email"
@@ -641,7 +641,7 @@ export default function CheckoutPage() {
             
 
             <FormControl isRequired isInvalid={!!errors.phone}>
-              <FormLabel>WhatsApp Phone Number (We will use this to send order details and updates)</FormLabel>
+              <FormLabel fontFamily='nbText'>WhatsApp Phone Number (We will use this to send order details and updates)</FormLabel>
               <Input
                 name="phone"
                 type="tel"
@@ -678,7 +678,12 @@ export default function CheckoutPage() {
 
 
             <FormControl isRequired isInvalid={!!errors.address || !!errors.geocodingError}>
-              <FormLabel>First Search Road/General Area (within Kampala)</FormLabel>
+              <FormLabel fontFamily='nbText'>
+                Please describe your location precisely
+                <br />
+                We will deliver outside of Kampala too, but the free delivery does not appy if you are outside of Kampala
+              </FormLabel>
+
               <Flex align="center">
                 <Input
                   name="address"
@@ -713,9 +718,13 @@ export default function CheckoutPage() {
 
             {/* Google Map Integration (with E2E mock fallback) */}
             <FormControl isRequired isInvalid={!!errors.mapLocation} mt={2}>
-              <FormLabel>
+              <FormLabel fontFamily='nbText'>
                 Please Drop a Pin in the Exact Delivery Location
-                {isGeocoding && <Text as="span" fontSize="sm" color="gray.500" ml={2}>(Locating address...)</Text>}
+                {isGeocoding && (
+                  <Box as="span" fontSize="sm" color="gray.500" ml={2}>
+                    (Locating address...)
+                  </Box>
+                )}
               </FormLabel>
               {isE2E && (
                 <Box
@@ -802,7 +811,7 @@ export default function CheckoutPage() {
             )}
 
             <FormControl >
-              <FormLabel>Any Other Delivery Notes?</FormLabel>
+              <FormLabel fontFamily='nbText'>Any Other Delivery Notes?</FormLabel>
               <Textarea
                 name="deliveryNote"
                 fontFamily={'nbText'}
