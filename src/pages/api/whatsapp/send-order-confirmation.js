@@ -101,7 +101,7 @@ export default async function handler(req, res) {
                 { name: "Test Item 2", quantity: 1, price: 5000 }
             ],
             delivery_address: {
-                address: "123 Test St",
+                link: "123 Test St",
                 city: "Test City"
             },
             totalAmount: 7000,
