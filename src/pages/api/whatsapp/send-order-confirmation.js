@@ -167,7 +167,7 @@ export default async function handler(req, res) {
                     { type: "text", text: "order" }, // {{2}} Purchase/Order type - changed to "order"
                     { type: "text", text: itemsList }, // {{3}} Items Ordered
                     { type: "text", text: estimatedDelivery }, // {{4}} Estimated delivery
-                    { type: "text", text: deliveryLocation }, // {{5}} Delivery Location
+                    { type: "text", text: deliveryLocationUrl }, // {{5}} Delivery Location
                     { type: "text", text: contactInfo } // {{6}} Contact info
                 ]
             }
