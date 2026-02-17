@@ -73,20 +73,34 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
         throw new Error('orderDetails is required.');
     }
 
-    const templateName = process.env.WHATSAPP_ORDER_TEMPLATE_NAME || 'order_management_1';
-    const shopkeeperContact = process.env.SHOPKEEPER_WA_NUMBER || process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER || 'Shopkeeper contact not set';
+    const customerTemplateName = process.env.WHATSAPP_ORDER_TEMPLATE_NAME || 'order_management_1';
+    const shopkeeperContact =
+        process.env.SHOPKEEPER_WA_NUMBER || process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER || 'Shopkeeper contact not set';
     const customerName = String(orderDetails?.customerName ?? 'Customer');
     const merchantReference = String(orderDetails?.merchantReference ?? 'order');
     const itemsList = String(
         orderDetails?.items?.map((item) => `${String(item?.quantity ?? 1)} ${String(item?.name ?? 'Unnamed Item')}`).join(', ') ??
             'No items listed'
     );
-    const { deliveryLocationUrl } = extractDeliveryLocationInfo(orderDetails);
+    const { deliveryLocationText, deliveryLocationUrl } = extractDeliveryLocationInfo(orderDetails);
     const estimatedDelivery = String(
         orderDetails?.estimatedDelivery ??
             'Please allow 1 hour post-payment to prepare your order, and transport time, we will notify you when order is sent'
     );
     const contactInfo = String(isShopkeeper ? orderDetails?.customerPhoneNumber ?? 'Customer number not available' : shopkeeperContact);
+
+    const templateName = customerTemplateName;
+    const customerParameters = [
+        { type: 'text', text: customerName }, // {{1}} Name
+        { type: 'text', text: merchantReference }, // {{2}} Order reference
+        { type: 'text', text: itemsList }, // {{3}} Items ordered
+        { type: 'text', text: estimatedDelivery }, // {{4}} ETA
+        { type: 'text', text: deliveryLocationUrl || deliveryLocationText || 'Location not specified' }, // {{5}} Delivery location
+        { type: 'text', text: contactInfo }, // {{6}} Contact
+    ];
+    // Keep separate branch so shopkeeper formatting can diverge later without touching customer mapping.
+    const shopkeeperParameters = [...customerParameters];
+    const parameters = isShopkeeper ? shopkeeperParameters : customerParameters;
 
     return {
         messaging_product: 'whatsapp',
@@ -99,14 +113,7 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
             components: [
                 {
                     type: 'body',
-                    parameters: [
-                        { type: 'text', text: customerName },
-                        { type: 'text', text: merchantReference },
-                        { type: 'text', text: itemsList },
-                        { type: 'text', text: estimatedDelivery },
-                        { type: 'text', text: deliveryLocationUrl || 'Location not specified' },
-                        { type: 'text', text: contactInfo },
-                    ],
+                    parameters,
                 },
             ],
         },

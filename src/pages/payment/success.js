@@ -40,7 +40,12 @@ export default function SuccessPage() {
           Success! Thanks for your Order
         </Heading>
 
-        <Text fontFamily="nbText" fontSize={{base: "xl", md: "2xl"}}>
+        <Text fontFamily="nbText" fontSize={{base: "xl", md: "2xl"}} mb={2}>
+        We have sent you an email and a WhatsApp Message with the details of your order!
+      
+        </Text>
+
+        <Text fontFamily="nbText" fontSize={{base: "xl", md: "2xl"}} mb={2}>        
         It should take one hour to process your order and dispatch, and if placed outside of business hours,
          we shall resume from 11AM the next business day. 
         </Text>
