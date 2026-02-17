@@ -798,7 +798,7 @@ export default function CheckoutPage() {
                       <Text fontFamily={'nbText'} fontWeight="bold">{(deliveryEstimate || 0).toLocaleString()} UGX</Text>
                     </Flex>
                     <Text mt={2} fontSize="sm" color="gray.600" fontFamily={'nbText'}>
-                      Final fee may vary slightly based on exact route.
+                      Please pay the boda driver directly. Final fee may vary slightly based on exact route.
                     </Text>
                   </>
                 )}
