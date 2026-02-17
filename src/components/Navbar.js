@@ -1,12 +1,14 @@
-import { Box, Flex, Heading, Link, IconButton, Image, Text, useDisclosure } from '@chakra-ui/react'
-import { FiShoppingCart } from 'react-icons/fi'
+import { Box, Flex, Link, Image, Text } from '@chakra-ui/react'
 import CartIcon from './cartIcon'
 import CartDrawer from './CartDrawer'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import { useCartDrawerStore } from '../lib/cartDrawerStore'
 
 export default function NavBar() {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const isOpen = useCartDrawerStore(state => state.isOpen)
+  const openDrawer = useCartDrawerStore(state => state.open)
+  const closeDrawer = useCartDrawerStore(state => state.close)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const router = useRouter()
@@ -77,11 +79,11 @@ export default function NavBar() {
           </Text>
         </Link>
         <Flex gap={6}>
-          <CartIcon onClick={onOpen} />
+          <CartIcon onClick={openDrawer} />
         </Flex>
       </Flex>
       
-      <CartDrawer isOpen={isOpen} onClose={onClose} />
+      <CartDrawer isOpen={isOpen} onClose={closeDrawer} />
     </Box>
   )
-} 
+}
