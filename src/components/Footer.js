@@ -55,16 +55,7 @@ export default function Footer() {
                     gap={6} 
                     flexBasis={{ md: '40%' }}
                 >
-                    <GridItem>
-                        <Heading size="sm" mb={3} fontFamily="nbText">Explore</Heading>
-                        <Stack spacing={2}>
-                            {/* <Link href="/location" fontSize="sm" fontFamily="nbText">Popular Items</Link> */}
-                            <Link href="/categories" fontSize="sm" fontFamily="nbText">Categories</Link>
-                            {/* <Link href="/" fontSize="sm" fontFamily="nbText">Special Offers</Link> */}
 
-
-                        </Stack>
-                    </GridItem>
                     <GridItem>
                         <Heading size="sm" mb={3} fontFamily="nbText">Support</Heading>
                         <Stack spacing={2}>
@@ -83,7 +74,7 @@ export default function Footer() {
                         <IconButton
                             aria-label="Instagram"
                             as={Link}
-                            href='https://www.instagram.com/yujoizakaya?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=='
+                            href='https://www.instagram.com/littlekobeug/?hl=en'
                             icon={<FiInstagram />}
                             variant="outline"
                             color="black"
@@ -112,10 +103,10 @@ export default function Footer() {
                 </Box>
 
                 <Box flexBasis={{ md: '30%' }}>
-                    <Heading size="sm" mb={4} fontFamily="nbText">Stay Connected</Heading>
+                    <Heading size="sm" mb={4} fontFamily="nbText">Find Us</Heading>
                     <Flex gap={3} mb={6}>
-                        <Text>
-                            Address
+                        <Text fontSize="sm" fontFamily="nbText" lineHeight="tall">
+                        36 Kyadondo Rd, Kampala, Uganda
                         </Text>
 
                     </Flex>
