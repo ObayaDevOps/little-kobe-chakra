@@ -12,6 +12,11 @@ import {
     // --- End new imports ---
 } from '@/lib/db';
 import axios from 'axios';
+import { sendOrderConfirmationWhatsApp } from '@/lib/whatsappNotification';
+import {
+    sendShopkeeperOrderConfirmationEmail,
+    sendCustomerOrderConfirmationEmail,
+} from '@/lib/orderConfirmationEmail';
 
 const PESAPAL_BASE_URL = process.env.PESAPAL_API_BASE_URL;
 
@@ -40,6 +45,7 @@ export default async function handler(req, res) {
 
     try {
         console.log(`Verifying payment status for OrderTrackingId: ${orderTrackingId}`);
+        const existingPaymentBeforeUpdate = await getPaymentByTrackingId(orderTrackingId);
 
         // 1. Get Pesapal Token
         const token = await getPesapalToken();
@@ -70,10 +76,9 @@ export default async function handler(req, res) {
         }
 
         // Extract relevant data from Pesapal response
-        const paymentStatus = pesapalResponse.data.payment_status_description;
-        const confirmationCode = pesapalResponse.data.payment_method;
-        const statusDescription = pesapalResponse.data.description;
-        const pesapalAmount = pesapalResponse.data.amount;
+        const confirmationCode = pesapalResponse.data.confirmation_code || null;
+        const paymentMethod = pesapalResponse.data.payment_method || null;
+        const statusDescription = pesapalResponse.data.payment_status_description || pesapalResponse.data.description;
         const statusCode = pesapalResponse.data.status_code; // Assuming this field exists
 
         // Map Pesapal status to our internal status convention if needed
@@ -84,6 +89,7 @@ export default async function handler(req, res) {
         const updatedPayment = await updatePaymentStatus( // Capture the returned record
             orderTrackingId,
             internalStatus, // Use our mapped status
+            paymentMethod,
             confirmationCode,
             statusDescription
         );
@@ -106,6 +112,7 @@ export default async function handler(req, res) {
 
         // *** START: Order Creation Logic ***
         // Only proceed if the payment is marked as COMPLETED
+        let shouldSendWhatsAppNotifications = false;
         if (internalStatus === 'COMPLETED') {
             console.log(`Payment ${orderTrackingId} (ID: ${dbPaymentRecord.id}) verified as COMPLETED. Checking/Creating order...`);
 
@@ -149,6 +156,7 @@ export default async function handler(req, res) {
                         // For now, log and continue, but flag this might need review.
                     } else {
                         console.log(`Successfully created order ${newOrder.id} for payment ${dbPaymentRecord.id}`);
+                        shouldSendWhatsAppNotifications = true;
                         // 5. (Optional Step) Update Inventory Stock Levels
                         // await updateInventoryStock(itemsData); // Pass items to decrement counts
                     }
@@ -202,6 +210,78 @@ export default async function handler(req, res) {
                 deliveryLocationText,
             }
         };
+
+        if (
+            internalStatus === 'COMPLETED' &&
+            shouldSendWhatsAppNotifications &&
+            existingPaymentBeforeUpdate?.status !== 'COMPLETED'
+        ) {
+            const orderDetailsForComms = { ...responsePayload.orderDetails };
+            if (!orderDetailsForComms.customerPhoneNumber) {
+                const fallbackPhone = orderDetailsForComms.customer_phone || orderDetailsForComms.customer_phone_number;
+                if (fallbackPhone) {
+                    orderDetailsForComms.customerPhoneNumber = fallbackPhone.toString().trim();
+                }
+            }
+            const shopkeeperPhone = (
+                process.env.SHOPKEEPER_WA_NUMBER ||
+                process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER ||
+                ''
+            ).toString().trim();
+
+            if (shopkeeperPhone) {
+                try {
+                    await sendOrderConfirmationWhatsApp({
+                        recipientPhoneNumber: shopkeeperPhone,
+                        orderDetails: orderDetailsForComms,
+                        isShopkeeper: true,
+                    });
+                    console.log(`Shopkeeper WhatsApp sent for ${orderTrackingId}`);
+                } catch (shopkeeperErr) {
+                    console.error(
+                        `Shopkeeper WhatsApp failed for ${orderTrackingId}:`,
+                        shopkeeperErr.response?.data || shopkeeperErr.message
+                    );
+                }
+            }
+
+            const customerPhone = orderDetailsForComms.customerPhoneNumber?.toString().trim();
+            if (customerPhone) {
+                try {
+                    await sendOrderConfirmationWhatsApp({
+                        recipientPhoneNumber: customerPhone,
+                        orderDetails: orderDetailsForComms,
+                        isShopkeeper: false,
+                    });
+                    console.log(`Customer WhatsApp sent for ${orderTrackingId}`);
+                } catch (customerErr) {
+                    console.error(
+                        `Customer WhatsApp failed for ${orderTrackingId}:`,
+                        customerErr.response?.data || customerErr.message
+                    );
+                }
+            }
+
+            try {
+                await sendShopkeeperOrderConfirmationEmail(orderDetailsForComms);
+                console.log(`Shopkeeper email sent for ${orderTrackingId}`);
+            } catch (shopkeeperEmailErr) {
+                console.error(
+                    `Shopkeeper email failed for ${orderTrackingId}:`,
+                    shopkeeperEmailErr.message
+                );
+            }
+
+            try {
+                await sendCustomerOrderConfirmationEmail(orderDetailsForComms);
+                console.log(`Customer email sent for ${orderTrackingId}`);
+            } catch (customerEmailErr) {
+                console.error(
+                    `Customer email failed for ${orderTrackingId}:`,
+                    customerEmailErr.message
+                );
+            }
+        }
 
         console.log(`Sending verification success response for ${orderTrackingId} to frontend.`);
         res.status(200).json(responsePayload);
