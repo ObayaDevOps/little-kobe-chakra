@@ -3,9 +3,11 @@ import NavBar from '../components/Navbar'
 import Head from 'next/head'
 import Footer from '../components/Footer'
 import { useRouter } from 'next/router'
+import { useEnsureSearchCatalog } from '../lib/useEnsureSearchCatalog'
 
 export default function CartPage() {
   const router = useRouter()
+  useEnsureSearchCatalog()
 
   const handleGoHome = () => {
     router.push('/')

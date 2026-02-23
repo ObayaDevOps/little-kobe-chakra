@@ -3,10 +3,12 @@ import NavBar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Head from 'next/head';
 import { useState } from 'react';
+import { useEnsureSearchCatalog } from '@/lib/useEnsureSearchCatalog';
 
 
 export default function ContactPage() {
   const toast = useToast();
+  useEnsureSearchCatalog();
   const [formValues, setFormValues] = useState({
     name: '',
     email: '',

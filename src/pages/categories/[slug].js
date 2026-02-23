@@ -6,10 +6,12 @@ import NavBar from '../../components/Navbar'
 import ProductCard from '../../components/ProductCard'
 import Head from 'next/head'
 import { getProductDetailsByIds } from '../../lib/db'
+import { useEnsureSearchCatalog } from '../../lib/useEnsureSearchCatalog'
 
 
 export default function CategoryPage({ products, categoryTitle }) {
   const router = useRouter()
+  useEnsureSearchCatalog()
   
   if (router.isFallback) {
     return <div>Loading...</div>

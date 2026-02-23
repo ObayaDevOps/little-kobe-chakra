@@ -10,6 +10,7 @@ import { useCartToast } from '../../utils/useCartToast'
 import { useState } from 'react'
 import Footer from '../../components/Footer'
 import { getProductDetailsByIds } from '../../lib/db'
+import { useEnsureSearchCatalog } from '../../lib/useEnsureSearchCatalog'
 
 
 export default function ProductPage({ product }) {
@@ -17,6 +18,7 @@ export default function ProductPage({ product }) {
   const addItem = useCartStore(state => state.addItem)
   const showCartToast = useCartToast()
   const [quantity, setQuantity] = useState(1)
+  useEnsureSearchCatalog()
 
   if (router.isFallback) {
     return <div>Loading...</div>

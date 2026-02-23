@@ -1,18 +1,18 @@
-import { Grid, Heading, Input, InputGroup, InputLeftElement, InputRightElement, Box, Flex } from '@chakra-ui/react'
-import { SearchIcon } from '@chakra-ui/icons'
-import { X } from 'lucide-react'
+import { Grid, Heading, Box } from '@chakra-ui/react'
 import NavBar from '../components/Navbar'
 import ProductCard from '../components/ProductCard'
 import CategoryCard from '../components/CategoryCard'
 import Hero from '../components/hero'
-import { useState, memo, useRef } from 'react'
+import { useState, memo, useRef, useDeferredValue, useEffect } from 'react'
 import client from '../../sanity/lib/client'
 import { groq } from 'next-sanity'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import { getProductDetailsByIds } from '../lib/db'
+import { useSearchCatalogStore } from '../lib/searchCatalogStore'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -63,20 +63,65 @@ const AnimatedProductCard = memo(({ product, index }) => {
 AnimatedProductCard.displayName = 'AnimatedProductCard'
 
 export default function Home({ products, categories }) {
+  const router = useRouter()
+  const setSearchCatalog = useSearchCatalogStore(state => state.setCatalog)
   const [searchQuery, setSearchQuery] = useState('')
+  const deferredSearchQuery = useDeferredValue(searchQuery)
+  const normalizedSearchQuery = deferredSearchQuery.trim().toLowerCase()
+  const productsSectionRef = useRef(null)
 
   const handleClearSearch = () => {
     setSearchQuery('')
   }
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleSelectSuggestion = (product) => {
+    setSearchQuery(product.name)
+
+    if (product.slug) {
+      router.push(`/products/${product.slug}`)
+      return
+    }
+
+    productsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const matchesSearch = (product, query) => {
+    if (!query) return true
+
+    return (
+      product.name.toLowerCase().includes(query) ||
+      product.description?.toLowerCase().includes(query)
+    )
+  }
+
+  const filteredProducts = products.filter(product => matchesSearch(product, normalizedSearchQuery))
+
+  const searchSuggestions = normalizedSearchQuery
+    ? filteredProducts
+        .slice()
+        .sort((a, b) => {
+          const aStarts = a.name.toLowerCase().startsWith(normalizedSearchQuery)
+          const bStarts = b.name.toLowerCase().startsWith(normalizedSearchQuery)
+          if (aStarts === bStarts) return a.name.localeCompare(b.name)
+          return aStarts ? -1 : 1
+        })
+        .slice(0, 6)
+    : []
 
   const filteredPopularProducts = products.filter(product => 
     product.isPopular
   )
+
+  useEffect(() => {
+    const minimalCatalog = products.map((product) => ({
+      _id: product._id,
+      name: product.name,
+      slug: product.slug,
+      categories: (product.categories || []).map((category) => category?.title).filter(Boolean),
+    }))
+
+    setSearchCatalog(minimalCatalog, 'homepage')
+  }, [products, setSearchCatalog])
 
   return (
     <Box bg="#fcd7d7" >
@@ -102,8 +147,17 @@ export default function Home({ products, categories }) {
           <script defer src="https://cloud.umami.is/script.js" data-website-id="d878b7e8-0029-44df-ad31-037b04ce7d9a"></script>
         </Head>
 
-
-      <NavBar />
+      <NavBar
+        productSearch={{
+          query: searchQuery,
+          onQueryChange: setSearchQuery,
+          onClear: handleClearSearch,
+          suggestions: searchSuggestions,
+          resultCount: filteredProducts.length,
+          onSelectSuggestion: handleSelectSuggestion,
+          placeholder: 'Search products...'
+        }}
+      />
       <Hero />
 
       
@@ -167,7 +221,7 @@ export default function Home({ products, categories }) {
         </Grid>
       </Box>
 
-      <Box mt={{base: 32}}>
+      <Box mt={{base: 32}} ref={productsSectionRef} scrollMarginTop={{ base: '170px', md: '100px' }}>
         <Heading 
             size={{base: '3xl', lg: "2xl"}} 
             textAlign={{base: 'left', md: 'left'}}
@@ -176,35 +230,6 @@ export default function Home({ products, categories }) {
               >
                 Our Products
         </Heading>
-      </Box>
-
-      <Box>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "0px 0px -100px 0px" }}
-          transition={{ duration: 0.5 }}
-        >
-          <InputGroup mb={8} borderColor="black"
-              borderWidth={'0.5px'}
-              borderRadius="lg">
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="black" />
-            </InputLeftElement>
-            <Input
-              placeholder="Search Products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              bg="white"
-              fontFamily={'nbText'}
-            />
-            {searchQuery && (
-              <InputRightElement cursor="pointer" onClick={handleClearSearch}>
-                <X size={18} color="black" />
-              </InputRightElement>
-            )}
-          </InputGroup>
-        </motion.div>
       </Box>
 
       <Box>
