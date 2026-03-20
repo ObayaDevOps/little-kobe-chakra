@@ -13,7 +13,7 @@ export default function Hero() {
         minH={{base:'45vh' , lg: '50vh'}} 
 
         bg={'#fcd7d7'}
-        bgImage='https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747948/pexels-apasaric-3423860_ddbmcf.jpg'
+        bgImage='https://cdn.sanity.io/images/is2g99zr/production/9c4b1a577a7b9e1d059592294e33af53b877147e-5088x3981.jpg'
         bgSize={'cover'}
         bgPosition={'center'}
         

@@ -12,7 +12,7 @@ import {
     // --- End new imports ---
 } from '@/lib/db';
 import axios from 'axios';
-import { sendOrderConfirmationWhatsApp } from '@/lib/whatsappNotification';
+import { sendOrderConfirmationWithProvider } from '@/lib/whatsapp/providerService';
 import {
     sendShopkeeperOrderConfirmationEmail,
     sendCustomerOrderConfirmationEmail,
@@ -231,7 +231,7 @@ export default async function handler(req, res) {
 
             if (shopkeeperPhone) {
                 try {
-                    await sendOrderConfirmationWhatsApp({
+                    await sendOrderConfirmationWithProvider({
                         recipientPhoneNumber: shopkeeperPhone,
                         orderDetails: orderDetailsForComms,
                         isShopkeeper: true,
@@ -248,7 +248,7 @@ export default async function handler(req, res) {
             const customerPhone = orderDetailsForComms.customerPhoneNumber?.toString().trim();
             if (customerPhone) {
                 try {
-                    await sendOrderConfirmationWhatsApp({
+                    await sendOrderConfirmationWithProvider({
                         recipientPhoneNumber: customerPhone,
                         orderDetails: orderDetailsForComms,
                         isShopkeeper: false,

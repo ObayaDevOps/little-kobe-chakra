@@ -1,5 +1,8 @@
 import axios from 'axios';
 import { getServerSupabaseClient } from '@/lib/supabaseClient';
+import { getWhatsAppProviderSettings } from '@/lib/whatsapp/settingsStore';
+import { checkBaileysHealth } from '@/lib/whatsapp/baileysProvider';
+import { DEFAULT_PROVIDER } from '@/lib/whatsapp/constants';
 
 const DEFAULT_TABLE = 'orders';
 const DEFAULT_COLUMNS = '*';
@@ -59,7 +62,7 @@ export const checkSupabaseHealth = async ({ table = DEFAULT_TABLE, columns = DEF
     }
 };
 
-export const checkWhatsAppHealth = async () => {
+export const checkMetaWhatsAppHealth = async () => {
     const version = process.env.WHATSAPP_API_VERSION;
     const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -113,4 +116,33 @@ export const checkWhatsAppHealth = async () => {
             }
         };
     }
+};
+
+export const checkWhatsAppHealth = async ({ provider = 'auto' } = {}) => {
+    const settings = await getWhatsAppProviderSettings();
+    const activeProvider = provider === 'auto'
+        ? settings.activeProvider || DEFAULT_PROVIDER
+        : provider;
+
+    const [meta, baileys] = await Promise.all([
+        checkMetaWhatsAppHealth(),
+        checkBaileysHealth(),
+    ]);
+
+    const selectedHealth = activeProvider === 'baileys_wa' ? baileys : meta;
+    const ok = Boolean(selectedHealth?.ok);
+    const httpStatus = ok ? 200 : (selectedHealth?.httpStatus || 503);
+
+    return {
+        ok,
+        httpStatus,
+        latencyMs: selectedHealth?.latencyMs ?? null,
+        error: ok ? null : (selectedHealth?.error || { message: 'Selected provider is not healthy.' }),
+        activeProvider,
+        settings,
+        providers: {
+            meta_api: meta,
+            baileys_wa: baileys,
+        },
+    };
 };
