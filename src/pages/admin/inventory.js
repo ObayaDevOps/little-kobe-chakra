@@ -178,6 +178,12 @@ function AdminInventoryPage() {
         item.quantity === null || item.quantity === undefined || item.quantity === ''
     );
 
+    const lowStockItems = inventory.filter(item =>
+        item.minStockLevel != null && item.minStockLevel !== '' &&
+        item.quantity != null && item.quantity !== '' &&
+        Number(item.quantity) <= Number(item.minStockLevel)
+    );
+
     const handleGoToItemClick = (id) => {
         if (highlightTimeoutRef.current) {
             clearTimeout(highlightTimeoutRef.current);
@@ -263,6 +269,32 @@ function AdminInventoryPage() {
                                     ml={2}
                                 >
                                     (Edit in Sanity)
+                                </Link>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            )}
+
+            {lowStockItems.length > 0 && !loading && (
+                <Box p={4} mb={6} bg="red.50" borderRadius="md" shadow="sm" borderLeft="4px solid" borderColor="red.400">
+                    <Heading size="sm" mb={3} color="red.700">Low Stock Alert</Heading>
+                    <Text mb={3} color="red.700">The following items have reached or fallen below their minimum stock level:</Text>
+                    <List spacing={2}>
+                        {lowStockItems.map(item => (
+                            <ListItem key={item.sanityId} display="flex" alignItems="center">
+                                <ListIcon as={WarningTwoIcon} color="red.500" />
+                                <Text mr={2} fontWeight="semibold">{item.name || `Item ID: ${item.sanityId}`}</Text>
+                                <Text color="red.600" fontWeight="bold" mr={1}>Qty: {item.quantity}</Text>
+                                <Text color="gray.600" fontSize="sm">(min: {item.minStockLevel})</Text>
+                                <Link
+                                    href={`#${item.sanityId}`}
+                                    fontSize="sm"
+                                    color="blue.600"
+                                    ml="auto"
+                                    onClick={() => handleGoToItemClick(item.sanityId)}
+                                >
+                                    (Go to item)
                                 </Link>
                             </ListItem>
                         ))}

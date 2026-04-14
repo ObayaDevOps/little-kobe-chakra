@@ -60,6 +60,51 @@ export const sendAlertEmail = async ({ subject, html, text }) => {
     });
 };
 
+export const sendLowStockAlertEmail = async ({ itemName, quantity, minStockLevel }) => {
+    const recipient = process.env.LOW_STOCK_ALERT_EMAIL;
+    if (!recipient) {
+        throw new Error('LOW_STOCK_ALERT_EMAIL is not configured.');
+    }
+
+    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    if (!from) {
+        throw new Error('No sender configured. Set SMTP_FROM or SMTP_USER.');
+    }
+
+    const subject = `Low Stock Alert for Item: ${itemName}`;
+
+    const text = [
+        `Low stock alert for: ${itemName}`,
+        `Current quantity: ${quantity}`,
+        `Minimum stock level: ${minStockLevel}`,
+        '',
+        'Please restock this item as soon as possible.'
+    ].join('\n');
+
+    const html = `
+        <h2 style="color:#c0392b;">Low Stock Alert</h2>
+        <p>The following item has reached or fallen below its minimum stock level:</p>
+        <table style="border-collapse:collapse;margin-top:12px;">
+            <tr>
+                <td style="padding:6px 16px 6px 0;font-weight:bold;">Item</td>
+                <td style="padding:6px 0;">${itemName}</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 16px 6px 0;font-weight:bold;">Current Quantity</td>
+                <td style="padding:6px 0;color:#c0392b;font-weight:bold;">${quantity}</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 16px 6px 0;font-weight:bold;">Minimum Stock Level</td>
+                <td style="padding:6px 0;">${minStockLevel}</td>
+            </tr>
+        </table>
+        <p style="margin-top:16px;">Please restock this item as soon as possible.</p>
+    `;
+
+    const transporterInstance = getTransporter();
+    await transporterInstance.sendMail({ from, to: recipient, subject, text, html });
+};
+
 export const sendHealthAlertEmail = async ({ supabase, whatsapp, triggeredAt }) => {
     const subject = '[Alert] Daily health check detected an issue';
 
