@@ -37,6 +37,11 @@ const adminTools = [
         title: 'Supabase Connectivity Test',
         href: '/admin/supabase-test',
         description: 'Run a quick health check against Supabase to confirm service availability and latency before diagnosing API issues.'
+    },
+    {
+        title: 'Store Hours',
+        href: '/admin/store-hours',
+        description: 'Set open and close times per day of the week (EAT timezone). When the shop is outside these hours, customers see a closed notice and cannot place orders.'
     }
 ];
 

@@ -5,6 +5,7 @@ import { useToast,  Select, Box, Heading, Grid,
 import { SearchIcon } from '@chakra-ui/icons';
 import NavBar from '../components/Navbar'
 import { useCartStore } from '../lib/cartStore'
+import { useStoreStatusStore } from '../lib/storeStatusStore'
 import { useState, useCallback } from 'react'
 import NextLink from 'next/link'
 import Head from 'next/head'
@@ -36,6 +37,8 @@ const kampalaCenter = {
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCartStore()
+  const storeIsOpen = useStoreStatusStore(state => state.isOpen)
+  const storeMessage = useStoreStatusStore(state => state.message)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -505,6 +508,16 @@ export default function CheckoutPage() {
     <Box p={{base: 2, md: 8}}>
       <Heading size="2xl" mb={8} fontFamily={'nbHeading'} p={2} mt={4}>Checkout</Heading>
 
+      {storeIsOpen === false && (
+        <Alert status="warning" variant="subtle" borderRadius="lg" mb={6} borderWidth="2px" borderColor="orange.300">
+          <AlertIcon />
+          <Box>
+            <Text fontFamily="nbHeading" fontWeight="bold">Shop Currently Closed</Text>
+            <Text fontFamily="nbText" fontSize="sm">{storeMessage || 'The shop is currently closed. Please check back during opening hours.'}</Text>
+          </Box>
+        </Alert>
+      )}
+
       {error && (
         <Alert status="error" variant="subtle" borderRadius="lg" mb={6}>
           <AlertIcon />
@@ -837,7 +850,7 @@ export default function CheckoutPage() {
               borderRadius="lg"
               boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               mt={2}
-              isDisabled={loading || items.length === 0}
+              isDisabled={loading || items.length === 0 || storeIsOpen === false}
             >
               {loading ? 'Processing...' : `Proceed to Pay ${currency} ${total.toLocaleString()} with Pesapal`}
            </Button>

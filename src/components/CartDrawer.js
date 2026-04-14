@@ -6,11 +6,14 @@ import {
   Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton
 } from '@chakra-ui/react'
 import { useCartStore } from '../lib/cartStore'
+import { useStoreStatusStore } from '../lib/storeStatusStore'
 import Link from 'next/link'
 import { FiPlus, FiMinus } from 'react-icons/fi'
 
 export default function CartDrawer({ isOpen, onClose }) {
   const { items, addItem, decreaseItem, removeItem, clearCart } = useCartStore()
+  const storeIsOpen = useStoreStatusStore(state => state.isOpen)
+  const storeMessage = useStoreStatusStore(state => state.message)
   const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   const [isAlertOpen, setIsAlertOpen] = useState(false)
   const [selectedItemId, setSelectedItemId] = useState(null)
@@ -161,16 +164,23 @@ export default function CartDrawer({ isOpen, onClose }) {
                     colorScheme="red"
                     size="lg"
                     fontFamily={'nbText'}
-                    as={Link}
-                    href="/checkout"
+                    as={storeIsOpen === false ? undefined : Link}
+                    href={storeIsOpen === false ? undefined : "/checkout"}
                     borderColor="black"
                     borderWidth={'2px'}
                     borderRadius="lg"
                     boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
                     onClick={handleCheckout}
+                    isDisabled={storeIsOpen === false}
+                    _disabled={{ opacity: 0.5, cursor: 'not-allowed', boxShadow: 'none' }}
                   >
                     Proceed to Checkout
                   </Button>
+                  {storeIsOpen === false && (
+                    <Text fontFamily="nbText" fontSize="sm" color="gray.700" textAlign="center">
+                      {storeMessage || 'The shop is currently closed.'}
+                    </Text>
+                  )}
                   <Button
                     variant="outline"
                     fontFamily={'nbText'}
