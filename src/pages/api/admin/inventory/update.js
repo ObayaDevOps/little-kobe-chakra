@@ -1,4 +1,5 @@
 import { updateInventoryItem } from '@/lib/db';
+import { sendLowStockAlertEmail } from '@/lib/emailNotification';
 // import { verifyAdmin } from '@/lib/auth'; // TODO: Implement proper admin verification
 
 export default async function handler(req, res) {
@@ -47,6 +48,19 @@ export default async function handler(req, res) {
              return res.status(404).json({ message: `Inventory item with ID ${sanityId} not found or no change detected.` });
         }
 
+
+        const parsedQuantity = Number(quantity);
+        const parsedMinStock = Number(minStockLevel);
+        if (
+            !data?.is_archived &&
+            minStockLevel !== null && minStockLevel !== undefined && minStockLevel !== '' &&
+            quantity !== null && quantity !== undefined && quantity !== '' &&
+            parsedQuantity <= parsedMinStock
+        ) {
+            const itemName = data?.name || sanityId;
+            sendLowStockAlertEmail({ itemName, quantity: parsedQuantity, minStockLevel: parsedMinStock })
+                .catch(err => console.error('Failed to send low stock alert email:', err));
+        }
 
         return res.status(200).json({ message: 'Inventory updated successfully', item: data });
     } catch (error) {

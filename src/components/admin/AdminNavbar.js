@@ -13,9 +13,8 @@ const ADMIN_LINKS = [
     { label: 'Control Center', href: '/admin' },
     { label: 'Inventory Manager', href: '/admin/inventory' },
     { label: 'Orders & Sales', href: '/admin/orders-and-sales' },
-    { label: 'WhatsApp Test', href: '/admin/whatsapp-test' },
-    { label: 'WhatsApp Templates', href: '/admin/whatsapp-templates' },
-    { label: 'Supabase Test', href: '/admin/supabase-test' }
+    { label: 'Store Hours', href: '/admin/store-hours' },
+    { label: 'Developer Tools', href: '/admin/dev-tools' },
 ];
 
 const isLinkActive = (pathname, href) => {
@@ -36,7 +35,7 @@ function AdminNavbar() {
     return (
         <Box borderBottomWidth="1px" borderColor={barBorder} bg={barBg}>
             <Container maxW="6xl" py={4}>
-                <Wrap spacing={3}>
+                <Wrap spacing={3} justify="center">
                     {ADMIN_LINKS.map((link) => {
                         const active = isLinkActive(router.pathname, link.href);
                         return (

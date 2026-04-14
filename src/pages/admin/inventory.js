@@ -29,9 +29,10 @@ import {
     NumberDecrementStepper,
     List,
     ListItem,
-    ListIcon
+    ListIcon,
+    Badge,
 } from '@chakra-ui/react';
-import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon } from '@chakra-ui/icons';
+import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 
 import Head from 'next/head';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -43,6 +44,7 @@ function AdminInventoryPage() {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingItems, setUpdatingItems] = useState({});
+    const [archivingItems, setArchivingItems] = useState({});
     const toast = useToast();
 
     const [originalInventory, setOriginalInventory] = useState([]);
@@ -156,6 +158,54 @@ function AdminInventoryPage() {
         }
     };
 
+    const handleArchiveToggle = async (sanityId, currentIsArchived) => {
+        const newIsArchived = !currentIsArchived;
+        setArchivingItems(prev => ({ ...prev, [sanityId]: true }));
+
+        try {
+            const response = await fetch('/api/admin/inventory/archive', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sanityId, isArchived: newIsArchived }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const updateArchived = items =>
+                items.map(item =>
+                    item.sanityId === sanityId ? { ...item, isArchived: newIsArchived } : item
+                );
+            setInventory(updateArchived);
+            setOriginalInventory(updateArchived);
+
+            const itemName = inventory.find(i => i.sanityId === sanityId)?.name || sanityId;
+            toast({
+                title: newIsArchived ? 'Item Archived' : 'Item Restored',
+                description: newIsArchived
+                    ? `${itemName} is now hidden from the storefront.`
+                    : `${itemName} is now visible on the storefront.`,
+                status: newIsArchived ? 'warning' : 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (e) {
+            console.error('Failed to update archive status:', e);
+            toast({
+                title: 'Action Failed',
+                description: e.message || 'Could not update archive status.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+        } finally {
+            setArchivingItems(prev => ({ ...prev, [sanityId]: false }));
+        }
+    };
+
     const hasChanges = (sanityId) => {
         const currentItem = inventory.find(item => item.sanityId === sanityId);
         const originalItem = originalInventory.find(item => item.sanityId === sanityId);
@@ -176,6 +226,13 @@ function AdminInventoryPage() {
     const itemsMissingData = inventory.filter(item =>
         item.price === null || item.price === undefined || item.price === '' ||
         item.quantity === null || item.quantity === undefined || item.quantity === ''
+    );
+
+    const lowStockItems = inventory.filter(item =>
+        !item.isArchived &&
+        item.minStockLevel != null && item.minStockLevel !== '' &&
+        item.quantity != null && item.quantity !== '' &&
+        Number(item.quantity) <= Number(item.minStockLevel)
     );
 
     const handleGoToItemClick = (id) => {
@@ -228,8 +285,18 @@ function AdminInventoryPage() {
 
             <Heading mb={2}>Admin Inventory Management</Heading>
             <Text mb={2}>A Dashboard showing Current Price, Inventory and Sales Information</Text>
-            <Text mb={2}>Make edits and publish and the prices will be reflected on the website</Text>
-            <Text mb={6}>To add Products, edit Product Info or Pictures, please use <Link href="/studio" isExternal color="teal.500">Sanity Studio</Link></Text>
+            <Text mb={6}>Make edits and publish and the prices will be reflected on the website</Text>
+
+            <HStack mb={6} align="center" spacing={4}>
+                <Link href="/studio" isExternal _hover={{ textDecoration: 'none' }}>
+                    <Button colorScheme="teal" rightIcon={<ExternalLinkIcon />}>
+                        Create New Product
+                    </Button>
+                </Link>
+                <Text color="gray.500" fontSize="sm">
+                    To add products, edit product info or pictures, please use Sanity Studio
+                </Text>
+            </HStack>
 
             {itemsMissingData.length > 0 && !loading && (
                 <Box p={4} mb={6} bg="yellow.100" borderRadius="md" shadow="sm">
@@ -263,6 +330,32 @@ function AdminInventoryPage() {
                                     ml={2}
                                 >
                                     (Edit in Sanity)
+                                </Link>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
+            )}
+
+            {lowStockItems.length > 0 && !loading && (
+                <Box p={4} mb={6} bg="red.50" borderRadius="md" shadow="sm" borderLeft="4px solid" borderColor="red.400">
+                    <Heading size="sm" mb={3} color="red.700">Low Stock Alert</Heading>
+                    <Text mb={3} color="red.700">The following items have reached or fallen below their minimum stock level:</Text>
+                    <List spacing={2}>
+                        {lowStockItems.map(item => (
+                            <ListItem key={item.sanityId} display="flex" alignItems="center">
+                                <ListIcon as={WarningTwoIcon} color="red.500" />
+                                <Text mr={2} fontWeight="semibold">{item.name || `Item ID: ${item.sanityId}`}</Text>
+                                <Text color="red.600" fontWeight="bold" mr={1}>Qty: {item.quantity}</Text>
+                                <Text color="gray.600" fontSize="sm">(min: {item.minStockLevel})</Text>
+                                <Link
+                                    href={`#${item.sanityId}`}
+                                    fontSize="sm"
+                                    color="blue.600"
+                                    ml="auto"
+                                    onClick={() => handleGoToItemClick(item.sanityId)}
+                                >
+                                    (Go to item)
                                 </Link>
                             </ListItem>
                         ))}
@@ -320,9 +413,11 @@ function AdminInventoryPage() {
                         <Tbody>
                             {inventory.map((item) => {
                                 const isUpdating = updatingItems[item.sanityId];
+                                const isArchiving = archivingItems[item.sanityId];
                                 const changed = hasChanges(item.sanityId);
 
                                 const getRowBg = () => {
+                                    if (item.isArchived) return 'gray.100';
                                     if (highlightedItemId === item.sanityId) {
                                         return 'yellow.200';
                                     }
@@ -333,7 +428,12 @@ function AdminInventoryPage() {
                                 };
 
                                 return (
-                                <Tr id={item.sanityId} key={item.sanityId} bg={getRowBg()}>
+                                <Tr
+                                    id={item.sanityId}
+                                    key={item.sanityId}
+                                    bg={getRowBg()}
+                                    sx={item.isArchived ? { '& td:not(:last-child)': { opacity: 0.45 } } : {}}
+                                >
                                     <Td>
                                         {item.imageUrl ? (
                                             <Image
@@ -345,7 +445,12 @@ function AdminInventoryPage() {
                                             />
                                         ) : <Text>-</Text>}
                                     </Td>
-                                    <Td>{item.name ?? 'N/A'}</Td>
+                                    <Td>
+                                        {item.name ?? 'N/A'}
+                                        {item.isArchived && (
+                                            <Badge ml={2} colorScheme="orange" fontSize="xs">Archived</Badge>
+                                        )}
+                                    </Td>
                                     <Td isNumeric>
                                          <NumberInput
                                             size="sm"
@@ -414,6 +519,16 @@ function AdminInventoryPage() {
                                                     Edit Details (Sanity)
                                                 </Button>
                                             </Link>
+                                            <Button
+                                                size="sm"
+                                                colorScheme={item.isArchived ? 'green' : 'orange'}
+                                                onClick={() => handleArchiveToggle(item.sanityId, item.isArchived)}
+                                                isLoading={isArchiving}
+                                                isDisabled={isUpdating || isArchiving}
+                                                w="100%"
+                                            >
+                                                {item.isArchived ? 'Restore Item' : 'Archive Item'}
+                                            </Button>
                                         </VStack>
                                     </Td>
                                 </Tr>

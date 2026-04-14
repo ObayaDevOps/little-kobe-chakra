@@ -261,6 +261,12 @@ export async function getStaticProps({ params }) {
       return { notFound: true };
   }
 
+  // 4b. If the product is archived, treat as not found
+  if (inventory.is_archived) {
+      console.warn(`Product ID: ${sanityProduct._id} is archived. Marking as not found.`);
+      return { notFound: true };
+  }
+
   // 5. Merge Sanity data with Supabase inventory data
   const product = {
     ...sanityProduct,

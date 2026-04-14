@@ -15,12 +15,12 @@ const adminTools = [
     {
         title: 'Inventory Manager',
         href: '/admin/inventory',
-        description: 'Search, edit, and publish product stock levels pulled from Sanity. Use this to keep pricing and availability in sync.'
+        description: 'Add Products and Manage Product Stock Levels. Use this to keep pricing and availability in sync.'
     },
     {
         title: 'Orders & Sales',
         href: '/admin/orders-and-sales',
-        description: 'View Orders, Generate product sales totals to identify best sellers and restock needs. Pulls aggregated order data from Supabase.'
+        description: 'View Orders, Generate product sales totals to identify best sellers and restock needs.'
     },
     {
         title: 'Store Hours',
@@ -28,10 +28,16 @@ const adminTools = [
         description: 'Set open and close times per day of the week (EAT timezone). When the shop is outside these hours, customers see a closed notice and cannot place orders.'
     },
     {
+        title: 'Guide: How to Use This System',
+        href: '/admin/guide',
+        description: 'A plain-English guide for shopkeepers covering inventory, orders, store hours, and more. Start here if you\'re unsure about anything.'
+    },
+    {
         title: 'Technical Developer Tools',
         href: '/admin/dev-tools',
         description: 'WhatsApp diagnostics, Supabase connectivity tests, and Pesapal sandbox cards. For developers debugging integrations.'
-    }
+    },
+
 ];
 
 function AdminLandingPage() {
