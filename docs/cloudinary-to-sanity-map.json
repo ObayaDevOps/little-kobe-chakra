@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-03-20T13:44:11.982Z",
+  "projectId": "is2g99zr",
+  "dataset": "production",
+  "siteSettingsId": "siteSettings",
+  "mappings": [
+    {
+      "key": "ogImage",
+      "cloudinaryUrl": "https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png",
+      "filename": "neko-logo_f5fiok.png",
+      "contentType": "image/png",
+      "localPath": "/media/obi/Seagate/Cloudinary_Bulk_Download_March_4_2026/neko-logo_f5fiok.png",
+      "sanityAssetId": "image-81fd32be832c6541d2b259c9caef38041e0e5b04-120x120-png",
+      "sanityUrl": "https://cdn.sanity.io/images/is2g99zr/production/81fd32be832c6541d2b259c9caef38041e0e5b04-120x120.png"
+    },
+    {
+      "key": "heroBackgroundImage",
+      "cloudinaryUrl": "https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1738747948/pexels-apasaric-3423860_ddbmcf.jpg",
+      "filename": "pexels-apasaric-3423860_ddbmcf.jpg",
+      "contentType": "image/jpeg",
+      "localPath": "/media/obi/Seagate/Cloudinary_Bulk_Download_March_4_2026/pexels-apasaric-3423860_ddbmcf.jpg",
+      "sanityAssetId": "image-9c4b1a577a7b9e1d059592294e33af53b877147e-5088x3981-jpg",
+      "sanityUrl": "https://cdn.sanity.io/images/is2g99zr/production/9c4b1a577a7b9e1d059592294e33af53b877147e-5088x3981.jpg"
+    },
+    {
+      "key": "footerLogo",
+      "cloudinaryUrl": "https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745851600/image-black-2_m163vh.svg",
+      "filename": "image-black-2_m163vh.svg",
+      "contentType": "image/svg+xml",
+      "localPath": "/media/obi/Seagate/Cloudinary_Bulk_Download_March_4_2026/image-black-2_m163vh.svg",
+      "sanityAssetId": "image-28f4560ac9c7ef77758a15eba73fd93863f637a4-837x755-svg",
+      "sanityUrl": "https://cdn.sanity.io/images/is2g99zr/production/28f4560ac9c7ef77758a15eba73fd93863f637a4-837x755.svg"
+    }
+  ]
+}

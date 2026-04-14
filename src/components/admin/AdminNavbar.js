@@ -14,6 +14,7 @@ const ADMIN_LINKS = [
     { label: 'Inventory Manager', href: '/admin/inventory' },
     { label: 'Orders & Sales', href: '/admin/orders-and-sales' },
     { label: 'WhatsApp Test', href: '/admin/whatsapp-test' },
+    { label: 'WhatsApp Templates', href: '/admin/whatsapp-templates' },
     { label: 'Supabase Test', href: '/admin/supabase-test' }
 ];
 

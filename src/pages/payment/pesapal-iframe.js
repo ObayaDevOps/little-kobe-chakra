@@ -40,7 +40,7 @@ export default function PesapalIframePage() {
         <meta name="description" content="Complete your payment securely with Pesapal" />
         <meta property="og:title" content="Complete Payment | Little Kobe Japanese Market" />
         <meta property="og:description" content="Complete your payment securely with Pesapal" />
-        <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+        <meta property="og:image" content="https://cdn.sanity.io/images/is2g99zr/production/81fd32be832c6541d2b259c9caef38041e0e5b04-120x120.png" />
       </Head>
 
       <NavBar />

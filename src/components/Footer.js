@@ -22,7 +22,7 @@ export default function Footer() {
             >
                 <Box display={{base: 'none', lg: 'flex'}}>
                     <Image
-                        src={'https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1745851600/image-black-2_m163vh.svg'}
+                        src={'https://cdn.sanity.io/images/is2g99zr/production/28f4560ac9c7ef77758a15eba73fd93863f637a4-837x755.svg'}
                         alt={'Little Kobe Logo'}
                         h="100px"
                         w="100px"

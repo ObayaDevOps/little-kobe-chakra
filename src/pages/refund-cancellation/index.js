@@ -14,8 +14,8 @@ export default function RefundPage() {
 
           <meta property="og:title" content='Little Kobe Japanese Market'/> 
           <meta property="og:description" content="Little Kobe Japanese Market" />
-          <meta property="og:image" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
-          <meta property="og:image:secure_url" content="https://res.cloudinary.com/medoptics-image-cloud/image/upload/v1737052416/neko-logo_f5fiok.png" />
+          <meta property="og:image" content="https://cdn.sanity.io/images/is2g99zr/production/81fd32be832c6541d2b259c9caef38041e0e5b04-120x120.png" />
+          <meta property="og:image:secure_url" content="https://cdn.sanity.io/images/is2g99zr/production/81fd32be832c6541d2b259c9caef38041e0e5b04-120x120.png" />
                    
           
           {/* <meta property="og:image:type" content="image/png" />  */}

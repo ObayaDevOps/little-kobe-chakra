@@ -1,5 +1,5 @@
 // pages/api/whatsapp/send-order-confirmation.js
-import { sendOrderConfirmationWhatsApp } from '@/lib/whatsappNotification';
+import { sendOrderConfirmationWithProvider } from '@/lib/whatsapp/providerService';
 
 const isInternalAuthorized = (req) => {
     const configuredKey = process.env.INTERNAL_API_KEY;
@@ -33,6 +33,8 @@ export default async function handler(req, res) {
     let recipientPhoneNumber;
     let orderDetails;
     let isShopkeeper = false;
+    let provider;
+    let templateSlug;
 
     if (isTestMode) {
         if (req.method !== 'GET') {
@@ -43,6 +45,8 @@ export default async function handler(req, res) {
         }
         recipientPhoneNumber = req.query.testRecipient;
         isShopkeeper = req.query.isShopkeeperTest === 'true';
+        provider = req.query.provider;
+        templateSlug = req.query.templateSlug;
         orderDetails = {
             customerName: 'Test Customer',
             customerPhoneNumber: '+15551234567',
@@ -70,7 +74,7 @@ export default async function handler(req, res) {
         if (!isInternalAuthorized(req)) {
             return res.status(401).json({ message: 'Unauthorized request.' });
         }
-        ({ recipientPhoneNumber, orderDetails, isShopkeeper } = req.body);
+        ({ recipientPhoneNumber, orderDetails, isShopkeeper, provider, templateSlug } = req.body);
 
         if (!recipientPhoneNumber || !orderDetails) {
             return res.status(400).json({ message: 'Missing recipientPhoneNumber or orderDetails in request body.' });
@@ -78,10 +82,27 @@ export default async function handler(req, res) {
     }
 
     try {
-        const data = await sendOrderConfirmationWhatsApp({ recipientPhoneNumber, orderDetails, isShopkeeper: Boolean(isShopkeeper) });
-        return res.status(200).json({ message: 'WhatsApp message sent successfully', data });
+        const result = await sendOrderConfirmationWithProvider({
+            recipientPhoneNumber,
+            orderDetails,
+            isShopkeeper: Boolean(isShopkeeper),
+            provider,
+            templateSlug,
+        });
+        return res.status(200).json({
+            message: 'WhatsApp message sent successfully',
+            data: result.data,
+            provider: result.providerUsed,
+            attemptedProvider: result.attemptedProvider,
+            fallbackUsed: result.fallbackUsed,
+            fallbackReason: result.fallbackReason || null,
+            messageId: result.messageId || null,
+        });
     } catch (error) {
         console.error('Error sending WhatsApp message:', error.response?.data || error.message);
-        return res.status(500).json({ message: 'Error sending WhatsApp message', error: error.response?.data || error.message });
+        return res.status(500).json({
+            message: 'Error sending WhatsApp message',
+            error: error.response?.data || error.message,
+        });
     }
 }

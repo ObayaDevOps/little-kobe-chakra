@@ -26,7 +26,12 @@ const adminTools = [
     {
         title: 'WhatsApp Template Test',
         href: '/admin/whatsapp-test',
-        description: 'Send the Meta template to a test number to verify messaging credentials, template variables, and delivery.'
+        description: 'Check live WhatsApp health, switch provider globally (Meta/Baileys), and send test messages.'
+    },
+    {
+        title: 'WhatsApp Templates',
+        href: '/admin/whatsapp-templates',
+        description: 'Create and manage reusable WhatsApp text templates for support workflows and Baileys sends.'
     },
     {
         title: 'Supabase Connectivity Test',
