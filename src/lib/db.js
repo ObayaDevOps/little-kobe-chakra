@@ -284,7 +284,7 @@ export async function getProductDetailsByIds(productIds) {
     const supabase = getServerSupabaseClient();
     const { data, error } = await supabase
         .from('inventory')
-        .select('product_id, price, quantity, name') // Select fields needed: added quantity
+        .select('product_id, price, quantity, name, is_archived')
         .in('product_id', productIds);
 
     if (error) {
@@ -403,6 +403,20 @@ export async function upsertStoreHours(hoursArray) {
         console.error('Supabase error upserting store hours:', error);
     }
     return { error };
+}
+
+export async function archiveInventoryItem(sanityId, isArchived) {
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('inventory')
+        .update({ is_archived: isArchived })
+        .eq('product_id', sanityId)
+        .select()
+        .single();
+    if (error) {
+        console.error(`Supabase error archiving inventory item ${sanityId}:`, error);
+    }
+    return { data, error };
 }
 
 export async function updateInventoryStock(itemsData) {

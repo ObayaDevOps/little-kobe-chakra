@@ -61,6 +61,7 @@ export default async function handler(req, res) {
                 minStockLevel: inventoryItem?.min_stock_level ?? null,
                 inventoryUpdatedAt: inventoryItem?.updated_at ?? null,
                 isInInventory: !!inventoryItem, // Flag if the product exists in Supabase inventory
+                isArchived: inventoryItem?.is_archived ?? false,
             };
         });
 

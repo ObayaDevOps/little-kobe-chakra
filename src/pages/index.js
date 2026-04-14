@@ -324,7 +324,7 @@ export async function getStaticProps() {
   const inventoryMap = (inventoryData || []).reduce((map, item) => {
     // Make sure item has product_id before adding to map
     if (item && item.product_id) {
-        map[item.product_id] = { price: item.price, quantity: item.quantity };
+        map[item.product_id] = { price: item.price, quantity: item.quantity, isArchived: item.is_archived ?? false };
     } else {
         console.warn("Inventory item missing product_id:", item);
     }
@@ -336,19 +336,18 @@ export async function getStaticProps() {
   const products = sanityProducts
     .map(product => {
       const inventory = inventoryMap[product._id];
-      // If inventory exists for this product ID, add price/quantity
-      // Otherwise, price/quantity will be undefined
       return {
         ...product,
         price: inventory?.price,
         quantity: inventory?.quantity,
+        isArchived: inventory?.isArchived ?? false,
       };
     })
     .filter(product => {
-      // Keep only products with non-null/undefined price AND non-null/undefined quantity
+      // Keep only products with non-null/undefined price AND non-null/undefined quantity, and not archived
       const hasPrice = product.price !== null && product.price !== undefined;
       const hasQuantity = product.quantity !== null && product.quantity !== undefined;
-      return hasPrice && hasQuantity;
+      return hasPrice && hasQuantity && !product.isArchived;
     });
 
     // Optional: Log how many products were filtered out

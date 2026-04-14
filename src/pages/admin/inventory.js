@@ -29,7 +29,8 @@ import {
     NumberDecrementStepper,
     List,
     ListItem,
-    ListIcon
+    ListIcon,
+    Badge,
 } from '@chakra-ui/react';
 import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon } from '@chakra-ui/icons';
 
@@ -43,6 +44,7 @@ function AdminInventoryPage() {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [updatingItems, setUpdatingItems] = useState({});
+    const [archivingItems, setArchivingItems] = useState({});
     const toast = useToast();
 
     const [originalInventory, setOriginalInventory] = useState([]);
@@ -153,6 +155,54 @@ function AdminInventoryPage() {
             });
         } finally {
             setUpdatingItems(prev => ({ ...prev, [sanityId]: false }));
+        }
+    };
+
+    const handleArchiveToggle = async (sanityId, currentIsArchived) => {
+        const newIsArchived = !currentIsArchived;
+        setArchivingItems(prev => ({ ...prev, [sanityId]: true }));
+
+        try {
+            const response = await fetch('/api/admin/inventory/archive', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sanityId, isArchived: newIsArchived }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const updateArchived = items =>
+                items.map(item =>
+                    item.sanityId === sanityId ? { ...item, isArchived: newIsArchived } : item
+                );
+            setInventory(updateArchived);
+            setOriginalInventory(updateArchived);
+
+            const itemName = inventory.find(i => i.sanityId === sanityId)?.name || sanityId;
+            toast({
+                title: newIsArchived ? 'Item Archived' : 'Item Restored',
+                description: newIsArchived
+                    ? `${itemName} is now hidden from the storefront.`
+                    : `${itemName} is now visible on the storefront.`,
+                status: newIsArchived ? 'warning' : 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (e) {
+            console.error('Failed to update archive status:', e);
+            toast({
+                title: 'Action Failed',
+                description: e.message || 'Could not update archive status.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+        } finally {
+            setArchivingItems(prev => ({ ...prev, [sanityId]: false }));
         }
     };
 
@@ -352,9 +402,11 @@ function AdminInventoryPage() {
                         <Tbody>
                             {inventory.map((item) => {
                                 const isUpdating = updatingItems[item.sanityId];
+                                const isArchiving = archivingItems[item.sanityId];
                                 const changed = hasChanges(item.sanityId);
 
                                 const getRowBg = () => {
+                                    if (item.isArchived) return 'gray.100';
                                     if (highlightedItemId === item.sanityId) {
                                         return 'yellow.200';
                                     }
@@ -365,7 +417,12 @@ function AdminInventoryPage() {
                                 };
 
                                 return (
-                                <Tr id={item.sanityId} key={item.sanityId} bg={getRowBg()}>
+                                <Tr
+                                    id={item.sanityId}
+                                    key={item.sanityId}
+                                    bg={getRowBg()}
+                                    sx={item.isArchived ? { '& td:not(:last-child)': { opacity: 0.45 } } : {}}
+                                >
                                     <Td>
                                         {item.imageUrl ? (
                                             <Image
@@ -377,7 +434,12 @@ function AdminInventoryPage() {
                                             />
                                         ) : <Text>-</Text>}
                                     </Td>
-                                    <Td>{item.name ?? 'N/A'}</Td>
+                                    <Td>
+                                        {item.name ?? 'N/A'}
+                                        {item.isArchived && (
+                                            <Badge ml={2} colorScheme="orange" fontSize="xs">Archived</Badge>
+                                        )}
+                                    </Td>
                                     <Td isNumeric>
                                          <NumberInput
                                             size="sm"
@@ -446,6 +508,16 @@ function AdminInventoryPage() {
                                                     Edit Details (Sanity)
                                                 </Button>
                                             </Link>
+                                            <Button
+                                                size="sm"
+                                                colorScheme={item.isArchived ? 'green' : 'orange'}
+                                                onClick={() => handleArchiveToggle(item.sanityId, item.isArchived)}
+                                                isLoading={isArchiving}
+                                                isDisabled={isUpdating || isArchiving}
+                                                w="100%"
+                                            >
+                                                {item.isArchived ? 'Restore Item' : 'Archive Item'}
+                                            </Button>
                                         </VStack>
                                     </Td>
                                 </Tr>

@@ -127,7 +127,7 @@ export async function getStaticProps({ params }) {
   // 4. Create a map for quick lookup of inventory data by product_id
   const inventoryMap = (inventoryData || []).reduce((map, item) => {
     if (item && item.product_id) {
-        map[item.product_id] = { price: item.price, quantity: item.quantity };
+        map[item.product_id] = { price: item.price, quantity: item.quantity, isArchived: item.is_archived ?? false };
     } else {
         console.warn("Inventory item missing product_id:", item);
     }
@@ -142,12 +142,13 @@ export async function getStaticProps({ params }) {
         ...product,
         price: inventory?.price,
         quantity: inventory?.quantity,
+        isArchived: inventory?.isArchived ?? false,
       };
     })
     .filter(product => {
       const hasPrice = product.price !== null && product.price !== undefined;
       const hasQuantity = product.quantity !== null && product.quantity !== undefined;
-      return hasPrice && hasQuantity;
+      return hasPrice && hasQuantity && !product.isArchived;
     });
 
     console.log(`Fetched ${sanityProducts.length} products from Sanity for category ${params.slug}, ${products.length} remain after inventory check.`);
