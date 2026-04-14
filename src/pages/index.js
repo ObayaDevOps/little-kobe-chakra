@@ -13,6 +13,7 @@ import { useRouter } from 'next/router'
 import Footer from '../components/Footer'
 import { getProductDetailsByIds } from '../lib/db'
 import { useSearchCatalogStore } from '../lib/searchCatalogStore'
+import StoreClosedModal from '../components/StoreClosedModal'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -147,6 +148,7 @@ export default function Home({ products, categories }) {
           <script defer src="https://cloud.umami.is/script.js" data-website-id="d878b7e8-0029-44df-ad31-037b04ce7d9a"></script>
         </Head>
 
+      <StoreClosedModal />
       <NavBar
         productSearch={{
           query: searchQuery,

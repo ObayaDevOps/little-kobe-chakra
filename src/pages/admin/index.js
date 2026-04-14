@@ -7,7 +7,6 @@ import {
     SimpleGrid,
     Stack,
     Text,
-    Link,
     useColorModeValue
 } from '@chakra-ui/react';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -24,19 +23,14 @@ const adminTools = [
         description: 'View Orders, Generate product sales totals to identify best sellers and restock needs. Pulls aggregated order data from Supabase.'
     },
     {
-        title: 'WhatsApp Template Test',
-        href: '/admin/whatsapp-test',
-        description: 'Check live WhatsApp health, switch provider globally (Meta/Baileys), and send test messages.'
+        title: 'Store Hours',
+        href: '/admin/store-hours',
+        description: 'Set open and close times per day of the week (EAT timezone). When the shop is outside these hours, customers see a closed notice and cannot place orders.'
     },
     {
-        title: 'WhatsApp Templates',
-        href: '/admin/whatsapp-templates',
-        description: 'Create and manage reusable WhatsApp text templates for support workflows and Baileys sends.'
-    },
-    {
-        title: 'Supabase Connectivity Test',
-        href: '/admin/supabase-test',
-        description: 'Run a quick health check against Supabase to confirm service availability and latency before diagnosing API issues.'
+        title: 'Technical Developer Tools',
+        href: '/admin/dev-tools',
+        description: 'WhatsApp diagnostics, Supabase connectivity tests, and Pesapal sandbox cards. For developers debugging integrations.'
     }
 ];
 
@@ -91,20 +85,6 @@ function AdminLandingPage() {
                     ))}
                 </SimpleGrid>
 
-                <Box borderWidth="1px" borderRadius="lg" borderColor={cardBorder} bg={cardBg} p={6} boxShadow="sm">
-                    <Heading as="h2" size="md" mb={3}>Pesapal Dummy Cards</Heading>
-                    <Text color="gray.600" mb={4}>
-                        Use Pesapal&apos;s sandbox card numbers when testing checkout flows without live payments.
-                    </Text>
-                    <Button
-                        as={Link}
-                        href="https://cybqa.pesapal.com/PesapalIframe/PesapalIframe3/TestPayments"
-                        colorScheme="teal"
-                        isExternal
-                    >
-                        View Dummy Card List
-                    </Button>
-                </Box>
             </Stack>
         </Container>
         </>

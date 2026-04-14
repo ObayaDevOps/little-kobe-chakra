@@ -211,7 +211,25 @@ export async function updateInventoryItem(sanityId, updates) {
 }
 
 
-// Add other functions as needed (e.g., getPaymentByMerchantReference)
+/**
+ * Fetches a payment record by merchant reference.
+ * @param {string} merchantReference - The merchant reference string.
+ */
+export async function getPaymentByMerchantReference(merchantReference) {
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('payments')
+        .select('merchant_reference, amount, currency, cart_items, delivery_address, customer_email, customer_phone, status, created_at')
+        .eq('merchant_reference', merchantReference)
+        .maybeSingle();
+
+    if (error) {
+        console.error(`Supabase error fetching payment by merchant reference ${merchantReference}:`, error);
+    }
+    return { data, error };
+}
+
+// Add other functions as needed
 
 
 /**
@@ -353,6 +371,40 @@ export async function createOrderAndItems(orderData, itemsData) {
  * @param {object[]} itemsData - Array of items sold (e.g., [{ product_id, quantity }, ...]).
  * @returns {Promise<{data: any|null, error: object|null}>} - Result from RPC or error.
  */
+// --- Store Hours ---
+
+/**
+ * Fetches all store hours rows (7 rows, one per day).
+ */
+export async function getStoreHours() {
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('store_hours')
+        .select('day_of_week, open_time, close_time, is_closed')
+        .order('day_of_week', { ascending: true });
+
+    if (error) {
+        console.error('Supabase error fetching store hours:', error);
+    }
+    return { data, error };
+}
+
+/**
+ * Upserts store hours rows.
+ * @param {Array<{day_of_week: number, open_time: string, close_time: string, is_closed: boolean}>} hoursArray
+ */
+export async function upsertStoreHours(hoursArray) {
+    const supabase = getServerSupabaseClient();
+    const { error } = await supabase
+        .from('store_hours')
+        .upsert(hoursArray, { onConflict: 'day_of_week' });
+
+    if (error) {
+        console.error('Supabase error upserting store hours:', error);
+    }
+    return { error };
+}
+
 export async function updateInventoryStock(itemsData) {
     if (!itemsData || itemsData.length === 0) {
         console.log("No items provided to update inventory stock.");
