@@ -1,8 +1,28 @@
-import { Box, Flex, Heading, Link, IconButton, Image, Text, Input, Stack, Grid, GridItem } from '@chakra-ui/react'
-import Marquee from "react-fast-marquee";
-import { FiInstagram, FiYoutube, FiTwitter, FiMail } from "react-icons/fi";
+import { Box, Flex, Heading, Link, IconButton, Image, Text, Stack, Grid, GridItem } from '@chakra-ui/react'
+import { FiInstagram, FiYoutube } from "react-icons/fi";
+import { useEffect, useState } from 'react';
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DISPLAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mon–Sun
+
+function formatTime12h(timeStr) {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayH = h % 12 || 12;
+    return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
+}
 
 export default function Footer() {
+    const [storeHours, setStoreHours] = useState([]);
+
+    useEffect(() => {
+        fetch('/api/admin/store-hours')
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { if (data?.hours) setStoreHours(data.hours); })
+            .catch(() => {});
+    }, []);
+
     return (
         <Box 
             bg="brand.red"
@@ -104,14 +124,34 @@ export default function Footer() {
 
                 <Box flexBasis={{ md: '30%' }}>
                     <Heading size="sm" mb={4} fontFamily="nbText">Find Us</Heading>
-                    <Flex gap={3} mb={6}>
-                        <Text fontSize="sm" fontFamily="nbText" lineHeight="tall">
+                    <Text fontSize="sm" fontFamily="nbText" lineHeight="tall">
                         36 Kyadondo Rd, Kampala, Uganda
-                        </Text>
-
-                    </Flex>
-
+                    </Text>
                 </Box>
+
+                {storeHours.length > 0 && (
+                    <Box flexBasis={{ md: '30%' }}>
+                        <Heading size="sm" mb={4} fontFamily="nbText">Opening Hours</Heading>
+                        <Stack spacing={1}>
+                            {DISPLAY_ORDER.map(dayIndex => {
+                                const row = storeHours.find(r => r.day_of_week === dayIndex);
+                                if (!row) return null;
+                                return (
+                                    <Flex key={dayIndex} justify="space-between" gap={4}>
+                                        <Text fontSize="sm" fontFamily="nbHeading" minW="36px">
+                                            {DAY_LABELS[dayIndex]}
+                                        </Text>
+                                        <Text fontSize="sm" fontFamily="nbText" color={row.is_closed ? 'blackAlpha.600' : 'inherit'}>
+                                            {row.is_closed
+                                                ? 'Closed'
+                                                : `${formatTime12h(row.open_time)} – ${formatTime12h(row.close_time)}`}
+                                        </Text>
+                                    </Flex>
+                                );
+                            })}
+                        </Stack>
+                    </Box>
+                )}
             </Flex>
 
         </Box>

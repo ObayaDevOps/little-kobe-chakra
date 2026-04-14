@@ -3,14 +3,9 @@ import {
   Heading,
   Text,
   Button,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
   Divider,
   Flex,
+  Stack,
   Spinner,
   Center,
 } from '@chakra-ui/react';
@@ -135,30 +130,60 @@ export default function SuccessPage() {
               </Text>
             )}
 
-            <Table variant="simple" size="sm" mb={4}>
-              <Thead bg="gray.50">
-                <Tr>
-                  <Th fontFamily="nbHeading" borderColor="gray.300">Item</Th>
-                  <Th fontFamily="nbHeading" borderColor="gray.300" isNumeric>Qty</Th>
-                  <Th fontFamily="nbHeading" borderColor="gray.300" isNumeric>Unit Price</Th>
-                  <Th fontFamily="nbHeading" borderColor="gray.300" isNumeric>Subtotal</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {items.map((item, i) => (
-                  <Tr key={item._id || i}>
-                    <Td fontFamily="nbText" borderColor="gray.200">{item.name}</Td>
-                    <Td fontFamily="nbText" borderColor="gray.200" isNumeric>{item.quantity}</Td>
-                    <Td fontFamily="nbText" borderColor="gray.200" isNumeric>
+            {/* Column headers — hidden on mobile */}
+            <Flex
+              display={{ base: 'none', md: 'flex' }}
+              justify="space-between"
+              px={2}
+              pb={2}
+              borderBottomWidth="1px"
+              borderColor="gray.300"
+              mb={1}
+            >
+              <Text fontFamily="nbHeading" fontSize="xs" color="gray.500" flex="1">ITEM</Text>
+              <Text fontFamily="nbHeading" fontSize="xs" color="gray.500" w="40px" textAlign="center">QTY</Text>
+              <Text fontFamily="nbHeading" fontSize="xs" color="gray.500" w="120px" textAlign="right">UNIT PRICE</Text>
+              <Text fontFamily="nbHeading" fontSize="xs" color="gray.500" w="100px" textAlign="right">SUBTOTAL</Text>
+            </Flex>
+
+            <Stack spacing={0} mb={4}>
+              {items.map((item, i) => (
+                <Box
+                  key={item._id || i}
+                  borderBottomWidth="1px"
+                  borderColor="gray.200"
+                  py={3}
+                  px={2}
+                >
+                  {/* Mobile: stacked layout */}
+                  <Box display={{ base: 'block', md: 'none' }}>
+                    <Text fontFamily="nbText" fontSize="sm" fontWeight="medium" mb={1}>
+                      {item.name}
+                    </Text>
+                    <Flex justify="space-between">
+                      <Text fontFamily="nbText" fontSize="sm" color="gray.500">
+                        Qty: {item.quantity} × {Number(item.price).toLocaleString()} {currency}
+                      </Text>
+                      <Text fontFamily="nbHeading" fontSize="sm">
+                        {(Number(item.price) * item.quantity).toLocaleString()} {currency}
+                      </Text>
+                    </Flex>
+                  </Box>
+
+                  {/* Desktop: single-row layout */}
+                  <Flex display={{ base: 'none', md: 'flex' }} justify="space-between" align="center">
+                    <Text fontFamily="nbText" fontSize="sm" flex="1">{item.name}</Text>
+                    <Text fontFamily="nbText" fontSize="sm" w="40px" textAlign="center">{item.quantity}</Text>
+                    <Text fontFamily="nbText" fontSize="sm" w="120px" textAlign="right">
                       {Number(item.price).toLocaleString()} {currency}
-                    </Td>
-                    <Td fontFamily="nbText" borderColor="gray.200" isNumeric>
+                    </Text>
+                    <Text fontFamily="nbText" fontSize="sm" w="100px" textAlign="right">
                       {(Number(item.price) * item.quantity).toLocaleString()} {currency}
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
+                    </Text>
+                  </Flex>
+                </Box>
+              ))}
+            </Stack>
 
             <Divider borderColor="black" mb={3} />
 
@@ -173,34 +198,19 @@ export default function SuccessPage() {
                 <Heading as="h3" fontFamily="nbHeading" fontSize="md" mb={3}>
                   Delivery Details
                 </Heading>
-                <Table variant="simple" size="sm">
-                  <Tbody>
-                    {customerName && customerName !== 'Customer' && (
-                      <Tr>
-                        <Td fontFamily="nbHeading" borderColor="gray.200" w="40%">Name</Td>
-                        <Td fontFamily="nbText" borderColor="gray.200">{customerName}</Td>
-                      </Tr>
-                    )}
-                    {delivery.line_1 && (
-                      <Tr>
-                        <Td fontFamily="nbHeading" borderColor="gray.200">Address</Td>
-                        <Td fontFamily="nbText" borderColor="gray.200">{delivery.line_1}</Td>
-                      </Tr>
-                    )}
-                    {(order.customer_email || delivery.email_address) && (
-                      <Tr>
-                        <Td fontFamily="nbHeading" borderColor="gray.200">Email</Td>
-                        <Td fontFamily="nbText" borderColor="gray.200">{order.customer_email || delivery.email_address}</Td>
-                      </Tr>
-                    )}
-                    {(order.customer_phone || delivery.phone_number) && (
-                      <Tr>
-                        <Td fontFamily="nbHeading" borderColor="gray.200">Phone</Td>
-                        <Td fontFamily="nbText" borderColor="gray.200">{order.customer_phone || delivery.phone_number}</Td>
-                      </Tr>
-                    )}
-                  </Tbody>
-                </Table>
+                <Stack spacing={2}>
+                  {[
+                    customerName && customerName !== 'Customer' && { label: 'Name', value: customerName },
+                    delivery.line_1 && { label: 'Address', value: delivery.line_1 },
+                    (order.customer_email || delivery.email_address) && { label: 'Email', value: order.customer_email || delivery.email_address },
+                    (order.customer_phone || delivery.phone_number) && { label: 'Phone', value: order.customer_phone || delivery.phone_number },
+                  ].filter(Boolean).map(({ label, value }) => (
+                    <Flex key={label} gap={3} borderBottomWidth="1px" borderColor="gray.100" pb={2} flexWrap="wrap">
+                      <Text fontFamily="nbHeading" fontSize="sm" minW="70px" color="gray.600">{label}</Text>
+                      <Text fontFamily="nbText" fontSize="sm" flex="1" wordBreak="break-word">{value}</Text>
+                    </Flex>
+                  ))}
+                </Stack>
               </>
             )}
           </Box>
