@@ -52,6 +52,7 @@ export default async function handler(req, res) {
         const parsedQuantity = Number(quantity);
         const parsedMinStock = Number(minStockLevel);
         if (
+            !data?.is_archived &&
             minStockLevel !== null && minStockLevel !== undefined && minStockLevel !== '' &&
             quantity !== null && quantity !== undefined && quantity !== '' &&
             parsedQuantity <= parsedMinStock

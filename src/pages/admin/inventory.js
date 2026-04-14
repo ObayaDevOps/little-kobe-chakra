@@ -32,7 +32,7 @@ import {
     ListIcon,
     Badge,
 } from '@chakra-ui/react';
-import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon } from '@chakra-ui/icons';
+import { SearchIcon, CheckIcon, CloseIcon, WarningTwoIcon, ExternalLinkIcon } from '@chakra-ui/icons';
 
 import Head from 'next/head';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -229,6 +229,7 @@ function AdminInventoryPage() {
     );
 
     const lowStockItems = inventory.filter(item =>
+        !item.isArchived &&
         item.minStockLevel != null && item.minStockLevel !== '' &&
         item.quantity != null && item.quantity !== '' &&
         Number(item.quantity) <= Number(item.minStockLevel)
@@ -284,8 +285,18 @@ function AdminInventoryPage() {
 
             <Heading mb={2}>Admin Inventory Management</Heading>
             <Text mb={2}>A Dashboard showing Current Price, Inventory and Sales Information</Text>
-            <Text mb={2}>Make edits and publish and the prices will be reflected on the website</Text>
-            <Text mb={6}>To add Products, edit Product Info or Pictures, please use <Link href="/studio" isExternal color="teal.500">Sanity Studio</Link></Text>
+            <Text mb={6}>Make edits and publish and the prices will be reflected on the website</Text>
+
+            <HStack mb={6} align="center" spacing={4}>
+                <Link href="/studio" isExternal _hover={{ textDecoration: 'none' }}>
+                    <Button colorScheme="teal" rightIcon={<ExternalLinkIcon />}>
+                        Create New Product
+                    </Button>
+                </Link>
+                <Text color="gray.500" fontSize="sm">
+                    To add products, edit product info or pictures, please use Sanity Studio
+                </Text>
+            </HStack>
 
             {itemsMissingData.length > 0 && !loading && (
                 <Box p={4} mb={6} bg="yellow.100" borderRadius="md" shadow="sm">
