@@ -73,7 +73,8 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
         throw new Error('orderDetails is required.');
     }
 
-    const customerTemplateName = process.env.WHATSAPP_ORDER_TEMPLATE_NAME || 'order_management_1';
+    const customerTemplateName = process.env.WHATSAPP_CUSTOMER_TEMPLATE_NAME || process.env.WHATSAPP_ORDER_TEMPLATE_NAME || 'order_management_1';
+    const shopkeeperTemplateName = process.env.WHATSAPP_SHOPKEEPER_TEMPLATE_NAME || 'shop_order_management_1';
     const shopkeeperContact =
         process.env.SHOPKEEPER_WA_NUMBER || process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER || 'Shopkeeper contact not set';
     const customerName = String(orderDetails?.customerName ?? 'Customer');
@@ -89,7 +90,8 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
     );
     const contactInfo = String(isShopkeeper ? orderDetails?.customerPhoneNumber ?? 'Customer number not available' : shopkeeperContact);
 
-    const templateName = customerTemplateName;
+    const templateName = isShopkeeper ? shopkeeperTemplateName : customerTemplateName;
+
     const customerParameters = [
         { type: 'text', text: customerName }, // {{1}} Name
         { type: 'text', text: merchantReference }, // {{2}} Order reference
@@ -98,8 +100,23 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
         { type: 'text', text: deliveryLocationUrl || deliveryLocationText || 'Location not specified' }, // {{5}} Delivery location
         { type: 'text', text: contactInfo }, // {{6}} Contact
     ];
-    // Keep separate branch so shopkeeper formatting can diverge later without touching customer mapping.
-    const shopkeeperParameters = [...customerParameters];
+
+    const price = String(orderDetails?.totalAmount ?? orderDetails?.total_amount ?? '');
+    const currency = String(orderDetails?.currency ?? '');
+    const priceText = price ? `${price} ${currency}`.trim() : 'not specified';
+    const status = String(orderDetails?.status ?? 'COMPLETED');
+    const paymentMethodText = String(orderDetails?.paymentMethod ?? orderDetails?.payment_method ?? 'not specified');
+    const shopkeeperParameters = [
+        { type: 'text', text: customerName }, // {{1}} Customer name
+        { type: 'text', text: itemsList }, // {{2}} Items ordered
+        { type: 'text', text: priceText }, // {{3}} Price
+        { type: 'text', text: deliveryLocationText || 'not specified' }, // {{4}} Typed delivery address
+        { type: 'text', text: status }, // {{5}} Order status
+        { type: 'text', text: paymentMethodText }, // {{6}} Payment method
+        { type: 'text', text: deliveryLocationUrl || deliveryLocationText || 'not specified' }, // {{7}} Google Maps URL from dropped pin
+        { type: 'text', text: String(orderDetails?.customerPhoneNumber ?? orderDetails?.customer_phone ?? 'not available') }, // {{8}} Customer contact
+    ];
+
     const parameters = isShopkeeper ? shopkeeperParameters : customerParameters;
 
     return {

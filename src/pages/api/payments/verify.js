@@ -217,6 +217,8 @@ export default async function handler(req, res) {
             existingPaymentBeforeUpdate?.status !== 'COMPLETED'
         ) {
             const orderDetailsForComms = { ...responsePayload.orderDetails };
+            orderDetailsForComms.status = internalStatus;
+            orderDetailsForComms.paymentMethod = paymentMethod;
             if (!orderDetailsForComms.customerPhoneNumber) {
                 const fallbackPhone = orderDetailsForComms.customer_phone || orderDetailsForComms.customer_phone_number;
                 if (fallbackPhone) {
