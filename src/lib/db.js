@@ -211,7 +211,25 @@ export async function updateInventoryItem(sanityId, updates) {
 }
 
 
-// Add other functions as needed (e.g., getPaymentByMerchantReference)
+/**
+ * Fetches a payment record by merchant reference.
+ * @param {string} merchantReference - The merchant reference string.
+ */
+export async function getPaymentByMerchantReference(merchantReference) {
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from('payments')
+        .select('merchant_reference, amount, currency, cart_items, delivery_address, customer_email, customer_phone, status, created_at')
+        .eq('merchant_reference', merchantReference)
+        .maybeSingle();
+
+    if (error) {
+        console.error(`Supabase error fetching payment by merchant reference ${merchantReference}:`, error);
+    }
+    return { data, error };
+}
+
+// Add other functions as needed
 
 
 /**
