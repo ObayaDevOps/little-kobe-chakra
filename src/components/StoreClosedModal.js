@@ -14,7 +14,7 @@ import { useEffect } from 'react';
 import { useStoreStatusStore } from '../lib/storeStatusStore';
 
 export default function StoreClosedModal() {
-  const { isOpen: storeIsOpen, message } = useStoreStatusStore();
+  const { isOpen: storeIsOpen, message, nextOpeningTime } = useStoreStatusStore();
   const { isOpen: modalIsOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function StoreClosedModal() {
             borderColor="black"
           >
             <Text fontFamily="nbText" fontSize="sm" color="gray.600">
-              You can still browse our products, but adding to cart and checkout are disabled until we reopen.
+              You can still place an order! Deliveries for orders placed now will be carried out at {nextOpeningTime || 'our next opening time'}.
             </Text>
           </Box>
         </ModalBody>

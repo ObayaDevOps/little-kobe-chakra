@@ -20,7 +20,7 @@ export default async function handler(req, res) {
     const message = isOpen
       ? ''
       : nextOpeningTime
-        ? `The shop is currently closed for the day, we will resume service at ${nextOpeningTime}`
+        ? `The shop is currently closed. Orders placed now will be delivered at ${nextOpeningTime}.`
         : 'The shop is currently closed.';
 
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=30');

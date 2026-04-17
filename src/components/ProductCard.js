@@ -1,13 +1,11 @@
-import { Box, Image, Stack, Heading, Text, Button, Tooltip, useToast } from '@chakra-ui/react'
+import { Box, Image, Stack, Heading, Text, Button } from '@chakra-ui/react'
 import Link from 'next/link'
 import { useCartStore } from '../lib/cartStore'
 import { useCartToast } from '../utils/useCartToast'
-import { useStoreStatusStore } from '../lib/storeStatusStore'
 
 export default function ProductCard({ product }) {
   const addItem = useCartStore(state => state.addItem)
   const showCartToast = useCartToast()
-  const isOpen = useStoreStatusStore(state => state.isOpen)
 
   const handleAddToCart = () => {
     addItem(product)
@@ -66,26 +64,18 @@ export default function ProductCard({ product }) {
         <Text color="black" fontFamily={'nbText'} noOfLines={2}>{product.description}</Text>
         <Text fontWeight="bold" size="xl" fontFamily={'nbHeading'}>{displayPrice}</Text>
         
-        <Tooltip
-          label="The shop is currently closed — check back later"
-          isDisabled={isOpen !== false}
-          hasArrow
+        <Button
+          mt="auto"
+          bgColor={'#fcd7d7'}
+          fontFamily={'nbHeading'}
+          onClick={handleAddToCart}
+          borderColor="black"
+          textColor={'black'}
+          borderWidth={'1px'}
+          boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
         >
-          <Button
-            mt="auto"
-            bgColor={'#fcd7d7'}
-            fontFamily={'nbHeading'}
-            onClick={handleAddToCart}
-            borderColor="black"
-            textColor={'black'}
-            borderWidth={'1px'}
-            boxShadow="4px 4px 0px 0px rgba(0, 0, 0, 1)"
-            isDisabled={isOpen === false}
-            _disabled={{ opacity: 0.5, cursor: 'not-allowed', boxShadow: 'none' }}
-          >
-            Add to Cart
-          </Button>
-        </Tooltip>
+          Add to Cart
+        </Button>
 
         {/* <Button
         mt={0}

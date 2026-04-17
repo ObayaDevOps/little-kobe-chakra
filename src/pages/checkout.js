@@ -38,7 +38,7 @@ const kampalaCenter = {
 export default function CheckoutPage() {
   const { items, clearCart } = useCartStore()
   const storeIsOpen = useStoreStatusStore(state => state.isOpen)
-  const storeMessage = useStoreStatusStore(state => state.message)
+  const nextOpeningTime = useStoreStatusStore(state => state.nextOpeningTime)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -509,11 +509,13 @@ export default function CheckoutPage() {
       <Heading size="2xl" mb={8} fontFamily={'nbHeading'} p={2} mt={4}>Checkout</Heading>
 
       {storeIsOpen === false && (
-        <Alert status="warning" variant="subtle" borderRadius="lg" mb={6} borderWidth="2px" borderColor="orange.300">
+        <Alert status="info" variant="subtle" borderRadius="lg" mb={6} borderWidth="2px" borderColor="blue.300">
           <AlertIcon />
           <Box>
-            <Text fontFamily="nbHeading" fontWeight="bold">Shop Currently Closed</Text>
-            <Text fontFamily="nbText" fontSize="sm">{storeMessage || 'The shop is currently closed. Please check back during opening hours.'}</Text>
+            <Text fontFamily="nbHeading" fontWeight="bold">Ordering Outside Opening Hours</Text>
+            <Text fontFamily="nbText" fontSize="sm">
+              The shop is currently closed. Your order will be processed and delivered at {nextOpeningTime || 'our next opening time'}.
+            </Text>
           </Box>
         </Alert>
       )}
@@ -850,7 +852,7 @@ export default function CheckoutPage() {
               borderRadius="lg"
               boxShadow="2px 2px 0px 0px rgba(0, 0, 0, 1)"
               mt={2}
-              isDisabled={loading || items.length === 0 || storeIsOpen === false}
+              isDisabled={loading || items.length === 0}
             >
               {loading ? 'Processing...' : `Proceed to Pay ${currency} ${total.toLocaleString()} with Pesapal`}
            </Button>
