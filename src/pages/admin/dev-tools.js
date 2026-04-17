@@ -14,17 +14,17 @@ import AdminNavbar from '@/components/admin/AdminNavbar';
 
 const devTools = [
     {
-        title: 'WhatsApp Template Test',
+        title: 'WhatsApp Connectivity Test',
         href: '/admin/whatsapp-test',
         description: 'Check live WhatsApp health, switch provider globally (Meta/Baileys), and send test messages.',
         external: false,
     },
-    {
-        title: 'WhatsApp Templates',
-        href: '/admin/whatsapp-templates',
-        description: 'Create and manage reusable WhatsApp text templates for support workflows and Baileys sends.',
-        external: false,
-    },
+    // {
+    //     title: 'WhatsApp Templates',
+    //     href: '/admin/whatsapp-templates',
+    //     description: 'Create and manage reusable WhatsApp text templates for support workflows and Baileys sends.',
+    //     external: false,
+    // },
     {
         title: 'Supabase Connectivity Test',
         href: '/admin/supabase-test',

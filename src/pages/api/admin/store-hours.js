@@ -24,6 +24,12 @@ export default async function handler(req, res) {
       if (!row.open_time || !row.close_time) {
         return res.status(400).json({ message: 'open_time and close_time are required' });
       }
+      if (!row.is_closed && row.close_time <= row.open_time) {
+        const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        return res.status(400).json({
+          message: `Close time must be after open time for ${DAY_NAMES[row.day_of_week]}`,
+        });
+      }
     }
 
     const { error } = await upsertStoreHours(hours);

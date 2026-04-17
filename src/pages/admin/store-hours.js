@@ -81,6 +81,21 @@ export default function StoreHoursPage() {
   };
 
   const handleSave = async () => {
+    // Validate close time is after open time for non-closed days
+    for (const row of hours) {
+      if (!row.is_closed && row.close_time <= row.open_time) {
+        toast({
+          title: 'Invalid hours',
+          description: `Close time must be after open time for ${DAY_NAMES[row.day_of_week]}`,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top',
+        });
+        return;
+      }
+    }
+
     setIsSaving(true);
     try {
       const res = await fetch('/api/admin/store-hours', {
@@ -182,7 +197,9 @@ export default function StoreHoursPage() {
                             style={{
                               padding: '6px 10px',
                               borderRadius: '6px',
-                              border: '1px solid #CBD5E0',
+                              border: !row.is_closed && row.close_time <= row.open_time
+                                ? '2px solid #E53E3E'
+                                : '1px solid #CBD5E0',
                               fontFamily: 'inherit',
                               fontSize: '14px',
                               cursor: row.is_closed ? 'not-allowed' : 'text',
