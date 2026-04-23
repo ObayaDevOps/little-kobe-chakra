@@ -81,14 +81,14 @@ export default function GuidePage() {
                     <Accordion allowMultiple defaultIndex={[0]}>
 
                         {/* ── 1. Getting Started ── */}
-                        <AccordionItem id="getting-started" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="getting-started" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">1. Getting Started</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -119,14 +119,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 2. Managing Your Products ── */}
-                        <AccordionItem id="managing-your-products" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="managing-your-products" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">2. Managing Your Products</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -181,14 +181,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 3. Adding a New Product ── */}
-                        <AccordionItem id="adding-a-brand-new-product" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="adding-a-brand-new-product" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">3. Adding a Brand New Product</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -229,14 +229,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 4. Archiving & Restoring ── */}
-                        <AccordionItem id="archiving--restoring-a-product" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="archiving--restoring-a-product" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">4. Archiving &amp; Restoring a Product</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -277,14 +277,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 5. Low Stock Alerts ── */}
-                        <AccordionItem id="low-stock-alerts" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="low-stock-alerts" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">5. Low Stock Alerts</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -326,14 +326,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 6. Orders & Sales ── */}
-                        <AccordionItem id="viewing-orders--sales" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="viewing-orders--sales" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">6. Viewing Orders &amp; Sales</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -387,14 +387,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 7. Store Hours ── */}
-                        <AccordionItem id="changing-store-hours" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="changing-store-hours" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">7. Changing Store Hours</Heading>
                                 </Box>
                                 <AccordionIcon />
@@ -431,14 +431,14 @@ export default function GuidePage() {
                         </AccordionItem>
 
                         {/* ── 8. Quick Reference ── */}
-                        <AccordionItem id="quick-reference" border="none" mb={3}>
+                        <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
                                 borderRadius="md"
                                 _hover={{ bg: 'teal.100' }}
                                 px={4} py={3}
                             >
-                                <Box flex="1" textAlign="left">
+                                <Box id="quick-reference" flex="1" textAlign="left">
                                     <Heading as="h2" size="md">8. Quick Reference</Heading>
                                 </Box>
                                 <AccordionIcon />
