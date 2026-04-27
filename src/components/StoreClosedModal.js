@@ -38,10 +38,10 @@ export default function StoreClosedModal() {
         <ModalHeader fontFamily="nbHeading" fontSize="xl" borderBottomWidth="2px" borderBottomColor="black">
           Shop Currently Closed
         </ModalHeader>
-        <ModalBody py={6}>
-          <Text fontFamily="nbText" fontSize="md">
+        <ModalBody pt={4} pb={6}>
+          {/* <Text fontFamily="nbText" fontSize="md">
             {message || 'The shop is currently closed.'}
-          </Text>
+          </Text> */}
           <Box
             mt={4}
             p={3}
@@ -50,8 +50,8 @@ export default function StoreClosedModal() {
             borderWidth="1px"
             borderColor="black"
           >
-            <Text fontFamily="nbText" fontSize="sm" color="gray.600">
-              You can still place an order! Deliveries for orders placed now will be carried out at {nextOpeningTime || 'our next opening time'}.
+            <Text fontFamily="nbText" fontSize="md" color="gray.600">
+              You can still place an order! Deliveries for orders placed now will be carried out after {nextOpeningTime || 'our next opening time'}.
             </Text>
           </Box>
         </ModalBody>
