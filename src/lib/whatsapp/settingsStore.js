@@ -29,6 +29,7 @@ const mapSettingsRow = (row) => ({
     key: SETTINGS_KEY,
     activeProvider: normalizeProvider(row?.active_provider, DEFAULT_PROVIDER),
     allowFallbackToMeta: toBool(row?.allow_fallback_to_meta, DEFAULT_ALLOW_FALLBACK_TO_META),
+    shopkeeperWaNumber: row?.shopkeeper_wa_number || null,
     updatedAt: row?.updated_at || null,
     createdAt: row?.created_at || null,
 });
@@ -40,6 +41,7 @@ const fallbackSettings = () => ({
         process.env.WHATSAPP_PROVIDER_ALLOW_FALLBACK,
         DEFAULT_ALLOW_FALLBACK_TO_META
     ),
+    shopkeeperWaNumber: process.env.SHOPKEEPER_WA_NUMBER || process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER || null,
     updatedAt: null,
     createdAt: null,
 });
@@ -89,6 +91,24 @@ export async function upsertWhatsAppProviderSettings({
 
     if (error) {
         throw new Error(`Failed to save WhatsApp provider settings: ${error.message}`);
+    }
+
+    return mapSettingsRow(data);
+}
+
+export async function upsertShopkeeperWaNumber(number) {
+    const supabase = getServerSupabaseClient();
+    const { data, error } = await supabase
+        .from(SETTINGS_TABLE)
+        .upsert(
+            { setting_key: SETTINGS_KEY, shopkeeper_wa_number: number, updated_at: new Date().toISOString() },
+            { onConflict: 'setting_key' }
+        )
+        .select('*')
+        .single();
+
+    if (error) {
+        throw new Error(`Failed to save shopkeeper WA number: ${error.message}`);
     }
 
     return mapSettingsRow(data);
