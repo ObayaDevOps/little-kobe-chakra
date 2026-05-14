@@ -54,6 +54,7 @@ const sendViaProvider = async ({
     orderDetails,
     isShopkeeper,
     templateSlug,
+    shopkeeperContact,
 }) => {
     if (provider === WHATSAPP_PROVIDERS.BAILEYS_WA) {
         const template = await resolveBaileysTemplate(templateSlug);
@@ -69,6 +70,7 @@ const sendViaProvider = async ({
         recipientPhoneNumber,
         orderDetails,
         isShopkeeper,
+        shopkeeperContact,
     });
     return {
         provider: WHATSAPP_PROVIDERS.META_API,
@@ -87,6 +89,8 @@ export async function sendOrderConfirmationWithProvider({
     const settings = await getWhatsAppProviderSettings();
     const selectedProvider = resolveProvider(requestedProvider, settings.activeProvider);
 
+    const shopkeeperContact = settings.shopkeeperWaNumber || undefined;
+
     try {
         const result = await sendViaProvider({
             provider: selectedProvider,
@@ -94,6 +98,7 @@ export async function sendOrderConfirmationWithProvider({
             orderDetails,
             isShopkeeper,
             templateSlug,
+            shopkeeperContact,
         });
         return {
             attemptedProvider: selectedProvider,
@@ -115,6 +120,7 @@ export async function sendOrderConfirmationWithProvider({
                 orderDetails,
                 isShopkeeper,
                 templateSlug,
+                shopkeeperContact,
             });
             return {
                 attemptedProvider: selectedProvider,

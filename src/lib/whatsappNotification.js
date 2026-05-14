@@ -65,7 +65,7 @@ function requireWhatsAppConfig() {
     };
 }
 
-export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetails, isShopkeeper }) {
+export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetails, isShopkeeper, shopkeeperContact: shopkeeperContactOverride }) {
     if (!recipientPhoneNumber || typeof recipientPhoneNumber !== 'string') {
         throw new Error('recipientPhoneNumber is required.');
     }
@@ -75,7 +75,7 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
 
     const customerTemplateName = process.env.WHATSAPP_CUSTOMER_TEMPLATE_NAME || process.env.WHATSAPP_ORDER_TEMPLATE_NAME || 'order_management_1';
     const shopkeeperTemplateName = process.env.WHATSAPP_SHOPKEEPER_TEMPLATE_NAME || 'shop_order_management_1';
-    const shopkeeperContact =
+    const shopkeeperContact = shopkeeperContactOverride ||
         process.env.SHOPKEEPER_WA_NUMBER || process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER || 'Shopkeeper contact not set';
     const customerName = String(orderDetails?.customerName ?? 'Customer');
     const merchantReference = String(orderDetails?.merchantReference ?? 'order');
@@ -137,10 +137,10 @@ export function buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetai
     };
 }
 
-export async function sendOrderConfirmationWhatsApp({ recipientPhoneNumber, orderDetails, isShopkeeper }) {
+export async function sendOrderConfirmationWhatsApp({ recipientPhoneNumber, orderDetails, isShopkeeper, shopkeeperContact }) {
     const { apiVersion, phoneNumberId, accessToken } = requireWhatsAppConfig();
     const whatsappApiUrl = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
-    const payload = buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetails, isShopkeeper });
+    const payload = buildOrderConfirmationPayload({ recipientPhoneNumber, orderDetails, isShopkeeper, shopkeeperContact });
 
     const response = await axios.post(whatsappApiUrl, payload, {
         headers: {

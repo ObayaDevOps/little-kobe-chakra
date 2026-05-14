@@ -38,16 +38,23 @@ function WhatsAppTestPage() {
     const [providerOverride, setProviderOverride] = useState('auto');
     const [templateSlug, setTemplateSlug] = useState('');
     const [templates, setTemplates] = useState([]);
+    const [savedShopkeeperNumber, setSavedShopkeeperNumber] = useState('');
+    const [shopkeeperNumberSource, setShopkeeperNumberSource] = useState('env');
+    const [shopkeeperNumberInput, setShopkeeperNumberInput] = useState('');
+    const [isSavingShopkeeperNumber, setIsSavingShopkeeperNumber] = useState(false);
+    const [isSendingToShopkeeper, setIsSendingToShopkeeper] = useState(false);
 
     const loadProviderSettings = async () => {
         try {
             setIsLoadingSettings(true);
-            const [settingsResponse, templatesResponse] = await Promise.all([
+            const [settingsResponse, templatesResponse, shopkeeperResponse] = await Promise.all([
                 fetch('/api/admin/whatsapp-provider'),
                 fetch('/api/admin/whatsapp-templates?includeInactive=false'),
+                fetch('/api/admin/shopkeeper-settings'),
             ]);
             const settingsData = await settingsResponse.json().catch(() => ({}));
             const templatesData = await templatesResponse.json().catch(() => ({}));
+            const shopkeeperData = await shopkeeperResponse.json().catch(() => ({}));
 
             if (!settingsResponse.ok) {
                 throw new Error(settingsData?.message || 'Failed to load provider settings');
@@ -57,6 +64,10 @@ function WhatsAppTestPage() {
                 allowFallbackToMeta: settingsData?.settings?.allowFallbackToMeta !== false,
             });
             setTemplates(Array.isArray(templatesData?.templates) ? templatesData.templates : []);
+            const currentNumber = shopkeeperData?.shopkeeperWaNumber || '';
+            setSavedShopkeeperNumber(currentNumber);
+            setShopkeeperNumberInput(currentNumber);
+            setShopkeeperNumberSource(shopkeeperData?.source || 'env');
         } catch (error) {
             toast({
                 title: 'Failed to load WhatsApp settings',
@@ -114,6 +125,66 @@ function WhatsAppTestPage() {
         }
     };
 
+    const saveShopkeeperNumber = async () => {
+        const number = shopkeeperNumberInput.trim();
+        if (!number) {
+            toast({ title: 'Phone number required', status: 'warning', duration: 4000, isClosable: true, position: 'top' });
+            return;
+        }
+        try {
+            setIsSavingShopkeeperNumber(true);
+            const response = await fetch('/api/admin/shopkeeper-settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shopkeeperWaNumber: number }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data?.message || 'Failed to save number');
+            setSavedShopkeeperNumber(data.shopkeeperWaNumber);
+            setShopkeeperNumberSource('db');
+            toast({ title: 'Shopkeeper number saved', status: 'success', duration: 4000, isClosable: true, position: 'top' });
+        } catch (error) {
+            toast({ title: 'Failed to save number', description: error.message, status: 'error', duration: 5000, isClosable: true, position: 'top' });
+        } finally {
+            setIsSavingShopkeeperNumber(false);
+        }
+    };
+
+    const sendTestToShopkeeper = async () => {
+        if (!savedShopkeeperNumber) {
+            toast({ title: 'No shopkeeper number saved', description: 'Save a number first.', status: 'warning', duration: 4000, isClosable: true, position: 'top' });
+            return;
+        }
+        try {
+            setIsSendingToShopkeeper(true);
+            setApiResponse(null);
+            const response = await fetch('/api/admin/whatsapp-test-send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipientPhoneNumber: savedShopkeeperNumber,
+                    isShopkeeper: true,
+                    provider: providerOverride,
+                }),
+            });
+            const data = await response.json().catch(() => ({ message: 'No JSON payload returned' }));
+            setApiResponse({ status: response.status, data });
+            toast({
+                title: response.ok ? 'Test sent to shopkeeper' : 'WhatsApp API returned an error',
+                description: response.ok ? `Sent to ${savedShopkeeperNumber}` : data?.message || 'See details below.',
+                status: response.ok ? 'success' : 'error',
+                duration: 5000,
+                isClosable: true,
+                position: 'top',
+            });
+        } catch (error) {
+            setApiResponse({ status: 'network-error', data: { message: error.message } });
+            toast({ title: 'Request failed', description: error.message, status: 'error', duration: 6000, isClosable: true, position: 'top' });
+        } finally {
+            setIsSendingToShopkeeper(false);
+        }
+    };
+
     const runHealthCheck = async () => {
         try {
             setIsCheckingHealth(true);
@@ -154,17 +225,16 @@ function WhatsAppTestPage() {
             setIsSubmitting(true);
             setApiResponse(null);
 
-            const params = new URLSearchParams({
-                test: 'true',
-                testRecipient: recipient.trim(),
-                isShopkeeperTest: String(isShopkeeper),
-                provider: providerOverride,
+            const response = await fetch('/api/admin/whatsapp-test-send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipientPhoneNumber: recipient.trim(),
+                    isShopkeeper,
+                    provider: providerOverride,
+                    templateSlug: templateSlug || undefined,
+                }),
             });
-            if (templateSlug) {
-                params.set('templateSlug', templateSlug);
-            }
-
-            const response = await fetch(`/api/whatsapp/send-order-confirmation?${params.toString()}`);
             const data = await response.json().catch(() => ({ message: 'No JSON payload returned' }));
             setApiResponse({ status: response.status, data });
 
@@ -206,7 +276,7 @@ function WhatsAppTestPage() {
     return (
         <>
             <AdminNavbar />
-            <Container maxW="lg" py={12}>
+            <Container maxW="3xl" py={12}>
                 <Stack spacing={6}>
                     <Heading as="h1" size="lg">WhatsApp Live Test</Heading>
                     <Text color="gray.600">
@@ -214,40 +284,69 @@ function WhatsAppTestPage() {
                     </Text>
 
                     <Box p={6} borderWidth="1px" borderRadius="lg" boxShadow="sm">
-                        <Stack spacing={4}>
+                        <Stack spacing={5}>
                             <Flex align="center" justify="space-between">
-                                <Heading as="h2" size="md">Global Provider Settings</Heading>
+                                <Heading as="h2" size="md">Shopkeeper Contact Number</Heading>
                                 {isLoadingSettings && <Spinner size="sm" />}
                             </Flex>
+
+                            <Box
+                                p={4}
+                                borderRadius="md"
+                                bg={savedShopkeeperNumber ? 'teal.50' : 'orange.50'}
+                                borderWidth="1px"
+                                borderColor={savedShopkeeperNumber ? 'teal.200' : 'orange.200'}
+                            >
+                                <Text fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="wide" color={savedShopkeeperNumber ? 'teal.600' : 'orange.600'} mb={1}>
+                                    Current number
+                                </Text>
+                                {savedShopkeeperNumber ? (
+                                    <Flex align="center" gap={3} flexWrap="wrap">
+                                        <Text fontSize="2xl" fontWeight="bold" letterSpacing="tight" color="teal.700">
+                                            {savedShopkeeperNumber}
+                                        </Text>
+                                        <Badge colorScheme={shopkeeperNumberSource === 'db' ? 'teal' : 'gray'} fontSize="xs">
+                                            {shopkeeperNumberSource === 'db' ? 'saved in DB' : 'from environment'}
+                                        </Badge>
+                                    </Flex>
+                                ) : (
+                                    <Text fontSize="lg" fontWeight="medium" color="orange.600">
+                                        Not configured
+                                    </Text>
+                                )}
+                                <Text fontSize="xs" color="gray.500" mt={1}>
+                                    Receives order notifications · appears as contact info in customer messages
+                                </Text>
+                            </Box>
+
+                            <Button
+                                onClick={sendTestToShopkeeper}
+                                variant="outline"
+                                isLoading={isSendingToShopkeeper}
+                                loadingText="Sending"
+                                isDisabled={!savedShopkeeperNumber}
+                                alignSelf="flex-start"
+                            >
+                                Send test to this number
+                            </Button>
+
                             <FormControl>
-                                <FormLabel>Active provider (global)</FormLabel>
-                                <Select
-                                    value={providerSettings.activeProvider}
-                                    onChange={(event) =>
-                                        setProviderSettings((prev) => ({ ...prev, activeProvider: event.target.value }))
-                                    }
-                                >
-                                    <option value="meta_api">Meta API</option>
-                                    <option value="baileys_wa">Baileys WA</option>
-                                </Select>
-                            </FormControl>
-                            <FormControl display="flex" alignItems="center">
-                                <FormLabel mb="0">Auto-fallback to Meta when Baileys fails</FormLabel>
-                                <Switch
-                                    isChecked={providerSettings.allowFallbackToMeta}
-                                    onChange={(event) =>
-                                        setProviderSettings((prev) => ({ ...prev, allowFallbackToMeta: event.target.checked }))
-                                    }
+                                <FormLabel>Update number (e.g. +256700000000)</FormLabel>
+                                <Input
+                                    placeholder="+256700000000"
+                                    value={shopkeeperNumberInput}
+                                    onChange={(event) => setShopkeeperNumberInput(event.target.value)}
+                                    autoComplete="tel"
                                 />
                             </FormControl>
                             <Button
-                                onClick={saveProviderSettings}
+                                onClick={saveShopkeeperNumber}
                                 colorScheme="teal"
-                                isLoading={isSavingSettings}
-                                loadingText="Saving"
+                                isLoading={isSavingShopkeeperNumber}
+                                loadingText="Updating"
                                 alignSelf="flex-start"
                             >
-                                Save provider settings
+                                Update Number
                             </Button>
                         </Stack>
                     </Box>
@@ -268,19 +367,46 @@ function WhatsAppTestPage() {
                                 Run health check
                             </Button>
                             {healthResponse ? (
-                                <Box p={4} borderWidth="1px" borderRadius="md" bg="gray.50">
-                                    <HStack spacing={3} mb={2}>
-                                        <Text fontWeight="semibold">Status: {healthResponse.status}</Text>
-                                        <Badge colorScheme={healthResponse.ok ? 'green' : 'red'}>
-                                            {healthResponse.ok ? 'Healthy' : 'Issue'}
-                                        </Badge>
-                                    </HStack>
-                                    <Text fontSize="sm" color="gray.600" mb={2}>
-                                        Active provider: {healthResponse?.data?.activeProvider || 'n/a'}
-                                    </Text>
-                                    <Code display="block" whiteSpace="pre" p={2} w="full">
-                                        {JSON.stringify(healthResponse.data, null, 2)}
-                                    </Code>
+                                <Box borderWidth="1px" borderRadius="md" overflow="hidden">
+                                    <Box
+                                        px={4} py={3}
+                                        bg={healthResponse.ok ? 'green.50' : 'red.50'}
+                                        borderBottomWidth="1px"
+                                        borderColor={healthResponse.ok ? 'green.200' : 'red.200'}
+                                    >
+                                        <HStack spacing={3}>
+                                            <Text fontWeight="semibold" fontSize="sm">
+                                                HTTP {healthResponse.status}
+                                            </Text>
+                                            <Badge colorScheme={healthResponse.ok ? 'green' : 'red'}>
+                                                {healthResponse.ok ? 'Healthy' : 'Issue'}
+                                            </Badge>
+                                            {healthResponse?.data?.activeProvider && (
+                                                <Badge colorScheme="blue" variant="outline">
+                                                    {healthResponse.data.activeProvider}
+                                                </Badge>
+                                            )}
+                                        </HStack>
+                                    </Box>
+                                    <Box
+                                        bg="gray.900"
+                                        overflowX="auto"
+                                        overflowY="auto"
+                                        maxH="400px"
+                                        p={4}
+                                    >
+                                        <Code
+                                            display="block"
+                                            whiteSpace="pre"
+                                            fontSize="xs"
+                                            color="green.300"
+                                            bg="transparent"
+                                            w="max-content"
+                                            minW="full"
+                                        >
+                                            {JSON.stringify(healthResponse.data, null, 2)}
+                                        </Code>
+                                    </Box>
                                 </Box>
                             ) : (
                                 <Text color="gray.500">No health check run yet.</Text>

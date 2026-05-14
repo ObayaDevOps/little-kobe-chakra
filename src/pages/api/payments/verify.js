@@ -13,6 +13,7 @@ import {
 } from '@/lib/db';
 import axios from 'axios';
 import { sendOrderConfirmationWithProvider } from '@/lib/whatsapp/providerService';
+import { getWhatsAppProviderSettings } from '@/lib/whatsapp/settingsStore';
 import {
     sendShopkeeperOrderConfirmationEmail,
     sendCustomerOrderConfirmationEmail,
@@ -225,7 +226,9 @@ export default async function handler(req, res) {
                     orderDetailsForComms.customerPhoneNumber = fallbackPhone.toString().trim();
                 }
             }
+            const waSettings = await getWhatsAppProviderSettings();
             const shopkeeperPhone = (
+                waSettings.shopkeeperWaNumber ||
                 process.env.SHOPKEEPER_WA_NUMBER ||
                 process.env.NEXT_PUBLIC_SHOPKEEPER_WA_NUMBER ||
                 ''
