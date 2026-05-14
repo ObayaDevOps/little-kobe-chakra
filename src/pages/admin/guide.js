@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Head from 'next/head';
 import NextLink from 'next/link';
 import AdminNavbar from '@/components/admin/AdminNavbar';
@@ -25,9 +26,12 @@ import {
     Td,
     Badge,
     Button,
+    Flex,
     Stack,
     Divider,
 } from '@chakra-ui/react';
+
+const toId = (s) => s.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
 const sections = [
     'Getting Started',
@@ -37,10 +41,20 @@ const sections = [
     'Low Stock Alerts',
     'Viewing Orders & Sales',
     'Changing Store Hours',
+    'WhatsApp & Shopkeeper Number',
     'Quick Reference',
 ];
 
 export default function GuidePage() {
+    const [openSections, setOpenSections] = useState([0]);
+
+    const jumpToSection = (index, id) => {
+        setOpenSections((prev) => prev.includes(index) ? prev : [...prev, index]);
+        setTimeout(() => {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        }, 50);
+    };
+
     return (
         <>
             <Head>
@@ -59,15 +73,22 @@ export default function GuidePage() {
 
                     {/* Quick jump links */}
                     <Box bg="gray.50" borderRadius="md" p={4} borderWidth="1px" borderColor="gray.200">
-                        <Text fontWeight="semibold" mb={2}>Jump to a section:</Text>
+                        <Flex justify="space-between" align="center" mb={2}>
+                            <Text fontWeight="semibold">Jump to a section:</Text>
+                            <Button size="xs" variant="ghost" colorScheme="gray" onClick={() => setOpenSections([])}>
+                                Collapse all
+                            </Button>
+                        </Flex>
                         <UnorderedList spacing={1} pl={2}>
-                            {sections.map((s) => (
+                            {sections.map((s, i) => (
                                 <ListItem key={s}>
                                     <Text
-                                        as="a"
-                                        href={`#${s.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}
+                                        as="button"
+                                        onClick={() => jumpToSection(i, toId(s))}
                                         color="teal.600"
                                         _hover={{ textDecoration: 'underline' }}
+                                        cursor="pointer"
+                                        display="inline"
                                     >
                                         {s}
                                     </Text>
@@ -78,7 +99,7 @@ export default function GuidePage() {
 
                     <Divider />
 
-                    <Accordion allowMultiple defaultIndex={[0]}>
+                    <Accordion allowMultiple index={openSections} onChange={setOpenSections}>
 
                         {/* ── 1. Getting Started ── */}
                         <AccordionItem border="none" mb={3}>
@@ -430,7 +451,85 @@ export default function GuidePage() {
                             </AccordionPanel>
                         </AccordionItem>
 
-                        {/* ── 8. Quick Reference ── */}
+                        {/* ── 8. WhatsApp & Shopkeeper Number ── */}
+                        <AccordionItem border="none" mb={3}>
+                            <AccordionButton
+                                bg="teal.50"
+                                borderRadius="md"
+                                _hover={{ bg: 'teal.100' }}
+                                px={4} py={3}
+                            >
+                                <Box id="whatsapp--shopkeeper-number" flex="1" textAlign="left">
+                                    <Heading as="h2" size="md">8. WhatsApp &amp; Shopkeeper Number</Heading>
+                                </Box>
+                                <AccordionIcon />
+                            </AccordionButton>
+                            <AccordionPanel pb={4} pt={4} px={2}>
+                                <Stack spacing={4}>
+                                    <Text>
+                                        When a customer places an order, the system automatically sends a WhatsApp notification to the <strong>shopkeeper number</strong> on file. This page explains how to view that number, change it, and confirm that WhatsApp messages are actually being delivered.
+                                    </Text>
+
+                                    <Alert status="info" borderRadius="md">
+                                        <AlertIcon />
+                                        <AlertDescription>
+                                            These settings live inside <strong>Technical Developer Tools</strong> → <strong>WhatsApp Connectivity Test</strong>. You do not need to visit this page every day — only when you want to update the number or troubleshoot a delivery problem.
+                                        </AlertDescription>
+                                    </Alert>
+
+                                    <Heading as="h3" size="sm">How to see the current shopkeeper number</Heading>
+                                    <OrderedList spacing={2} pl={4}>
+                                        <ListItem>From the Control Centre, click <strong>Technical Developer Tools</strong>.</ListItem>
+                                        <ListItem>Click <strong>WhatsApp Connectivity Test</strong>.</ListItem>
+                                        <ListItem>At the top of the page you will see a <strong>Shopkeeper Contact Number</strong> box. The current number is shown in large text. A small badge next to it says either <Badge colorScheme="teal" fontSize="xs">saved in DB</Badge> (you set it yourself) or <Badge colorScheme="gray" fontSize="xs">from environment</Badge> (set by the developer).</ListItem>
+                                        <ListItem>If the box is orange and says <strong>Not configured</strong>, no number has been set yet.</ListItem>
+                                    </OrderedList>
+
+                                    <Heading as="h3" size="sm">How to change the shopkeeper number</Heading>
+                                    <OrderedList spacing={2} pl={4}>
+                                        <ListItem>Go to <strong>Technical Developer Tools</strong> → <strong>WhatsApp Connectivity Test</strong>.</ListItem>
+                                        <ListItem>In the <strong>Shopkeeper Contact Number</strong> box, find the <strong>Update number</strong> input field.</ListItem>
+                                        <ListItem>Type the new phone number in international format — for example <strong>+256700000000</strong> (include the + and country code, no spaces).</ListItem>
+                                        <ListItem>Click the red <strong>Update Number</strong> button. A green confirmation message will appear at the top of the screen.</ListItem>
+                                        <ListItem>The large number display at the top of the box will update immediately to show the new number.</ListItem>
+                                    </OrderedList>
+
+                                    <Alert status="info" borderRadius="md">
+                                        <AlertIcon />
+                                        <AlertDescription>
+                                            The number must start with <strong>+</strong> followed by the country code and the phone number, with no spaces or dashes (e.g. <strong>+256712345678</strong> for Uganda).
+                                        </AlertDescription>
+                                    </Alert>
+
+                                    <Heading as="h3" size="sm">How to check if WhatsApp messages are sending</Heading>
+                                    <Text>There are two ways to check — a health check and a test send.</Text>
+
+                                    <Heading as="h3" size="sm">Option A — Run a health check</Heading>
+                                    <OrderedList spacing={2} pl={4}>
+                                        <ListItem>On the <strong>WhatsApp Connectivity Test</strong> page, scroll to the <strong>Health &amp; Session Status</strong> box.</ListItem>
+                                        <ListItem>Click <strong>Run health check</strong>.</ListItem>
+                                        <ListItem>A result box will appear. A <Badge colorScheme="green" fontSize="xs">Healthy</Badge> badge means the WhatsApp connection is ready. An <Badge colorScheme="red" fontSize="xs">Issue</Badge> badge means something is wrong — contact the developer with the details shown.</ListItem>
+                                    </OrderedList>
+
+                                    <Heading as="h3" size="sm">Option B — Send a real test message</Heading>
+                                    <OrderedList spacing={2} pl={4}>
+                                        <ListItem>On the <strong>WhatsApp Connectivity Test</strong> page, inside the <strong>Shopkeeper Contact Number</strong> box, click <strong>Send test to this number</strong>. This fires a real WhatsApp message to the saved shopkeeper number.</ListItem>
+                                        <ListItem>Check the shopkeeper's phone for the test message. If it arrives, WhatsApp notifications are working correctly.</ListItem>
+                                        <ListItem>If you want to test delivery to a different number, scroll down to the <strong>Send test message</strong> form, enter the number in the <strong>Recipient phone number</strong> field, and click <strong>Send test message</strong>.</ListItem>
+                                        <ListItem>After sending, the <strong>Latest response</strong> box at the bottom of the page will show whether the message was accepted by WhatsApp. A <strong>status 200</strong> response means success.</ListItem>
+                                    </OrderedList>
+
+                                    <Alert status="warning" borderRadius="md">
+                                        <AlertIcon />
+                                        <AlertDescription>
+                                            If the health check shows an issue or test messages are not arriving, contact the developer. Do not change any other settings on this page without guidance.
+                                        </AlertDescription>
+                                    </Alert>
+                                </Stack>
+                            </AccordionPanel>
+                        </AccordionItem>
+
+                        {/* ── 9. Quick Reference ── */}
                         <AccordionItem border="none" mb={3}>
                             <AccordionButton
                                 bg="teal.50"
@@ -439,7 +538,7 @@ export default function GuidePage() {
                                 px={4} py={3}
                             >
                                 <Box id="quick-reference" flex="1" textAlign="left">
-                                    <Heading as="h2" size="md">8. Quick Reference</Heading>
+                                    <Heading as="h2" size="md">9. Quick Reference</Heading>
                                 </Box>
                                 <AccordionIcon />
                             </AccordionButton>
@@ -496,6 +595,18 @@ export default function GuidePage() {
                                             <Tr>
                                                 <Td>Edit a product's name, description, or photo</Td>
                                                 <Td>Inventory Manager → Edit Details (Sanity) button (blue)</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>See the current shopkeeper WhatsApp number</Td>
+                                                <Td>Technical Developer Tools → WhatsApp Connectivity Test → Shopkeeper Contact Number box</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>Change the shopkeeper WhatsApp number</Td>
+                                                <Td>Technical Developer Tools → WhatsApp Connectivity Test → Update number field → Update Number button</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>Check if WhatsApp messages are sending</Td>
+                                                <Td>Technical Developer Tools → WhatsApp Connectivity Test → Run health check, or Send test to this number</Td>
                                             </Tr>
                                         </Tbody>
                                     </Table>
